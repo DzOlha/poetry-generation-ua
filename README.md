@@ -1,7 +1,3 @@
-Ось покращена, структурована і добре відформатована версія твоєї README.md з чіткими секціями, виділенням коду та підпунктів для кращої читаємості:
-
----
-
 # Automated Generation of Ukrainian Poetry
 
 *with Formal Control of Meter and Rhyme*
