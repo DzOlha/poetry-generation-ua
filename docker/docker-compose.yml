@@ -1,0 +1,17 @@
+services:
+  poetry:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: poetry_generator
+    env_file:
+      - ../.env
+    volumes:
+      - ../:/app:cached   # синхронізація всього проєкту
+      - /app/.venv        # кеш virtualenv усередині контейнера
+    environment:
+      - PYTHONPATH=/app
+      - POETRY_VIRTUALENVS_PATH=/app/.venv
+      - POETRY_VIRTUALENVS_IN_PROJECT=true
+    tty: true
+    command: bash

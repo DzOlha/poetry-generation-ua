@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "poetry-generation-ua"
+version = "0.1.0"
+description = "Poetry generation project"
+authors = ["Olha <olhadziuhal@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+numpy = "*"
+pandas = "*"
+torch = "*"
+transformers = "*"
+sentence-transformers = "*"
+scikit-learn = "*"
+tqdm = "*"
+pymorphy3 = "*"
+stanza = "*"
+matplotlib = "*"
+seaborn = "*"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.3.0"

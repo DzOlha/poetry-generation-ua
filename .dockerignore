@@ -1,0 +1,16 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+
+# Локальні дані
+data/
+results/
+.env
