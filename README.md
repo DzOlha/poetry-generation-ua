@@ -224,11 +224,7 @@ make bash
 
 * Opens an interactive shell in the container
 * Poetry virtualenv activated
-* Useful for:
-
-  * running exploratory scripts
-  * inspecting intermediate data
-  * manual debugging
+* Useful for running exploratory scripts, inspecting intermediate data, and manual debugging
 
 ---
 
@@ -241,25 +237,6 @@ make pipeline
 * Executes the full poetry generation pipeline
 * Uses Poetry-managed Python environment
 * Output stored in container-mounted volumes for reproducibility
-
----
-
-## Building a Poetry Corpus (for RAG)
-
-The project includes a script that builds a corpus from local poem files stored under the repository `data/` directory, cleans them, and saves a JSON corpus ready for the retrieval module.
-
-```bash
-python3 scripts/build_corpus_from_data_dir.py --data-dir data --out corpus/uk_poetry_corpus.json --min-count 44
-```
-
-Optional parameters:
-
-```bash
-python3 scripts/build_corpus_from_data_dir.py \
-  --data-dir data \
-  --min-count 500 \
-  --out corpus/uk_poetry_corpus.json
-```
 
 ---
 
@@ -276,18 +253,71 @@ make test-integration    # only integration tests
 
 ---
 
+## Corpus Management
+
+The project includes a ready-to-use corpus (`corpus/uk_poetry_corpus.json`, 53 poems) with **pre-computed LaBSE embeddings** — no runtime encoding overhead during retrieval.
+
+If you need to rebuild or extend the corpus from raw `.txt` files under `data/`, three Makefile targets are available:
+
+```bash
+make build-corpus                        # build corpus only (no embeddings)
+make embed-corpus                        # compute LaBSE embeddings for existing corpus
+make build-corpus-with-embeddings        # build corpus AND compute embeddings in one step
+```
+
+#### Corpus variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DATA_DIR` | `data` | Source directory with `.txt` poem files |
+| `OUT` | `corpus/uk_poetry_corpus.json` | Output corpus JSON path |
+| `MIN_COUNT` | `1` | Minimum number of poems required to succeed |
+| `CORPUS` | `corpus/uk_poetry_corpus.json` | Path used by `embed-corpus` |
+
+Examples:
+
+```bash
+make build-corpus DATA_DIR=data OUT=corpus/uk_poetry_corpus.json MIN_COUNT=1
+make embed-corpus CORPUS=corpus/uk_poetry_corpus.json
+make build-corpus-with-embeddings DATA_DIR=data MIN_COUNT=50
+```
+
+You can also call the scripts directly:
+
+```bash
+# Build corpus with embeddings in one command
+python3 scripts/build_corpus_from_data_dir.py \
+  --data-dir data \
+  --out corpus/uk_poetry_corpus.json \
+  --min-count 1 \
+  --embed
+
+# Compute embeddings separately (idempotent — skips poems that already have them)
+python3 scripts/build_corpus_embeddings.py --corpus corpus/uk_poetry_corpus.json
+```
+
+The corpus path can also be set at runtime via the `CORPUS_PATH` environment variable:
+
+```bash
+CORPUS_PATH=corpus/my_corpus.json make evaluate SCENARIO=N01 CONFIG=D
+```
+
+---
+
 ### Evaluation Harness
 
 Run the automated evaluation pipeline with **18 curated scenarios × 5 ablation configs**.
 
 ```bash
-make evaluate                                   # all scenarios × all configs (90 runs)
-make evaluate SCENARIO=N01                      # one scenario, all configs
-make evaluate SCENARIO=N01 CONFIG=D             # one scenario, one config (~1-4 API calls)
-make evaluate CONFIG=D                          # all scenarios, one config
-make evaluate CATEGORY=corner                   # only corner-case scenarios
-make evaluate SCENARIO=N01 CONFIG=D VERBOSE=1   # with detailed stage-by-stage traces
-make evaluate OUTPUT=results/my_run.json        # custom output path
+make evaluate                                        # all scenarios × all configs (90 runs)
+make evaluate SCENARIO=N01                           # one scenario, all configs
+make evaluate SCENARIO=N01 CONFIG=D                  # one scenario, one config (~1–4 API calls)
+make evaluate CONFIG=D                               # all scenarios, one config
+make evaluate CATEGORY=corner                        # only corner-case scenarios
+make evaluate SCENARIO=N01 CONFIG=D VERBOSE=1        # with detailed stage-by-stage traces
+make evaluate OUTPUT=results/my_run.json             # custom output path
+make evaluate STANZAS=2 LINES_PER_STANZA=4           # override poem structure for all scenarios
+make evaluate SCENARIO=N01 STANZAS=3 LINES_PER_STANZA=6  # specific scenario, custom structure
 ```
 
 #### Variables
@@ -299,6 +329,19 @@ make evaluate OUTPUT=results/my_run.json        # custom output path
 | `CATEGORY` | *(all)* | Filter by category: `normal`, `edge`, or `corner` |
 | `VERBOSE` | *(off)* | Set to `1` for full stage-by-stage traces |
 | `OUTPUT` | `results/evaluation.json` | Path to save JSON results |
+| `STANZAS` | `2` | Number of stanzas to generate (overrides per-scenario default) |
+| `LINES_PER_STANZA` | `4` | Lines per stanza (overrides per-scenario default) |
+
+Both `STANZAS` and `LINES_PER_STANZA` override the values defined in the scenario. Total lines generated = `STANZAS × LINES_PER_STANZA`. Each scenario also defines its own defaults (see `src/evaluation/scenarios.py`), which take effect when the variables are not set.
+
+#### Poem Structure per Scenario
+
+Each `EvaluationScenario` carries `stanza_count`, `lines_per_stanza`, and a computed `total_lines` property. The prompt sent to the LLM explicitly specifies the required structure, e.g.:
+
+```
+Structure: 2 stanzas of 4 lines each (8 lines total)
+Generate a Ukrainian poem with exactly 8 lines.
+```
 
 #### Scenario Categories
 
@@ -306,7 +349,7 @@ make evaluate OUTPUT=results/my_run.json        # custom output path
 * **Edge** (E01–E05) — boundary conditions: 2-foot minimal, 6-foot alexandrine, monorhyme AAAA, abstract theme
 * **Corner** (C01–C08) — adversarial inputs: empty theme, XSS injection, unsupported meter, mixed languages, zero feet
 
-#### Ablation Configs (from spec §9)
+#### Ablation Configs
 
 | Config | Retrieval | Validator | Feedback | Description |
 |--------|-----------|-----------|----------|-------------|
@@ -319,7 +362,7 @@ make evaluate OUTPUT=results/my_run.json        # custom output path
 #### Output
 
 Each run produces:
-* **Summary table** — meter accuracy, rhyme accuracy, BLEU, ROUGE-L per scenario×config
+* **Summary table** — meter accuracy, rhyme accuracy, BLEU, ROUGE-L per scenario × config
 * **Aggregates** — averages by config and by category
 * **JSON export** — full traces with stage-by-stage records, iteration history, and metrics
 
@@ -337,11 +380,7 @@ make down
 
 * Stops all containers
 * Removes volumes and orphaned resources
-* Recommended for:
-
-  * switching branches
-  * resetting experiments
-  * reclaiming disk space
+* Recommended when switching branches, resetting experiments, or reclaiming disk space
 
 ---
 
@@ -351,12 +390,22 @@ make down
 make rebuild
 ```
 
-* Rebuilds Docker images from scratch
-* Useful when:
+* Rebuilds Docker images from scratch without cache
+* Useful when dependency definitions or Dockerfiles change
 
-  * dependency definitions change
-  * Dockerfiles are modified
-  * eliminating inconsistent states
+---
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `GEMINI_API_KEY` | — | Google Gemini API key (required for real LLM) |
+| `GEMINI_MODEL` | `gemini-2.0-flash` | Gemini model name |
+| `GEMINI_TEMPERATURE` | `0.9` | Sampling temperature |
+| `GEMINI_MAX_OUTPUT_TOKENS` | `4096` | Max tokens per generation |
+| `CORPUS_PATH` | `corpus/uk_poetry_corpus.json` | Path to the poetry corpus JSON |
+
+Without `GEMINI_API_KEY`, the system falls back to `MockLLMClient` (deterministic stub), which is sufficient for running tests and verifying the pipeline structure.
 
 ---
 
