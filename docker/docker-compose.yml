@@ -9,9 +9,15 @@ services:
     volumes:
       - ../:/app:cached   # синхронізація всього проєкту
       - /app/.venv        # кеш virtualenv усередині контейнера
+      - stanza_cache:/root/stanza_resources  # кеш Stanza-моделей між запусками
+      - hf_cache:/root/.cache/huggingface    # кеш HuggingFace/LaBSE між запусками
     environment:
       - PYTHONPATH=/app
       - POETRY_VIRTUALENVS_PATH=/app/.venv
       - POETRY_VIRTUALENVS_IN_PROJECT=true
     tty: true
     command: bash
+
+volumes:
+  stanza_cache:
+  hf_cache:
