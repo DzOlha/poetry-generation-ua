@@ -1,0 +1,1444 @@
+{
+  "summary": [
+    {
+      "scenario_id": "N01",
+      "scenario_name": "Весна в лісі (ямб, ABAB)",
+      "config": "A",
+      "meter_accuracy": 0.0,
+      "rhyme_accuracy": 0.5,
+      "bleu": 0.0,
+      "rouge_l": 0.1071,
+      "iterations": 0,
+      "lines": 8,
+      "duration_sec": 13.7945,
+      "error": null
+    },
+    {
+      "scenario_id": "N01",
+      "scenario_name": "Весна в лісі (ямб, ABAB)",
+      "config": "B",
+      "meter_accuracy": 0.0,
+      "rhyme_accuracy": 0.5,
+      "bleu": 0.0,
+      "rouge_l": 0.129,
+      "iterations": 0,
+      "lines": 8,
+      "duration_sec": 8.4516,
+      "error": null
+    },
+    {
+      "scenario_id": "N01",
+      "scenario_name": "Весна в лісі (ямб, ABAB)",
+      "config": "C",
+      "meter_accuracy": 0.0,
+      "rhyme_accuracy": 1.0,
+      "bleu": 0.0,
+      "rouge_l": 0.0667,
+      "iterations": 1,
+      "lines": 8,
+      "duration_sec": 27.4782,
+      "error": null
+    },
+    {
+      "scenario_id": "N01",
+      "scenario_name": "Весна в лісі (ямб, ABAB)",
+      "config": "D",
+      "meter_accuracy": 0.75,
+      "rhyme_accuracy": 0.5,
+      "bleu": 0.0,
+      "rouge_l": 0.1333,
+      "iterations": 1,
+      "lines": 8,
+      "duration_sec": 35.9572,
+      "error": null
+    },
+    {
+      "scenario_id": "N01",
+      "scenario_name": "Весна в лісі (ямб, ABAB)",
+      "config": "E",
+      "meter_accuracy": 0.875,
+      "rhyme_accuracy": 1.0,
+      "bleu": 0.0,
+      "rouge_l": 0.0755,
+      "iterations": 1,
+      "lines": 8,
+      "duration_sec": 30.0402,
+      "error": null
+    }
+  ],
+  "traces": [
+    {
+      "scenario_id": "N01",
+      "config": "A",
+      "stages": [
+        {
+          "stage": "retrieval",
+          "input": "SKIPPED (config.use_retrieval=False or empty corpus)",
+          "output": "—",
+          "metrics": {
+            "num_retrieved": 0
+          },
+          "duration_sec": 0.0
+        },
+        {
+          "stage": "prompt_construction",
+          "input": "theme='весна у лісі, пробудження природи', meter=ямб, scheme=ABAB, structure=2×4",
+          "output": "prompt length=246 chars",
+          "metrics": {
+            "prompt_length": 246
+          },
+          "duration_sec": 0.0,
+          "input_data": {
+            "theme": "весна у лісі, пробудження природи",
+            "meter": "ямб",
+            "rhyme_scheme": "ABAB",
+            "foot_count": 4,
+            "stanza_count": 2,
+            "lines_per_stanza": 4,
+            "total_lines": 8,
+            "num_retrieved": 0
+          },
+          "output_data": "Use the following poetic excerpts as thematic inspiration (do not copy):\n\n\nTheme: весна у лісі, пробудження природи\nMeter: ямб\nRhyme scheme: ABAB\nStructure: 2 stanzas of 4 lines each (8 lines total)\nGenerate a Ukrainian poem with exactly 8 lines."
+        },
+        {
+          "stage": "initial_generation",
+          "input": "prompt (246 chars)",
+          "output": "8 lines generated",
+          "metrics": {
+            "num_lines": 8
+          },
+          "duration_sec": 12.58,
+          "input_data": "Use the following poetic excerpts as thematic inspiration (do not copy):\n\n\nTheme: весна у лісі, пробудження природи\nMeter: ямб\nRhyme scheme: ABAB\nStructure: 2 stanzas of 4 lines each (8 lines total)\nGenerate a Ukrainian poem with exactly 8 lines.",
+          "output_data": "Прийшла весна у лісові простори,\nПрокинулась від сну земля стара.\nРозкрились вмить усі її узори,\nЗаспівала пташина дзвінка.\n\nСпіває вітер лісові хори,\nЗ'явилась знову свіжа мурава.\nВже розпускають ніжні кольори,\nІ повна див природи є краса.\n"
+        },
+        {
+          "stage": "validation",
+          "input": "SKIPPED (config.use_validation=False)",
+          "output": "—",
+          "metrics": {},
+          "duration_sec": 0.0,
+          "input_data": "Прийшла весна у лісові простори,\nПрокинулась від сну земля стара.\nРозкрились вмить усі її узори,\nЗаспівала пташина дзвінка.\n\nСпіває вітер лісові хори,\nЗ'явилась знову свіжа мурава.\nВже розпускають ніжні кольори,\nІ повна див природи є краса.\n"
+        }
+      ],
+      "iterations": [],
+      "final_poem": "Прийшла весна у лісові простори,\nПрокинулась від сну земля стара.\nРозкрились вмить усі її узори,\nЗаспівала пташина дзвінка.\n\nСпіває вітер лісові хори,\nЗ'явилась знову свіжа мурава.\nВже розпускають ніжні кольори,\nІ повна див природи є краса.\n",
+      "final_metrics": {
+        "meter_accuracy": 0.0,
+        "rhyme_accuracy": 0.5,
+        "bleu": 0.0,
+        "rouge_l": 0.1071,
+        "num_lines": 8
+      },
+      "total_duration_sec": 13.7945
+    },
+    {
+      "scenario_id": "N01",
+      "config": "B",
+      "stages": [
+        {
+          "stage": "retrieval",
+          "input": "SKIPPED (config.use_retrieval=False or empty corpus)",
+          "output": "—",
+          "metrics": {
+            "num_retrieved": 0
+          },
+          "duration_sec": 0.0
+        },
+        {
+          "stage": "prompt_construction",
+          "input": "theme='весна у лісі, пробудження природи', meter=ямб, scheme=ABAB, structure=2×4",
+          "output": "prompt length=246 chars",
+          "metrics": {
+            "prompt_length": 246
+          },
+          "duration_sec": 0.0,
+          "input_data": {
+            "theme": "весна у лісі, пробудження природи",
+            "meter": "ямб",
+            "rhyme_scheme": "ABAB",
+            "foot_count": 4,
+            "stanza_count": 2,
+            "lines_per_stanza": 4,
+            "total_lines": 8,
+            "num_retrieved": 0
+          },
+          "output_data": "Use the following poetic excerpts as thematic inspiration (do not copy):\n\n\nTheme: весна у лісі, пробудження природи\nMeter: ямб\nRhyme scheme: ABAB\nStructure: 2 stanzas of 4 lines each (8 lines total)\nGenerate a Ukrainian poem with exactly 8 lines."
+        },
+        {
+          "stage": "initial_generation",
+          "input": "prompt (246 chars)",
+          "output": "8 lines generated",
+          "metrics": {
+            "num_lines": 8
+          },
+          "duration_sec": 6.0537,
+          "input_data": "Use the following poetic excerpts as thematic inspiration (do not copy):\n\n\nTheme: весна у лісі, пробудження природи\nMeter: ямб\nRhyme scheme: ABAB\nStructure: 2 stanzas of 4 lines each (8 lines total)\nGenerate a Ukrainian poem with exactly 8 lines.",
+          "output_data": "Вже ліс весняний тихо гомонить,\nІ перша квітка землю пробива.\nПроміння сонця поміж віт тремтить,\nДе юна зелень радісно співа.\n\nВже солов'їний спів лунає з гілля,\nДзвенять струмки, бурхливі й голосні.\nПрирода ожива, мов дивне зілля,\nНесучи радість в ці весняні дні.\n"
+        },
+        {
+          "stage": "validation",
+          "input": "poem (8 lines)",
+          "output": "meter_acc=0.00%, rhyme_acc=50.00%, violations=9",
+          "metrics": {
+            "meter_accuracy": 0.0,
+            "rhyme_accuracy": 0.5,
+            "violation_count": 9
+          },
+          "duration_sec": 1.1861,
+          "input_data": "Вже ліс весняний тихо гомонить,\nІ перша квітка землю пробива.\nПроміння сонця поміж віт тремтить,\nДе юна зелень радісно співа.\n\nВже солов'їний спів лунає з гілля,\nДзвенять струмки, бурхливі й голосні.\nПрирода ожива, мов дивне зілля,\nНесучи радість в ці весняні дні.\n",
+          "output_data": {
+            "meter_results": [
+              {
+                "line": 1,
+                "ok": false,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  1,
+                  2,
+                  4,
+                  6,
+                  10
+                ],
+                "error_positions": [
+                  1,
+                  8
+                ],
+                "total_syllables": 10
+              },
+              {
+                "line": 2,
+                "ok": false,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  1,
+                  2,
+                  4,
+                  6,
+                  10
+                ],
+                "error_positions": [
+                  1,
+                  8
+                ],
+                "total_syllables": 10
+              },
+              {
+                "line": 3,
+                "ok": false,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  2,
+                  4,
+                  7,
+                  8,
+                  10
+                ],
+                "error_positions": [
+                  6,
+                  7
+                ],
+                "total_syllables": 10
+              },
+              {
+                "line": 4,
+                "ok": false,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  1,
+                  2,
+                  4,
+                  6,
+                  9
+                ],
+                "error_positions": [
+                  1,
+                  8
+                ],
+                "total_syllables": 10
+              },
+              {
+                "line": 5,
+                "ok": false,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  1,
+                  4,
+                  6,
+                  8,
+                  10
+                ],
+                "error_positions": [
+                  1,
+                  2
+                ],
+                "total_syllables": 11
+              },
+              {
+                "line": 6,
+                "ok": false,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  2,
+                  4,
+                  6,
+                  10
+                ],
+                "error_positions": [
+                  8
+                ],
+                "total_syllables": 10
+              },
+              {
+                "line": 7,
+                "ok": false,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  2,
+                  6,
+                  7,
+                  8,
+                  10
+                ],
+                "error_positions": [
+                  4,
+                  7
+                ],
+                "total_syllables": 11
+              },
+              {
+                "line": 8,
+                "ok": false,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  3,
+                  4,
+                  6,
+                  8,
+                  10
+                ],
+                "error_positions": [
+                  2,
+                  3
+                ],
+                "total_syllables": 10
+              }
+            ],
+            "rhyme_results": [
+              {
+                "line_1": 1,
+                "line_2": 3,
+                "word_1": "гомонить",
+                "word_2": "тремтить",
+                "rhyme_part_1": "ɪt",
+                "rhyme_part_2": "ɪt",
+                "score": 1.0,
+                "rhyme_ok": true
+              },
+              {
+                "line_1": 2,
+                "line_2": 4,
+                "word_1": "пробива",
+                "word_2": "співа",
+                "rhyme_part_1": "a",
+                "rhyme_part_2": "iva",
+                "score": 0.3333,
+                "rhyme_ok": false
+              }
+            ],
+            "feedback": [
+              "Line 1 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 4, 6, 10.\nRewrite only this line, keep the meaning.",
+              "Line 2 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 4, 6, 10.\nRewrite only this line, keep the meaning.",
+              "Line 3 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 7, 8, 10.\nRewrite only this line, keep the meaning.",
+              "Line 4 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 4, 6, 9.\nRewrite only this line, keep the meaning.",
+              "Line 5 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 4, 6, 8, 10.\nRewrite only this line, keep the meaning.",
+              "Line 6 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 6, 10.\nRewrite only this line, keep the meaning.",
+              "Line 7 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 6, 7, 8, 10.\nRewrite only this line, keep the meaning.",
+              "Line 8 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 3, 4, 6, 8, 10.\nRewrite only this line, keep the meaning.",
+              "Lines 2 and 4 should rhyme (scheme ABAB).\nExpected rhyme with ending 'a'.\nCurrent ending 'iva' does not match (score: 0.33).\nRewrite line 4 keeping the meaning and meter."
+            ]
+          }
+        },
+        {
+          "stage": "feedback_loop",
+          "input": "SKIPPED (config.use_feedback=False)",
+          "output": "—",
+          "metrics": {},
+          "duration_sec": 0.0
+        }
+      ],
+      "iterations": [
+        {
+          "iteration": 0,
+          "poem_text": "Вже ліс весняний тихо гомонить,\nІ перша квітка землю пробива.\nПроміння сонця поміж віт тремтить,\nДе юна зелень радісно співа.\n\nВже солов'їний спів лунає з гілля,\nДзвенять струмки, бурхливі й голосні.\nПрирода ожива, мов дивне зілля,\nНесучи радість в ці весняні дні.\n",
+          "meter_accuracy": 0.0,
+          "rhyme_accuracy": 0.5,
+          "feedback": [
+            "Line 1 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 4, 6, 10.\nRewrite only this line, keep the meaning.",
+            "Line 2 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 4, 6, 10.\nRewrite only this line, keep the meaning.",
+            "Line 3 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 7, 8, 10.\nRewrite only this line, keep the meaning.",
+            "Line 4 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 4, 6, 9.\nRewrite only this line, keep the meaning.",
+            "Line 5 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 4, 6, 8, 10.\nRewrite only this line, keep the meaning.",
+            "Line 6 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 6, 10.\nRewrite only this line, keep the meaning.",
+            "Line 7 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 6, 7, 8, 10.\nRewrite only this line, keep the meaning.",
+            "Line 8 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 3, 4, 6, 8, 10.\nRewrite only this line, keep the meaning.",
+            "Lines 2 and 4 should rhyme (scheme ABAB).\nExpected rhyme with ending 'a'.\nCurrent ending 'iva' does not match (score: 0.33).\nRewrite line 4 keeping the meaning and meter."
+          ],
+          "duration_sec": 1.1861
+        }
+      ],
+      "final_poem": "Вже ліс весняний тихо гомонить,\nІ перша квітка землю пробива.\nПроміння сонця поміж віт тремтить,\nДе юна зелень радісно співа.\n\nВже солов'їний спів лунає з гілля,\nДзвенять струмки, бурхливі й голосні.\nПрирода ожива, мов дивне зілля,\nНесучи радість в ці весняні дні.\n",
+      "final_metrics": {
+        "meter_accuracy": 0.0,
+        "rhyme_accuracy": 0.5,
+        "bleu": 0.0,
+        "rouge_l": 0.129,
+        "num_lines": 8,
+        "meter_improvement": 0.0,
+        "rhyme_improvement": 0.0,
+        "feedback_iterations": 0
+      },
+      "total_duration_sec": 8.4516
+    },
+    {
+      "scenario_id": "N01",
+      "config": "C",
+      "stages": [
+        {
+          "stage": "retrieval",
+          "input": "SKIPPED (config.use_retrieval=False or empty corpus)",
+          "output": "—",
+          "metrics": {
+            "num_retrieved": 0
+          },
+          "duration_sec": 0.0
+        },
+        {
+          "stage": "prompt_construction",
+          "input": "theme='весна у лісі, пробудження природи', meter=ямб, scheme=ABAB, structure=2×4",
+          "output": "prompt length=246 chars",
+          "metrics": {
+            "prompt_length": 246
+          },
+          "duration_sec": 0.0,
+          "input_data": {
+            "theme": "весна у лісі, пробудження природи",
+            "meter": "ямб",
+            "rhyme_scheme": "ABAB",
+            "foot_count": 4,
+            "stanza_count": 2,
+            "lines_per_stanza": 4,
+            "total_lines": 8,
+            "num_retrieved": 0
+          },
+          "output_data": "Use the following poetic excerpts as thematic inspiration (do not copy):\n\n\nTheme: весна у лісі, пробудження природи\nMeter: ямб\nRhyme scheme: ABAB\nStructure: 2 stanzas of 4 lines each (8 lines total)\nGenerate a Ukrainian poem with exactly 8 lines."
+        },
+        {
+          "stage": "initial_generation",
+          "input": "prompt (246 chars)",
+          "output": "8 lines generated",
+          "metrics": {
+            "num_lines": 8
+          },
+          "duration_sec": 6.0686,
+          "input_data": "Use the following poetic excerpts as thematic inspiration (do not copy):\n\n\nTheme: весна у лісі, пробудження природи\nMeter: ямб\nRhyme scheme: ABAB\nStructure: 2 stanzas of 4 lines each (8 lines total)\nGenerate a Ukrainian poem with exactly 8 lines.",
+          "output_data": "Прокинувсь ліс, промінням залитий,\nДзвенять струмки, що спали під льодом,\nІ кожен кущ, росою вмитий,\nЗустрів весну із радісним сходом.\n\nЗ-під моху квітка тягне ніжний цвіт,\nСпіває птах пісень нових і дзвінких,\nШепоче вітер свій старий привіт,\nСеред дерев зелених, молодих.\n"
+        },
+        {
+          "stage": "validation",
+          "input": "poem (8 lines)",
+          "output": "meter_acc=0.00%, rhyme_acc=100.00%, violations=8",
+          "metrics": {
+            "meter_accuracy": 0.0,
+            "rhyme_accuracy": 1.0,
+            "violation_count": 8
+          },
+          "duration_sec": 1.3654,
+          "input_data": "Прокинувсь ліс, промінням залитий,\nДзвенять струмки, що спали під льодом,\nІ кожен кущ, росою вмитий,\nЗустрів весну із радісним сходом.\n\nЗ-під моху квітка тягне ніжний цвіт,\nСпіває птах пісень нових і дзвінких,\nШепоче вітер свій старий привіт,\nСеред дерев зелених, молодих.\n",
+          "output_data": {
+            "meter_results": [
+              {
+                "line": 1,
+                "ok": false,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  2,
+                  4,
+                  6,
+                  9
+                ],
+                "error_positions": [
+                  8
+                ],
+                "total_syllables": 10
+              },
+              {
+                "line": 2,
+                "ok": false,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  2,
+                  4,
+                  5,
+                  6,
+                  8,
+                  9
+                ],
+                "error_positions": [
+                  5
+                ],
+                "total_syllables": 10
+              },
+              {
+                "line": 3,
+                "ok": false,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  1,
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "error_positions": [
+                  1
+                ],
+                "total_syllables": 9
+              },
+              {
+                "line": 4,
+                "ok": false,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  2,
+                  4,
+                  5,
+                  6,
+                  9
+                ],
+                "error_positions": [
+                  5,
+                  8
+                ],
+                "total_syllables": 10
+              },
+              {
+                "line": 5,
+                "ok": false,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  1,
+                  2,
+                  4,
+                  6,
+                  8,
+                  10
+                ],
+                "error_positions": [
+                  1
+                ],
+                "total_syllables": 10
+              },
+              {
+                "line": 6,
+                "ok": false,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  2,
+                  4,
+                  6,
+                  8,
+                  9,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 11
+              },
+              {
+                "line": 7,
+                "ok": false,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  2,
+                  4,
+                  6,
+                  8,
+                  10
+                ],
+                "error_positions": [],
+                "total_syllables": 10
+              },
+              {
+                "line": 8,
+                "ok": false,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  1,
+                  4,
+                  6,
+                  10
+                ],
+                "error_positions": [
+                  1,
+                  2,
+                  8
+                ],
+                "total_syllables": 10
+              }
+            ],
+            "rhyme_results": [
+              {
+                "line_1": 1,
+                "line_2": 3,
+                "word_1": "залитий",
+                "word_2": "вмитий",
+                "rhyme_part_1": "ɪtɪj",
+                "rhyme_part_2": "ɪtɪj",
+                "score": 1.0,
+                "rhyme_ok": true
+              },
+              {
+                "line_1": 2,
+                "line_2": 4,
+                "word_1": "льодом",
+                "word_2": "сходом",
+                "rhyme_part_1": "odom",
+                "rhyme_part_2": "odom",
+                "score": 1.0,
+                "rhyme_ok": true
+              }
+            ],
+            "feedback": [
+              "Line 1 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 6, 9.\nRewrite only this line, keep the meaning.",
+              "Line 2 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 5, 6, 8, 9.\nRewrite only this line, keep the meaning.",
+              "Line 3 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 4, 6, 8.\nRewrite only this line, keep the meaning.",
+              "Line 4 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 5, 6, 9.\nRewrite only this line, keep the meaning.",
+              "Line 5 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 4, 6, 8, 10.\nRewrite only this line, keep the meaning.",
+              "Line 6 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 6, 8, 9, 11.\nRewrite only this line, keep the meaning.",
+              "Line 7 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 6, 8, 10.\nRewrite only this line, keep the meaning.",
+              "Line 8 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 4, 6, 10.\nRewrite only this line, keep the meaning."
+            ]
+          }
+        },
+        {
+          "stage": "feedback_loop",
+          "input": "max_iterations=1",
+          "output": "2 iterations total, final meter=0.00% rhyme=100.00%",
+          "metrics": {
+            "total_iterations": 2,
+            "final_meter_accuracy": 0.0,
+            "final_rhyme_accuracy": 1.0,
+            "final_violations": 8
+          },
+          "duration_sec": 0.0,
+          "input_data": {
+            "max_iterations": 1,
+            "initial_poem": "Прокинувсь ліс, промінням залитий,\nДзвенять струмки, що спали під льодом,\nІ кожен кущ, росою вмитий,\nЗустрів весну із радісним сходом.\n\nЗ-під моху квітка тягне ніжний цвіт,\nСпіває птах пісень нових і дзвінких,\nШепоче вітер свій старий привіт,\nСеред дерев зелених, молодих.\n"
+          },
+          "output_data": {
+            "final_poem": "Проснувся ліс, промінням залитий,\nСтрумки дзвенять, що спали під льодом,\nІ кущ увесь, росою вмитий,\nЗустрів весну, з веселим сходом.\n\nІз моху квітка тягне ніжний цвіт,\nСпіває птах пісень нових, дзвінких,\nШепоче вітер свій старий привіт,\nСеред дерев зелених, молодих.\n",
+            "final_feedback": [
+              "Line 1 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 6, 9.\nRewrite only this line, keep the meaning.",
+              "Line 2 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 5, 6, 8, 9.\nRewrite only this line, keep the meaning.",
+              "Line 3 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 4, 6, 8.\nRewrite only this line, keep the meaning.",
+              "Line 4 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 6, 8.\nRewrite only this line, keep the meaning.",
+              "Line 5 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 4, 6, 8, 10.\nRewrite only this line, keep the meaning.",
+              "Line 6 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 6, 8, 10.\nRewrite only this line, keep the meaning.",
+              "Line 7 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 6, 8, 10.\nRewrite only this line, keep the meaning.",
+              "Line 8 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 4, 6, 10.\nRewrite only this line, keep the meaning."
+            ]
+          }
+        }
+      ],
+      "iterations": [
+        {
+          "iteration": 0,
+          "poem_text": "Прокинувсь ліс, промінням залитий,\nДзвенять струмки, що спали під льодом,\nІ кожен кущ, росою вмитий,\nЗустрів весну із радісним сходом.\n\nЗ-під моху квітка тягне ніжний цвіт,\nСпіває птах пісень нових і дзвінких,\nШепоче вітер свій старий привіт,\nСеред дерев зелених, молодих.\n",
+          "meter_accuracy": 0.0,
+          "rhyme_accuracy": 1.0,
+          "feedback": [
+            "Line 1 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 6, 9.\nRewrite only this line, keep the meaning.",
+            "Line 2 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 5, 6, 8, 9.\nRewrite only this line, keep the meaning.",
+            "Line 3 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 4, 6, 8.\nRewrite only this line, keep the meaning.",
+            "Line 4 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 5, 6, 9.\nRewrite only this line, keep the meaning.",
+            "Line 5 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 4, 6, 8, 10.\nRewrite only this line, keep the meaning.",
+            "Line 6 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 6, 8, 9, 11.\nRewrite only this line, keep the meaning.",
+            "Line 7 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 6, 8, 10.\nRewrite only this line, keep the meaning.",
+            "Line 8 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 4, 6, 10.\nRewrite only this line, keep the meaning."
+          ],
+          "duration_sec": 1.3654
+        },
+        {
+          "iteration": 1,
+          "poem_text": "Проснувся ліс, промінням залитий,\nСтрумки дзвенять, що спали під льодом,\nІ кущ увесь, росою вмитий,\nЗустрів весну, з веселим сходом.\n\nІз моху квітка тягне ніжний цвіт,\nСпіває птах пісень нових, дзвінких,\nШепоче вітер свій старий привіт,\nСеред дерев зелених, молодих.\n",
+          "meter_accuracy": 0.0,
+          "rhyme_accuracy": 1.0,
+          "feedback": [
+            "Line 1 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 6, 9.\nRewrite only this line, keep the meaning.",
+            "Line 2 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 5, 6, 8, 9.\nRewrite only this line, keep the meaning.",
+            "Line 3 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 4, 6, 8.\nRewrite only this line, keep the meaning.",
+            "Line 4 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 6, 8.\nRewrite only this line, keep the meaning.",
+            "Line 5 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 4, 6, 8, 10.\nRewrite only this line, keep the meaning.",
+            "Line 6 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 6, 8, 10.\nRewrite only this line, keep the meaning.",
+            "Line 7 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 6, 8, 10.\nRewrite only this line, keep the meaning.",
+            "Line 8 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 4, 6, 10.\nRewrite only this line, keep the meaning."
+          ],
+          "duration_sec": 18.8077
+        }
+      ],
+      "final_poem": "Проснувся ліс, промінням залитий,\nСтрумки дзвенять, що спали під льодом,\nІ кущ увесь, росою вмитий,\nЗустрів весну, з веселим сходом.\n\nІз моху квітка тягне ніжний цвіт,\nСпіває птах пісень нових, дзвінких,\nШепоче вітер свій старий привіт,\nСеред дерев зелених, молодих.\n",
+      "final_metrics": {
+        "meter_accuracy": 0.0,
+        "rhyme_accuracy": 1.0,
+        "bleu": 0.0,
+        "rouge_l": 0.0667,
+        "num_lines": 8,
+        "meter_improvement": 0.0,
+        "rhyme_improvement": 0.0,
+        "feedback_iterations": 1
+      },
+      "total_duration_sec": 27.4782
+    },
+    {
+      "scenario_id": "N01",
+      "config": "D",
+      "stages": [
+        {
+          "stage": "retrieval",
+          "input": "theme='весна у лісі, пробудження природи', corpus_size=53",
+          "output": "retrieved 5 poems, top_sim=0.5087",
+          "metrics": {
+            "num_retrieved": 5,
+            "top_similarity": 0.508678659664213
+          },
+          "duration_sec": 5.8748,
+          "input_data": {
+            "theme": "весна у лісі, пробудження природи",
+            "corpus_size": 53
+          },
+          "output_data": [
+            {
+              "poem_id": "local_леся-українка_леся-українка-32_4",
+              "similarity": 0.5087,
+              "text": "стояла я і слухала весну,\nвесна мені багато говорила,\nспівала пісню дзвінку, голосну\nто знов таємно-тихо шепотіла.\nвона мені співала про любов,\nпро молодощі, радощі, надії,\nвона мені переспівала знов\nте, що давно мені співали мрії."
+            },
+            {
+              "poem_id": "local_леся-українка_леся-українка-32_9",
+              "similarity": 0.4446,
+              "text": "уже скотилось із неба сонце,\nзаглянув місяць в моє віконце.\nвже засвітились у небі зорі,\nуже заснуло, заснуло й горе.\nвийду в садочок та погуляю,\nпри місяченьку та й заспіваю.\nяк же тут гарно, як же тут тихо,\nв таку годину забудеш лихо!\nкругом садочки, біленькі хати,\nі соловейка в гаю чувати.\nой, чи так красно в якій країні,\nяк тут, на нашій рідній волині!\nніч обгорнула біленькі хати,\nнемов маленьких діточок мати,\nвітрець весняний тихенько дише,\nнемов діток тих до сну колише."
+            },
+            {
+              "poem_id": "local_леся-українка_леся-українка-32_8",
+              "similarity": 0.4407,
+              "text": "літо краснеє минуло,\nсніг лежить на полі;\nдіти з хати виглядають\nв вікна… шкода волі!\nдіти нудяться в хатині,\nнудять, нарікають:\n«і нащо зима та люта? –\nвсе вони питають. –\nон все поле сніг завіяв,\nхоч не йди із хати!\nу замкнуті дивись вікна,\nніде й погуляти!\nсніг з морозом поморозив\nвсі на полі квіти…\nдесь зима та не скінчиться!»\nнарікають діти.\nждіте, ждіте, любі діти!\nліто знов прилине,\nприйде мила годинонька,\nяк зима та згине;\nі заквітне наше поле,\nі зазеленіє, –\nзнов його весна прекрасна\nквіточками вкриє."
+            },
+            {
+              "poem_id": "local_тарас-шевченко_тарас-шевченко-21_11",
+              "similarity": 0.4167,
+              "text": "поставлю хату і кімнату,\nсадок-райочок насаджу.\nпосиджу я і походжу\nв своїй маленькій благодаті.\nта в одині-самотині\nв садочку буду спочивати.\nприсняться діточки мені,\nвеселая присниться мати,\nдавнє-колишній та ясний\nприсниться сон мені!.. і ти!..\nні, я не буду спочивати,\nбо й ти приснишся. і в малий\nрайочок мій спідтиха-тиха\nпідкрадешся, наробиш лиха…\nзапалиш рай мій самотний."
+            },
+            {
+              "poem_id": "local_леся-українка_леся-українка-32_6",
+              "similarity": 0.4134,
+              "text": "чи є кращі між квітками\nта над веснянії?\nчи є в житті кращі літа\nта над молодії?\nне всихайте, пишні квіти,\nцвітіть хоч до літа!\nпождіть, літа, доля прийде,\nне тікайте з світа!\nдвічі на рік пишні квіти\nта не процвітають;\nв житті літа найкращії\nдвічі не бувають."
+            }
+          ]
+        },
+        {
+          "stage": "prompt_construction",
+          "input": "theme='весна у лісі, пробудження природи', meter=ямб, scheme=ABAB, structure=2×4",
+          "output": "prompt length=2116 chars",
+          "metrics": {
+            "prompt_length": 2116
+          },
+          "duration_sec": 0.0,
+          "input_data": {
+            "theme": "весна у лісі, пробудження природи",
+            "meter": "ямб",
+            "rhyme_scheme": "ABAB",
+            "foot_count": 4,
+            "stanza_count": 2,
+            "lines_per_stanza": 4,
+            "total_lines": 8,
+            "num_retrieved": 5
+          },
+          "output_data": "Use the following poetic excerpts as thematic inspiration (do not copy):\nстояла я і слухала весну,\nвесна мені багато говорила,\nспівала пісню дзвінку, голосну\nто знов таємно-тихо шепотіла.\nвона мені співала про любов,\nпро молодощі, радощі, надії,\nвона мені переспівала знов\nте, що давно мені співали мрії.\nуже скотилось із неба сонце,\nзаглянув місяць в моє віконце.\nвже засвітились у небі зорі,\nуже заснуло, заснуло й горе.\nвийду в садочок та погуляю,\nпри місяченьку та й заспіваю.\nяк же тут гарно, як же тут тихо,\nв таку годину забудеш лихо!\nкругом садочки, біленькі хати,\nі соловейка в гаю чувати.\nой, чи так красно в якій країні,\nяк тут, на нашій рідній волині!\nніч обгорнула біленькі хати,\nнемов маленьких діточок мати,\nвітрець весняний тихенько дише,\nнемов діток тих до сну колише.\nліто краснеє минуло,\nсніг лежить на полі;\nдіти з хати виглядають\nв вікна… шкода волі!\nдіти нудяться в хатині,\nнудять, нарікають:\n«і нащо зима та люта? –\nвсе вони питають. –\nон все поле сніг завіяв,\nхоч не йди із хати!\nу замкнуті дивись вікна,\nніде й погуляти!\nсніг з морозом поморозив\nвсі на полі квіти…\nдесь зима та не скінчиться!»\nнарікають діти.\nждіте, ждіте, любі діти!\nліто знов прилине,\nприйде мила годинонька,\nяк зима та згине;\nі заквітне наше поле,\nі зазеленіє, –\nзнов його весна прекрасна\nквіточками вкриє.\nпоставлю хату і кімнату,\nсадок-райочок насаджу.\nпосиджу я і походжу\nв своїй маленькій благодаті.\nта в одині-самотині\nв садочку буду спочивати.\nприсняться діточки мені,\nвеселая присниться мати,\nдавнє-колишній та ясний\nприсниться сон мені!.. і ти!..\nні, я не буду спочивати,\nбо й ти приснишся. і в малий\nрайочок мій спідтиха-тиха\nпідкрадешся, наробиш лиха…\nзапалиш рай мій самотний.\nчи є кращі між квітками\nта над веснянії?\nчи є в житті кращі літа\nта над молодії?\nне всихайте, пишні квіти,\nцвітіть хоч до літа!\nпождіть, літа, доля прийде,\nне тікайте з світа!\nдвічі на рік пишні квіти\nта не процвітають;\nв житті літа найкращії\nдвічі не бувають.\n\nTheme: весна у лісі, пробудження природи\nMeter: ямб\nRhyme scheme: ABAB\nStructure: 2 stanzas of 4 lines each (8 lines total)\nGenerate a Ukrainian poem with exactly 8 lines."
+        },
+        {
+          "stage": "initial_generation",
+          "input": "prompt (2116 chars)",
+          "output": "8 lines generated",
+          "metrics": {
+            "num_lines": 8
+          },
+          "duration_sec": 9.0035,
+          "input_data": "Use the following poetic excerpts as thematic inspiration (do not copy):\nстояла я і слухала весну,\nвесна мені багато говорила,\nспівала пісню дзвінку, голосну\nто знов таємно-тихо шепотіла.\nвона мені співала про любов,\nпро молодощі, радощі, надії,\nвона мені переспівала знов\nте, що давно мені співали мрії.\nуже скотилось із неба сонце,\nзаглянув місяць в моє віконце.\nвже засвітились у небі зорі,\nуже заснуло, заснуло й горе.\nвийду в садочок та погуляю,\nпри місяченьку та й заспіваю.\nяк же тут гарно, як же тут тихо,\nв таку годину забудеш лихо!\nкругом садочки, біленькі хати,\nі соловейка в гаю чувати.\nой, чи так красно в якій країні,\nяк тут, на нашій рідній волині!\nніч обгорнула біленькі хати,\nнемов маленьких діточок мати,\nвітрець весняний тихенько дише,\nнемов діток тих до сну колише.\nліто краснеє минуло,\nсніг лежить на полі;\nдіти з хати виглядають\nв вікна… шкода волі!\nдіти нудяться в хатині,\nнудять, нарікають:\n«і нащо зима та люта? –\nвсе вони питають. –\nон все поле сніг завіяв,\nхоч не йди із хати!\nу замкнуті дивись вікна,\nніде й погуляти!\nсніг з морозом поморозив\nвсі на полі квіти…\nдесь зима та не скінчиться!»\nнарікають діти.\nждіте, ждіте, любі діти!\nліто знов прилине,\nприйде мила годинонька,\nяк зима та згине;\nі заквітне наше поле,\nі зазеленіє, –\nзнов його весна прекрасна\nквіточками вкриє.\nпоставлю хату і кімнату,\nсадок-райочок насаджу.\nпосиджу я і походжу\nв своїй маленькій благодаті.\nта в одині-самотині\nв садочку буду спочивати.\nприсняться діточки мені,\nвеселая присниться мати,\nдавнє-колишній та ясний\nприсниться сон мені!.. і ти!..\nні, я не буду спочивати,\nбо й ти приснишся. і в малий\nрайочок мій спідтиха-тиха\nпідкрадешся, наробиш лиха…\nзапалиш рай мій самотний.\nчи є кращі між квітками\nта над веснянії?\nчи є в житті кращі літа\nта над молодії?\nне всихайте, пишні квіти,\nцвітіть хоч до літа!\nпождіть, літа, доля прийде,\nне тікайте з світа!\nдвічі на рік пишні квіти\nта не процвітають;\nв житті літа найкращії\nдвічі не бувають.\n\nTheme: весна у лісі, пробудження природи\nMeter: ямб\nRhyme scheme: ABAB\nStructure: 2 stanzas of 4 lines each (8 lines total)\nGenerate a Ukrainian poem with exactly 8 lines.",
+          "output_data": "Вже ліс прокинувся від сну,\nДзвенить струмочок у гаю,\nЗустрівши сонце і весну,\nІ славить пісеньку свою.\n\nГай ожива від співу птиць,\nДе сонце грає у гілках,\nІ ніжний промінь ллє до ниць,\nЗникає лютий зимовий жах.\n"
+        },
+        {
+          "stage": "validation",
+          "input": "poem (8 lines)",
+          "output": "meter_acc=62.50%, rhyme_acc=50.00%, violations=4",
+          "metrics": {
+            "meter_accuracy": 0.625,
+            "rhyme_accuracy": 0.5,
+            "violation_count": 4
+          },
+          "duration_sec": 1.2229,
+          "input_data": "Вже ліс прокинувся від сну,\nДзвенить струмочок у гаю,\nЗустрівши сонце і весну,\nІ славить пісеньку свою.\n\nГай ожива від співу птиць,\nДе сонце грає у гілках,\nІ ніжний промінь ллє до ниць,\nЗникає лютий зимовий жах.\n",
+          "output_data": {
+            "meter_results": [
+              {
+                "line": 1,
+                "ok": false,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  1,
+                  2,
+                  4,
+                  7,
+                  8
+                ],
+                "error_positions": [
+                  1,
+                  6,
+                  7
+                ],
+                "total_syllables": 8
+              },
+              {
+                "line": 2,
+                "ok": true,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  2,
+                  4,
+                  6,
+                  7
+                ],
+                "error_positions": [
+                  7,
+                  8
+                ],
+                "total_syllables": 8
+              },
+              {
+                "line": 3,
+                "ok": true,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "error_positions": [],
+                "total_syllables": 8
+              },
+              {
+                "line": 4,
+                "ok": true,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  1,
+                  2,
+                  4,
+                  8
+                ],
+                "error_positions": [
+                  1,
+                  6
+                ],
+                "total_syllables": 8
+              },
+              {
+                "line": 5,
+                "ok": false,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  1,
+                  4,
+                  5,
+                  6,
+                  8
+                ],
+                "error_positions": [
+                  1,
+                  2,
+                  5
+                ],
+                "total_syllables": 8
+              },
+              {
+                "line": 6,
+                "ok": true,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  1,
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "error_positions": [
+                  1
+                ],
+                "total_syllables": 8
+              },
+              {
+                "line": 7,
+                "ok": true,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  1,
+                  2,
+                  4,
+                  6,
+                  7,
+                  8
+                ],
+                "error_positions": [
+                  1,
+                  7
+                ],
+                "total_syllables": 8
+              },
+              {
+                "line": 8,
+                "ok": false,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  2,
+                  4,
+                  7,
+                  9
+                ],
+                "error_positions": [
+                  6,
+                  7,
+                  8
+                ],
+                "total_syllables": 9
+              }
+            ],
+            "rhyme_results": [
+              {
+                "line_1": 1,
+                "line_2": 3,
+                "word_1": "сну",
+                "word_2": "весну",
+                "rhyme_part_1": "u",
+                "rhyme_part_2": "u",
+                "score": 1.0,
+                "rhyme_ok": true
+              },
+              {
+                "line_1": 2,
+                "line_2": 4,
+                "word_1": "гаю",
+                "word_2": "свою",
+                "rhyme_part_1": "aju",
+                "rhyme_part_2": "u",
+                "score": 0.3333,
+                "rhyme_ok": false
+              }
+            ],
+            "feedback": [
+              "Line 1 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 4, 7, 8.\nRewrite only this line, keep the meaning.",
+              "Line 5 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 4, 5, 6, 8.\nRewrite only this line, keep the meaning.",
+              "Line 8 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 7, 9.\nRewrite only this line, keep the meaning.",
+              "Lines 2 and 4 should rhyme (scheme ABAB).\nExpected rhyme with ending 'aju'.\nCurrent ending 'u' does not match (score: 0.33).\nRewrite line 4 keeping the meaning and meter."
+            ]
+          }
+        },
+        {
+          "stage": "feedback_loop",
+          "input": "max_iterations=1",
+          "output": "2 iterations total, final meter=75.00% rhyme=50.00%",
+          "metrics": {
+            "total_iterations": 2,
+            "final_meter_accuracy": 0.75,
+            "final_rhyme_accuracy": 0.5,
+            "final_violations": 3
+          },
+          "duration_sec": 0.0,
+          "input_data": {
+            "max_iterations": 1,
+            "initial_poem": "Вже ліс прокинувся від сну,\nДзвенить струмочок у гаю,\nЗустрівши сонце і весну,\nІ славить пісеньку свою.\n\nГай ожива від співу птиць,\nДе сонце грає у гілках,\nІ ніжний промінь ллє до ниць,\nЗникає лютий зимовий жах.\n"
+          },
+          "output_data": {
+            "final_poem": "І ліс прокинувсь віді сну,\nДзвенить струмочок у гаю,\nЗустрівши сонце і весну,\nСвою він пісеньку співа.\n \nВесь гай ожив від співу птиць,\nДе сонце грає у гілках,\nІ ніжний промінь ллє до ниць,\nІ зник вже лютий зимовий жах.\n",
+            "final_feedback": [
+              "Line 4 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 3, 4, 7.\nRewrite only this line, keep the meaning.",
+              "Line 8 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 3, 4, 7, 9.\nRewrite only this line, keep the meaning.",
+              "Lines 2 and 4 should rhyme (scheme ABAB).\nExpected rhyme with ending 'aju'.\nCurrent ending 'iva' does not match (score: 0.00).\nRewrite line 4 keeping the meaning and meter."
+            ]
+          }
+        }
+      ],
+      "iterations": [
+        {
+          "iteration": 0,
+          "poem_text": "Вже ліс прокинувся від сну,\nДзвенить струмочок у гаю,\nЗустрівши сонце і весну,\nІ славить пісеньку свою.\n\nГай ожива від співу птиць,\nДе сонце грає у гілках,\nІ ніжний промінь ллє до ниць,\nЗникає лютий зимовий жах.\n",
+          "meter_accuracy": 0.625,
+          "rhyme_accuracy": 0.5,
+          "feedback": [
+            "Line 1 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 4, 7, 8.\nRewrite only this line, keep the meaning.",
+            "Line 5 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 4, 5, 6, 8.\nRewrite only this line, keep the meaning.",
+            "Line 8 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 4, 7, 9.\nRewrite only this line, keep the meaning.",
+            "Lines 2 and 4 should rhyme (scheme ABAB).\nExpected rhyme with ending 'aju'.\nCurrent ending 'u' does not match (score: 0.33).\nRewrite line 4 keeping the meaning and meter."
+          ],
+          "duration_sec": 1.2229
+        },
+        {
+          "iteration": 1,
+          "poem_text": "І ліс прокинувсь віді сну,\nДзвенить струмочок у гаю,\nЗустрівши сонце і весну,\nСвою він пісеньку співа.\n \nВесь гай ожив від співу птиць,\nДе сонце грає у гілках,\nІ ніжний промінь ллє до ниць,\nІ зник вже лютий зимовий жах.\n",
+          "meter_accuracy": 0.75,
+          "rhyme_accuracy": 0.5,
+          "feedback": [
+            "Line 4 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 2, 3, 4, 7.\nRewrite only this line, keep the meaning.",
+            "Line 8 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 3, 4, 7, 9.\nRewrite only this line, keep the meaning.",
+            "Lines 2 and 4 should rhyme (scheme ABAB).\nExpected rhyme with ending 'aju'.\nCurrent ending 'iva' does not match (score: 0.00).\nRewrite line 4 keeping the meaning and meter."
+          ],
+          "duration_sec": 18.8027
+        }
+      ],
+      "final_poem": "І ліс прокинувсь віді сну,\nДзвенить струмочок у гаю,\nЗустрівши сонце і весну,\nСвою він пісеньку співа.\n \nВесь гай ожив від співу птиць,\nДе сонце грає у гілках,\nІ ніжний промінь ллє до ниць,\nІ зник вже лютий зимовий жах.\n",
+      "final_metrics": {
+        "meter_accuracy": 0.75,
+        "rhyme_accuracy": 0.5,
+        "bleu": 0.0,
+        "rouge_l": 0.1333,
+        "num_lines": 8,
+        "meter_improvement": 0.125,
+        "rhyme_improvement": 0.0,
+        "feedback_iterations": 1
+      },
+      "total_duration_sec": 35.9572
+    },
+    {
+      "scenario_id": "N01",
+      "config": "E",
+      "stages": [
+        {
+          "stage": "retrieval",
+          "input": "SKIPPED (config.use_retrieval=False or empty corpus)",
+          "output": "—",
+          "metrics": {
+            "num_retrieved": 0
+          },
+          "duration_sec": 0.0
+        },
+        {
+          "stage": "prompt_construction",
+          "input": "theme='весна у лісі, пробудження природи', meter=ямб, scheme=ABAB, structure=2×4",
+          "output": "prompt length=246 chars",
+          "metrics": {
+            "prompt_length": 246
+          },
+          "duration_sec": 0.0001,
+          "input_data": {
+            "theme": "весна у лісі, пробудження природи",
+            "meter": "ямб",
+            "rhyme_scheme": "ABAB",
+            "foot_count": 4,
+            "stanza_count": 2,
+            "lines_per_stanza": 4,
+            "total_lines": 8,
+            "num_retrieved": 0
+          },
+          "output_data": "Use the following poetic excerpts as thematic inspiration (do not copy):\n\n\nTheme: весна у лісі, пробудження природи\nMeter: ямб\nRhyme scheme: ABAB\nStructure: 2 stanzas of 4 lines each (8 lines total)\nGenerate a Ukrainian poem with exactly 8 lines."
+        },
+        {
+          "stage": "initial_generation",
+          "input": "prompt (246 chars)",
+          "output": "8 lines generated",
+          "metrics": {
+            "num_lines": 8
+          },
+          "duration_sec": 18.4419,
+          "input_data": "Use the following poetic excerpts as thematic inspiration (do not copy):\n\n\nTheme: весна у лісі, пробудження природи\nMeter: ямб\nRhyme scheme: ABAB\nStructure: 2 stanzas of 4 lines each (8 lines total)\nGenerate a Ukrainian poem with exactly 8 lines.",
+          "output_data": "Вже ліс чекає теплих днів,\nПрокинувсь заспаний ведмідь,\nІ чути птахів ніжний спів,\nЗ-під снігу паросток стоїть.\n\nДзюрчать струмки, біжить вода,\nЖиття вирує скрізь тепер,\nНавколо свіжа молода\nПрирода зве до світлих сфер.\n"
+        },
+        {
+          "stage": "validation",
+          "input": "poem (8 lines)",
+          "output": "meter_acc=87.50%, rhyme_acc=50.00%, violations=2",
+          "metrics": {
+            "meter_accuracy": 0.875,
+            "rhyme_accuracy": 0.5,
+            "violation_count": 2
+          },
+          "duration_sec": 1.0375,
+          "input_data": "Вже ліс чекає теплих днів,\nПрокинувсь заспаний ведмідь,\nІ чути птахів ніжний спів,\nЗ-під снігу паросток стоїть.\n\nДзюрчать струмки, біжить вода,\nЖиття вирує скрізь тепер,\nНавколо свіжа молода\nПрирода зве до світлих сфер.\n",
+          "output_data": {
+            "meter_results": [
+              {
+                "line": 1,
+                "ok": true,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  1,
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "error_positions": [
+                  1
+                ],
+                "total_syllables": 8
+              },
+              {
+                "line": 2,
+                "ok": true,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  2,
+                  4,
+                  8
+                ],
+                "error_positions": [
+                  6
+                ],
+                "total_syllables": 8
+              },
+              {
+                "line": 3,
+                "ok": false,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  1,
+                  2,
+                  5,
+                  6,
+                  8
+                ],
+                "error_positions": [
+                  1,
+                  4,
+                  5
+                ],
+                "total_syllables": 8
+              },
+              {
+                "line": 4,
+                "ok": true,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  1,
+                  2,
+                  4,
+                  8
+                ],
+                "error_positions": [
+                  1,
+                  6
+                ],
+                "total_syllables": 8
+              },
+              {
+                "line": 5,
+                "ok": true,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "error_positions": [],
+                "total_syllables": 8
+              },
+              {
+                "line": 6,
+                "ok": true,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "error_positions": [],
+                "total_syllables": 8
+              },
+              {
+                "line": 7,
+                "ok": true,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  2,
+                  4,
+                  8
+                ],
+                "error_positions": [
+                  6
+                ],
+                "total_syllables": 8
+              },
+              {
+                "line": 8,
+                "ok": true,
+                "expected_stress": [
+                  2,
+                  4,
+                  6,
+                  8
+                ],
+                "actual_stress": [
+                  2,
+                  4,
+                  5,
+                  6,
+                  8
+                ],
+                "error_positions": [
+                  5
+                ],
+                "total_syllables": 8
+              }
+            ],
+            "rhyme_results": [
+              {
+                "line_1": 1,
+                "line_2": 3,
+                "word_1": "днів",
+                "word_2": "спів",
+                "rhyme_part_1": "iv",
+                "rhyme_part_2": "iv",
+                "score": 1.0,
+                "rhyme_ok": true
+              },
+              {
+                "line_1": 2,
+                "line_2": 4,
+                "word_1": "ведмідь",
+                "word_2": "стоїть",
+                "rhyme_part_1": "id",
+                "rhyme_part_2": "it",
+                "score": 0.5,
+                "rhyme_ok": false
+              }
+            ],
+            "feedback": [
+              "Line 3 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 5, 6, 8.\nRewrite only this line, keep the meaning.",
+              "Lines 2 and 4 should rhyme (scheme ABAB).\nExpected rhyme with ending 'id'.\nCurrent ending 'it' does not match (score: 0.50).\nRewrite line 4 keeping the meaning and meter."
+            ]
+          }
+        },
+        {
+          "stage": "feedback_loop",
+          "input": "max_iterations=1",
+          "output": "2 iterations total, final meter=87.50% rhyme=100.00%",
+          "metrics": {
+            "total_iterations": 2,
+            "final_meter_accuracy": 0.875,
+            "final_rhyme_accuracy": 1.0,
+            "final_violations": 1
+          },
+          "duration_sec": 0.0,
+          "input_data": {
+            "max_iterations": 1,
+            "initial_poem": "Вже ліс чекає теплих днів,\nПрокинувсь заспаний ведмідь,\nІ чути птахів ніжний спів,\nЗ-під снігу паросток стоїть.\n\nДзюрчать струмки, біжить вода,\nЖиття вирує скрізь тепер,\nНавколо свіжа молода\nПрирода зве до світлих сфер.\n"
+          },
+          "output_data": {
+            "final_poem": "Вже ліс чекає теплих днів,\nПрокинувсь заспаний ведмідь,\nІ чутний птахів ніжний спів,\nЗ-під снігу пробиває лід.\n\nДзюрчать струмки, біжить вода,\nЖиття вирує скрізь тепер,\nНавколо свіжа молода\nПрирода зве до світлих сфер.\n",
+            "final_feedback": [
+              "Line 3 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 5, 6, 8.\nRewrite only this line, keep the meaning."
+            ]
+          }
+        }
+      ],
+      "iterations": [
+        {
+          "iteration": 0,
+          "poem_text": "Вже ліс чекає теплих днів,\nПрокинувсь заспаний ведмідь,\nІ чути птахів ніжний спів,\nЗ-під снігу паросток стоїть.\n\nДзюрчать струмки, біжить вода,\nЖиття вирує скрізь тепер,\nНавколо свіжа молода\nПрирода зве до світлих сфер.\n",
+          "meter_accuracy": 0.875,
+          "rhyme_accuracy": 0.5,
+          "feedback": [
+            "Line 3 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 5, 6, 8.\nRewrite only this line, keep the meaning.",
+            "Lines 2 and 4 should rhyme (scheme ABAB).\nExpected rhyme with ending 'id'.\nCurrent ending 'it' does not match (score: 0.50).\nRewrite line 4 keeping the meaning and meter."
+          ],
+          "duration_sec": 1.0375
+        },
+        {
+          "iteration": 1,
+          "poem_text": "Вже ліс чекає теплих днів,\nПрокинувсь заспаний ведмідь,\nІ чутний птахів ніжний спів,\nЗ-під снігу пробиває лід.\n\nДзюрчать струмки, біжить вода,\nЖиття вирує скрізь тепер,\nНавколо свіжа молода\nПрирода зве до світлих сфер.\n",
+          "meter_accuracy": 0.875,
+          "rhyme_accuracy": 1.0,
+          "feedback": [
+            "Line 3 violates ямб meter.\nExpected stress on syllables: 2, 4, 6, 8.\nActual stress on syllables: 1, 2, 5, 6, 8.\nRewrite only this line, keep the meaning."
+          ],
+          "duration_sec": 9.4752
+        }
+      ],
+      "final_poem": "Вже ліс чекає теплих днів,\nПрокинувсь заспаний ведмідь,\nІ чутний птахів ніжний спів,\nЗ-під снігу пробиває лід.\n\nДзюрчать струмки, біжить вода,\nЖиття вирує скрізь тепер,\nНавколо свіжа молода\nПрирода зве до світлих сфер.\n",
+      "final_metrics": {
+        "meter_accuracy": 0.875,
+        "rhyme_accuracy": 1.0,
+        "bleu": 0.0,
+        "rouge_l": 0.0755,
+        "num_lines": 8,
+        "meter_improvement": 0.0,
+        "rhyme_improvement": 0.5,
+        "feedback_iterations": 1
+      },
+      "total_duration_sec": 30.0402
+    }
+  ]
+}
