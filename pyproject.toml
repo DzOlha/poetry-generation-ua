@@ -11,6 +11,8 @@ pandas = "*"
 torch = "*"
 transformers = "*"
 sentence-transformers = "*"
+ukrainian-word-stress = "*"
+google-genai = "*"
 scikit-learn = "*"
 tqdm = "*"
 pymorphy3 = "*"
@@ -20,3 +22,11 @@ seaborn = "*"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.0"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+markers = [
+    "integration: integration tests (full pipeline)",
+    "slow: tests that may take longer (e.g. BERTScore)",
+]

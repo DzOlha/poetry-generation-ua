@@ -244,6 +244,91 @@ make pipeline
 
 ---
 
+## Building a Poetry Corpus (for RAG)
+
+The project includes a script that builds a corpus from local poem files stored under the repository `data/` directory, cleans them, and saves a JSON corpus ready for the retrieval module.
+
+```bash
+python3 scripts/build_corpus_from_data_dir.py --data-dir data --out corpus/uk_poetry_corpus.json --min-count 44
+```
+
+Optional parameters:
+
+```bash
+python3 scripts/build_corpus_from_data_dir.py \
+  --data-dir data \
+  --min-count 500 \
+  --out corpus/uk_poetry_corpus.json
+```
+
+---
+
+### Running Tests
+
+```bash
+make test                # all tests (unit + integration)
+make test-unit           # only unit tests
+make test-integration    # only integration tests
+```
+
+* Automatically pre-downloads Stanza and LaBSE models before running tests
+* Models are cached in Docker volumes — subsequent runs start instantly
+
+---
+
+### Evaluation Harness
+
+Run the automated evaluation pipeline with **18 curated scenarios × 5 ablation configs**.
+
+```bash
+make evaluate                                   # all scenarios × all configs (90 runs)
+make evaluate SCENARIO=N01                      # one scenario, all configs
+make evaluate SCENARIO=N01 CONFIG=D             # one scenario, one config (~1-4 API calls)
+make evaluate CONFIG=D                          # all scenarios, one config
+make evaluate CATEGORY=corner                   # only corner-case scenarios
+make evaluate SCENARIO=N01 CONFIG=D VERBOSE=1   # with detailed stage-by-stage traces
+make evaluate OUTPUT=results/my_run.json        # custom output path
+```
+
+#### Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SCENARIO` | *(all)* | Scenario ID: `N01`–`N05`, `E01`–`E05`, `C01`–`C08` |
+| `CONFIG` | *(all)* | Ablation config: `A`, `B`, `C`, `D`, or `E` |
+| `CATEGORY` | *(all)* | Filter by category: `normal`, `edge`, or `corner` |
+| `VERBOSE` | *(off)* | Set to `1` for full stage-by-stage traces |
+| `OUTPUT` | `results/evaluation.json` | Path to save JSON results |
+
+#### Scenario Categories
+
+* **Normal** (N01–N05) — typical requests: iamb+ABAB, trochee+AABB, amphibrach, dactyl
+* **Edge** (E01–E05) — boundary conditions: 2-foot minimal, 6-foot alexandrine, monorhyme AAAA, abstract theme
+* **Corner** (C01–C08) — adversarial inputs: empty theme, XSS injection, unsupported meter, mixed languages, zero feet
+
+#### Ablation Configs (from spec §9)
+
+| Config | Retrieval | Validator | Feedback | Description |
+|--------|-----------|-----------|----------|-------------|
+| **A** | ✗ | ✗ | ✗ | Baseline (pure LLM) |
+| **B** | ✗ | ✓ | ✗ | LLM + Validator |
+| **C** | ✗ | ✓ | ✓ | LLM + Val + Feedback |
+| **D** | ✓ | ✓ | ✓ | Full system |
+| **E** | ✗ | ✓ | ✓ | No Retrieval |
+
+#### Output
+
+Each run produces:
+* **Summary table** — meter accuracy, rhyme accuracy, BLEU, ROUGE-L per scenario×config
+* **Aggregates** — averages by config and by category
+* **JSON export** — full traces with stage-by-stage records, iteration history, and metrics
+
+> **Tip:** For a quick test with real Gemini, run:
+> `make evaluate SCENARIO=N01 CONFIG=D VERBOSE=1`
+> This uses ~1–4 API calls and shows the complete pipeline trace.
+
+---
+
 ### Stopping and Cleaning Up
 
 ```bash
