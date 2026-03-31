@@ -55,17 +55,20 @@ Design and implement an automated system that generates Ukrainian poetry while e
 ## High-Level System Architecture
 
 ```
-User Input (theme, meter, rhyme scheme)
+User Input (theme, meter, rhyme scheme, foot count)
                 ↓
-Theme Embedding & Retrieval (DL)
-                ↓
-LLM Text Generation
-                ↓
-Rule-based Meter & Rhyme Validation
-                ↓
-Optional Feedback-Driven Regeneration
-                ↓
-Final Poem
+Semantic Theme Retrieval (LaBSE)      Metric Examples Retrieval (rule-based)
+   finds thematically similar poems       finds verified verse with exact meter/rhyme
+                ↓                                         ↓
+                └─────────── RAG Prompt Construction ─────┘
+                                      ↓
+                             LLM Text Generation
+                                      ↓
+                    Rule-based Meter & Rhyme Validation
+                                      ↓
+                    Optional Feedback-Driven Regeneration
+                                      ↓
+                                 Final Poem
 ```
 
 ---
@@ -78,33 +81,45 @@ Final Poem
 * Used for: semantic retrieval, LLM prompting, experimental evaluation
 * Treated as a **static linguistic resource**, not training data
 
-### 2. Theme Embedding & Retrieval Module
+### 2. Semantic Theme Retrieval Module
 
-* Uses pretrained multilingual sentence embedding (e.g., LaBSE)
+* Uses pretrained multilingual sentence embedding (LaBSE, 768-dim)
 * Converts textual theme description into vector representation
-* Retrieves semantically similar poems from the corpus
+* Retrieves semantically similar poems from the corpus (cosine similarity)
 * Purpose: improve thematic consistency without fine-tuning the LLM
 
-### 3. LLM-based Generator
+### 3. Metric Examples Retrieval Module
+
+* Rule-based lookup in `corpus/ukrainian_poetry_dataset.json`
+* Finds verified example quatrains with exact meter, foot count, and rhyme scheme
+* Covers all 5 meters × multiple foot counts × multiple rhyme schemes
+* Verified examples (classical Ukrainian poets) are prioritized
+* Purpose: give the LLM a rhythm and rhyme template to follow
+
+### 4. LLM-based Generator
 
 * Generates poetic text based on:
 
   * user-defined theme
-  * retrieved poetic examples
-  * soft structural hints (number of lines, style)
+  * semantically retrieved thematic examples
+  * metrically correct verse examples as rhythm/rhyme reference
+  * structural constraints (number of stanzas, lines per stanza)
 * **Does not validate meter or rhyme**; produces candidate text
 
-### 4. Meter Validation Module (Rule-Based)
+### 5. Meter Validation Module (Rule-Based)
 
 * Deterministic module:
 
   * splits text into lines and words
-  * performs syllabification
-  * assigns stress positions
-  * compares stress pattern with metrical template (e.g., iamb, trochee)
-* Output: **pass/fail** + detailed explanation of violations
+  * performs syllabification using `ukrainian-word-stress` + Stanza NLP
+  * assigns stress positions per word
+  * compares stress pattern against metrical template (iamb, trochee, dactyl, amphibrach, anapest)
+  * tolerates pyrrhic substitutions (unstressed at strong position) for function words and monosyllabic words
+  * tolerates spondee substitutions (stressed at weak position) for monosyllabic words
+  * accepts feminine (+1), dactylic (+2), and catalectic (−1 to −3) line endings
+* Output: **pass/fail** + syllable-level mismatch positions
 
-### 5. Rhyme Validation Module (Rule-Based)
+### 6. Rhyme Validation Module (Rule-Based)
 
 * Analyzes line endings:
 
@@ -113,7 +128,7 @@ Final Poem
   * checks conformity to rhyme scheme (e.g., AABB, ABAB)
 * Fully symbolic and language-specific
 
-### 6. Feedback & Regeneration Loop
+### 7. Feedback & Regeneration Loop
 
 * If formal violations are detected:
 
@@ -139,20 +154,27 @@ Supports systematic experiments:
 ```
 poetry-generation-ua/
 │
-├── docker/          # Container configuration
-├── src/             # Core system modules
-│   ├── pipeline/    # End-to-end generation pipelines
-│   ├── retrieval/   # Semantic retrieval logic
-│   ├── generation/  # LLM interface
-│   ├── meter/       # Meter validation
-│   ├── rhyme/       # Rhyme validation
+├── docker/                   # Container configuration
+├── src/                      # Core system modules
+│   ├── pipeline/             # End-to-end generation pipelines
+│   ├── retrieval/
+│   │   ├── corpus.py         # CorpusPoem loading
+│   │   ├── retriever.py      # LaBSE semantic retrieval + RAG prompt builder
+│   │   └── metric_examples.py  # Metric/rhyme example retrieval
+│   ├── generation/           # LLM interface (Gemini + Mock)
+│   ├── meter/                # Meter validation (stress + pattern matching)
+│   ├── rhyme/                # Rhyme validation (IPA + Levenshtein)
+│   ├── evaluation/           # Scenarios, ablation runner, metrics, tracing
+│   └── utils/                # Text utilities, distance functions
 │
-├── corpus/          # Poetry corpus
-├── data/            # Intermediate data
-├── experiments/     # Experimental configurations
-├── evaluation/      # Metrics and analysis
-├── scripts/         # Entry-point scripts
-├── tests/           # Unit tests
+├── corpus/
+│   ├── uk_poetry_corpus.json          # 153 poems + pre-computed LaBSE embeddings
+│   └── ukrainian_poetry_dataset.json  # Verified meter/rhyme examples by classical authors
+├── data/                     # Raw poem source files (.txt)
+├── scripts/                  # Entry-point scripts
+├── tests/
+│   ├── unit/                 # Unit tests (213 tests)
+│   └── integration/          # Integration tests
 └── README.md
 ```
 
@@ -180,13 +202,14 @@ poetry-generation-ua/
 
 ## Status
 
-Currently provides:
+Fully implemented and tested:
 
-* Architectural skeleton
-* Containerized environment
-* Baseline pipeline structure
-
-**Modules will be implemented and evaluated incrementally**
+* Complete RAG pipeline: semantic retrieval + metric examples retrieval + LLM generation
+* Rule-based meter validator (5 meters, pyrrhic/spondee tolerance, feminine/catalectic endings)
+* Rule-based rhyme validator (IPA transcription + Levenshtein distance)
+* Feedback & regeneration loop
+* Evaluation harness: 18 scenarios × 6 ablation configs (108 runs)
+* 204 unit tests + integration tests, all passing in Docker
 
 ---
 
@@ -228,6 +251,21 @@ make bash
 
 ---
 
+### Quick Demo — Run the Full System
+
+```bash
+make demo
+```
+
+* Runs scenario **N01** (весна у лісі, ямб 4ст, ABAB) through the **full system** (config F)
+* Prints a stage-by-stage trace: retrieval → metric examples → prompt → generation → validation → feedback
+* Saves results to `results/demo_N01_YYYYMMDD_HHMMSS.json`
+* To try a different scenario: `make demo SCENARIO=N03`
+
+This is the fastest way to see the complete pipeline in action with a real Gemini API key, or with `MockLLMClient` when no key is configured.
+
+---
+
 ### Running the Generation Pipeline
 
 ```bash
@@ -255,7 +293,7 @@ make test-integration    # only integration tests
 
 ## Corpus Management
 
-The project includes a ready-to-use corpus (`corpus/uk_poetry_corpus.json`, 53 poems) with **pre-computed LaBSE embeddings** — no runtime encoding overhead during retrieval.
+The project includes a ready-to-use corpus (`corpus/uk_poetry_corpus.json`, 153 poems) with **pre-computed LaBSE embeddings** — no runtime encoding overhead during retrieval.
 
 If you need to rebuild or extend the corpus from raw `.txt` files under `data/`, three Makefile targets are available:
 
@@ -306,15 +344,15 @@ CORPUS_PATH=corpus/my_corpus.json make evaluate SCENARIO=N01 CONFIG=D
 
 ### Evaluation Harness
 
-Run the automated evaluation pipeline with **18 curated scenarios × 5 ablation configs**.
+Run the automated evaluation pipeline with **18 curated scenarios × 6 ablation configs**.
 
 ```bash
-make evaluate                                        # all scenarios × all configs (90 runs)
+make evaluate                                        # all scenarios × all configs (108 runs)
 make evaluate SCENARIO=N01                           # one scenario, all configs
-make evaluate SCENARIO=N01 CONFIG=D                  # one scenario, one config (~1–4 API calls)
-make evaluate CONFIG=D                               # all scenarios, one config
+make evaluate SCENARIO=N01 CONFIG=F                  # one scenario, full system (~1–4 API calls)
+make evaluate CONFIG=F                               # all scenarios, full system config
 make evaluate CATEGORY=corner                        # only corner-case scenarios
-make evaluate SCENARIO=N01 CONFIG=D VERBOSE=1        # with detailed stage-by-stage traces
+make evaluate SCENARIO=N01 CONFIG=F VERBOSE=1        # with detailed stage-by-stage traces
 make evaluate OUTPUT=results/my_run.json             # custom output path
 make evaluate STANZAS=2 LINES_PER_STANZA=4           # override poem structure for all scenarios
 make evaluate SCENARIO=N01 STANZAS=3 LINES_PER_STANZA=6  # specific scenario, custom structure
@@ -325,7 +363,7 @@ make evaluate SCENARIO=N01 STANZAS=3 LINES_PER_STANZA=6  # specific scenario, cu
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `SCENARIO` | *(all)* | Scenario ID: `N01`–`N05`, `E01`–`E05`, `C01`–`C08` |
-| `CONFIG` | *(all)* | Ablation config: `A`, `B`, `C`, `D`, or `E` |
+| `CONFIG` | *(all)* | Ablation config: `A`, `B`, `C`, `D`, `E`, or `F` |
 | `CATEGORY` | *(all)* | Filter by category: `normal`, `edge`, or `corner` |
 | `VERBOSE` | *(off)* | Set to `1` for full stage-by-stage traces |
 | `OUTPUT` | `results/evaluation.json` | Path to save JSON results |
@@ -351,24 +389,27 @@ Generate a Ukrainian poem with exactly 8 lines.
 
 #### Ablation Configs
 
-| Config | Retrieval | Validator | Feedback | Description |
-|--------|-----------|-----------|----------|-------------|
-| **A** | ✗ | ✗ | ✗ | Baseline (pure LLM) |
-| **B** | ✗ | ✓ | ✗ | LLM + Validator |
-| **C** | ✗ | ✓ | ✓ | LLM + Val + Feedback |
-| **D** | ✓ | ✓ | ✓ | Full system |
-| **E** | ✗ | ✓ | ✓ | No Retrieval |
+| Config | Semantic RAG | Metric Examples | Validator | Feedback | Description |
+|--------|-------------|-----------------|-----------|----------|-------------|
+| **A** | ✗ | ✗ | ✗ | ✗ | Baseline (pure LLM) |
+| **B** | ✗ | ✗ | ✓ | ✗ | LLM + Validator only |
+| **C** | ✗ | ✗ | ✓ | ✓ | LLM + Val + Feedback (no RAG) |
+| **D** | ✓ | ✗ | ✓ | ✓ | Semantic RAG + Val + Feedback |
+| **E** | ✗ | ✓ | ✓ | ✓ | Metric Examples + Val + Feedback |
+| **F** | ✓ | ✓ | ✓ | ✓ | Full system |
+
+Comparing pairs measures each component's contribution: `B−A` = validator impact, `C−B` = feedback loop, `D−C` = semantic retrieval, `E−C` = metric examples, `F−D` or `F−E` = combined retrieval benefit.
 
 #### Output
 
 Each run produces:
-* **Summary table** — meter accuracy, rhyme accuracy, BLEU, ROUGE-L per scenario × config
+* **Summary table** — meter accuracy, rhyme accuracy, iterations, duration per scenario × config
 * **Aggregates** — averages by config and by category
 * **JSON export** — full traces with stage-by-stage records, iteration history, and metrics
 
 > **Tip:** For a quick test with real Gemini, run:
-> `make evaluate SCENARIO=N01 CONFIG=D VERBOSE=1`
-> This uses ~1–4 API calls and shows the complete pipeline trace.
+> `make evaluate SCENARIO=N01 CONFIG=F VERBOSE=1`
+> This runs the full system (semantic + metric examples + validation + feedback) with ~1–4 API calls and shows the complete pipeline trace.
 
 ---
 
