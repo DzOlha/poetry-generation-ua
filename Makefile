@@ -1,3 +1,16 @@
+# ── Лінтер ───────────────────────────────────────────────────────────────────
+#
+#   make lint        — перевірити src/ і tests/ (тільки помилки, без автовиправлення)
+#   make lint-fix    — автовиправити те, що можна (isort, unused imports тощо)
+
+lint:
+	docker compose -f docker/docker-compose.yml run --rm poetry poetry run ruff check src/ tests/
+
+lint-fix:
+	docker compose -f docker/docker-compose.yml run --rm poetry poetry run ruff check --fix src/ tests/
+
+# ── Контейнер ─────────────────────────────────────────────────────────────────
+
 # Підняти контейнер для dev
 up:
 	docker compose -f docker/docker-compose.yml up -d --build
@@ -33,19 +46,39 @@ test-integration:
 	docker compose -f docker/docker-compose.yml run --rm poetry bash -c \
 		"poetry run python scripts/preload_stanza.py && poetry run python -m pytest tests/integration/ -v -m integration"
 
-# Оцінка (конфігурується через змінні):
-#   make evaluate                                  — всі сценарії × всі конфігурації
-#   make evaluate SCENARIO=N01                     — один сценарій, всі конфігурації
-#   make evaluate SCENARIO=N01 CONFIG=D            — один сценарій, одна конфігурація
-#   make evaluate CONFIG=D                         — всі сценарії, одна конфігурація
+# ── Demo (швидкий наочний запуск повної системи) ─────────────────────────────
+#
+#   make demo                    — запустити N01 (весна, ямб 4ст ABAB) через повну систему
+#   make demo SCENARIO=N03       — будь-який інший сценарій
+
+_TS := $(shell date +%Y%m%d_%H%M%S)
+
+demo:
+	docker compose -f docker/docker-compose.yml run --rm poetry bash -c \
+		"poetry run python scripts/preload_stanza.py && \
+		 poetry run python scripts/run_evaluation.py \
+		   --scenario $(if $(SCENARIO),$(SCENARIO),N01) \
+		   --config F \
+		   --verbose \
+		   --stanzas 2 \
+		   --lines-per-stanza 4 \
+		   -o results/demo_$(if $(SCENARIO),$(SCENARIO),N01)_$(_TS).json"
+
+# ── Оцінка (конфігурується через змінні) ─────────────────────────────────────
+#
+#   make evaluate                                  — всі сценарії × всі конфіги (108 запусків)
+#   make evaluate SCENARIO=N01                     — один сценарій, всі конфіги
+#   make evaluate SCENARIO=N01 CONFIG=F            — один сценарій, повна система
+#   make evaluate CONFIG=F                         — всі сценарії, повна система
 #   make evaluate CATEGORY=corner                  — тільки corner-кейси
-#   make evaluate SCENARIO=N01 CONFIG=D VERBOSE=1  — з детальними трейсами
-#   make evaluate OUTPUT=results/my_run.json       — зберегти результати в JSON
+#   make evaluate SCENARIO=N01 CONFIG=F VERBOSE=1  — з детальними трейсами
+#   make evaluate OUTPUT=results/my_run.json       — конкретний файл для результатів
+
 SCENARIO        ?=
 CONFIG          ?=
 CATEGORY        ?=
 VERBOSE         ?=
-OUTPUT          ?= results/evaluation.json
+OUTPUT          ?= results/eval_$(_TS).json
 STANZAS         ?= 2
 LINES_PER_STANZA ?= 4
 
