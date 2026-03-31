@@ -208,7 +208,7 @@ Fully implemented and tested:
 * Rule-based meter validator (5 meters, pyrrhic/spondee tolerance, feminine/catalectic endings)
 * Rule-based rhyme validator (IPA transcription + Levenshtein distance)
 * Feedback & regeneration loop
-* Evaluation harness: 18 scenarios × 6 ablation configs (108 runs)
+* Evaluation harness: 18 scenarios × 5 ablation configs (90 runs)
 * 204 unit tests + integration tests, all passing in Docker
 
 ---
@@ -257,7 +257,7 @@ make bash
 make demo
 ```
 
-* Runs scenario **N01** (весна у лісі, ямб 4ст, ABAB) through the **full system** (config F)
+* Runs scenario **N01** (весна у лісі, ямб 4ст, ABAB) through the **full system** (config E)
 * Prints a stage-by-stage trace: retrieval → metric examples → prompt → generation → validation → feedback
 * Saves results to `results/demo_N01_YYYYMMDD_HHMMSS.json`
 * To try a different scenario: `make demo SCENARIO=N03`
@@ -344,15 +344,15 @@ CORPUS_PATH=corpus/my_corpus.json make evaluate SCENARIO=N01 CONFIG=D
 
 ### Evaluation Harness
 
-Run the automated evaluation pipeline with **18 curated scenarios × 6 ablation configs**.
+Run the automated evaluation pipeline with **18 curated scenarios × 5 ablation configs**.
 
 ```bash
-make evaluate                                        # all scenarios × all configs (108 runs)
+make evaluate                                        # all scenarios × all configs (90 runs)
 make evaluate SCENARIO=N01                           # one scenario, all configs
-make evaluate SCENARIO=N01 CONFIG=F                  # one scenario, full system (~1–4 API calls)
-make evaluate CONFIG=F                               # all scenarios, full system config
+make evaluate SCENARIO=N01 CONFIG=E                  # one scenario, full system (~1–4 API calls)
+make evaluate CONFIG=E                               # all scenarios, full system config
 make evaluate CATEGORY=corner                        # only corner-case scenarios
-make evaluate SCENARIO=N01 CONFIG=F VERBOSE=1        # with detailed stage-by-stage traces
+make evaluate SCENARIO=N01 CONFIG=E VERBOSE=1        # with detailed stage-by-stage traces
 make evaluate OUTPUT=results/my_run.json             # custom output path
 make evaluate STANZAS=2 LINES_PER_STANZA=4           # override poem structure for all scenarios
 make evaluate SCENARIO=N01 STANZAS=3 LINES_PER_STANZA=6  # specific scenario, custom structure
@@ -363,7 +363,7 @@ make evaluate SCENARIO=N01 STANZAS=3 LINES_PER_STANZA=6  # specific scenario, cu
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `SCENARIO` | *(all)* | Scenario ID: `N01`–`N05`, `E01`–`E05`, `C01`–`C08` |
-| `CONFIG` | *(all)* | Ablation config: `A`, `B`, `C`, `D`, `E`, or `F` |
+| `CONFIG` | *(all)* | Ablation config: `A`, `B`, `C`, `D`, or `E` |
 | `CATEGORY` | *(all)* | Filter by category: `normal`, `edge`, or `corner` |
 | `VERBOSE` | *(off)* | Set to `1` for full stage-by-stage traces |
 | `OUTPUT` | `results/evaluation.json` | Path to save JSON results |
@@ -391,14 +391,13 @@ Generate a Ukrainian poem with exactly 8 lines.
 
 | Config | Semantic RAG | Metric Examples | Validator | Feedback | Description |
 |--------|-------------|-----------------|-----------|----------|-------------|
-| **A** | ✗ | ✗ | ✗ | ✗ | Baseline (pure LLM) |
-| **B** | ✗ | ✗ | ✓ | ✗ | LLM + Validator only |
-| **C** | ✗ | ✗ | ✓ | ✓ | LLM + Val + Feedback (no RAG) |
-| **D** | ✓ | ✗ | ✓ | ✓ | Semantic RAG + Val + Feedback |
-| **E** | ✗ | ✓ | ✓ | ✓ | Metric Examples + Val + Feedback |
-| **F** | ✓ | ✓ | ✓ | ✓ | Full system |
+| **A** | ✗ | ✗ | ✓ | ✗ | Baseline (LLM + validator, no RAG, no feedback) |
+| **B** | ✗ | ✗ | ✓ | ✓ | LLM + Val + Feedback (no RAG) |
+| **C** | ✓ | ✗ | ✓ | ✓ | Semantic RAG + Val + Feedback |
+| **D** | ✗ | ✓ | ✓ | ✓ | Metric Examples + Val + Feedback |
+| **E** | ✓ | ✓ | ✓ | ✓ | Full system (semantic + metric examples + val + feedback) |
 
-Comparing pairs measures each component's contribution: `B−A` = validator impact, `C−B` = feedback loop, `D−C` = semantic retrieval, `E−C` = metric examples, `F−D` or `F−E` = combined retrieval benefit.
+Comparing pairs measures each component's contribution: `A→B` = impact of feedback loop, `B→C` = impact of semantic retrieval (thematic RAG), `B→D` = impact of metric examples retrieval (rhythm/rhyme RAG), `C→E` or `D→E` = impact of combining both retrieval types.
 
 #### Output
 
@@ -408,7 +407,7 @@ Each run produces:
 * **JSON export** — full traces with stage-by-stage records, iteration history, and metrics
 
 > **Tip:** For a quick test with real Gemini, run:
-> `make evaluate SCENARIO=N01 CONFIG=F VERBOSE=1`
+> `make evaluate SCENARIO=N01 CONFIG=E VERBOSE=1`
 > This runs the full system (semantic + metric examples + validation + feedback) with ~1–4 API calls and shows the complete pipeline trace.
 
 ---
