@@ -259,7 +259,7 @@ make demo
 
 * Runs scenario **N01** (весна у лісі, ямб 4ст, ABAB) through the **full system** (config E)
 * Prints a stage-by-stage trace: retrieval → metric examples → prompt → generation → validation → feedback
-* Saves results to `results/demo_N01_YYYYMMDD_HHMMSS.json`
+* Saves results to `results/demo_N01_YYYYMMDD_HHMMSS.json` and a human-readable `results/demo_N01_YYYYMMDD_HHMMSS.md`
 * To try a different scenario: `make demo SCENARIO=N03`
 
 This is the fastest way to see the complete pipeline in action with a real Gemini API key, or with `MockLLMClient` when no key is configured.
@@ -366,7 +366,7 @@ make evaluate SCENARIO=N01 STANZAS=3 LINES_PER_STANZA=6  # specific scenario, cu
 | `CONFIG` | *(all)* | Ablation config: `A`, `B`, `C`, `D`, or `E` |
 | `CATEGORY` | *(all)* | Filter by category: `normal`, `edge`, or `corner` |
 | `VERBOSE` | *(off)* | Set to `1` for full stage-by-stage traces |
-| `OUTPUT` | `results/evaluation.json` | Path to save JSON results |
+| `OUTPUT` | `results/eval_TIMESTAMP.json` | Path to save JSON results (`.md` report is written alongside automatically) |
 | `STANZAS` | `2` | Number of stanzas to generate (overrides per-scenario default) |
 | `LINES_PER_STANZA` | `4` | Lines per stanza (overrides per-scenario default) |
 
@@ -402,9 +402,10 @@ Comparing pairs measures each component's contribution: `A→B` = impact of feed
 #### Output
 
 Each run produces:
-* **Summary table** — meter accuracy, rhyme accuracy, iterations, duration per scenario × config
-* **Aggregates** — averages by config and by category
-* **JSON export** — full traces with stage-by-stage records, iteration history, and metrics
+* **Summary table** — meter accuracy, rhyme accuracy, iterations, duration per scenario × config (printed to terminal)
+* **Aggregates** — averages by config and by category (printed to terminal)
+* **JSON export** — full traces with stage-by-stage records, iteration history, and metrics (`results/eval_TIMESTAMP.json`)
+* **Markdown report** — human-readable comparison table per scenario + final poem for each config (`results/eval_TIMESTAMP.md`), written automatically alongside the JSON
 
 > **Tip:** For a quick test with real Gemini, run:
 > `make evaluate SCENARIO=N01 CONFIG=E VERBOSE=1`

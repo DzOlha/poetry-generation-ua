@@ -776,7 +776,7 @@ make demo
 make demo SCENARIO=N03
 ```
 
-Результат зберігається в `results/demo_N01_YYYYMMDD_HHMMSS.json`.
+Результат зберігається в `results/demo_N01_YYYYMMDD_HHMMSS.json` і `results/demo_N01_YYYYMMDD_HHMMSS.md`.
 
 ### Запуск evaluation
 
@@ -809,7 +809,7 @@ make evaluate STANZAS=3 LINES_PER_STANZA=6
 | `CONFIG` | *(всі)* | Абляційна конфіг: `A`, `B`, `C`, `D`, або `E` |
 | `CATEGORY` | *(всі)* | Фільтр: `normal`, `edge`, або `corner` |
 | `VERBOSE` | *(вимк.)* | `1` для повних stage-by-stage трасів |
-| `OUTPUT` | `results/evaluation.json` | Шлях для збереження JSON |
+| `OUTPUT` | `results/eval_TIMESTAMP.json` | Шлях для збереження JSON (`.md`-звіт записується автоматично поруч) |
 | `STANZAS` | `2` | Перевизначити кількість строф |
 | `LINES_PER_STANZA` | `4` | Перевизначити рядків на строфу |
 
@@ -901,7 +901,7 @@ PipelineTrace
 └── error: str | None
 ```
 
-Трас серіалізується в JSON через `trace.to_dict()` і зберігається якщо передати `--output results/eval.json`.
+Трас серіалізується в JSON через `trace.to_dict()` і зберігається якщо передати `--output results/eval.json`. Поруч автоматично генерується `.md`-звіт з таблицею порівняння конфігів та фінальними віршами для кожного сетапу (`format_markdown_report()` у `runner.py`).
 
 ---
 
