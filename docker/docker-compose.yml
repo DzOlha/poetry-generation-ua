@@ -15,6 +15,7 @@ services:
       - PYTHONPATH=/app
       - POETRY_VIRTUALENVS_PATH=/app/.venv
       - POETRY_VIRTUALENVS_IN_PROJECT=true
+      - STANZA_RESOURCES_DIR=/root/stanza_resources
     tty: true
     command: bash
 

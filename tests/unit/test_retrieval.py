@@ -4,8 +4,6 @@ import json
 import tempfile
 from pathlib import Path
 
-import pytest
-
 from src.retrieval.corpus import CorpusPoem, default_demo_corpus, load_corpus_json
 from src.retrieval.retriever import RetrievalItem, SemanticRetriever, build_rag_prompt
 

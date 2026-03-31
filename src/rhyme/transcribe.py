@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from src.utils.text import VOWELS_UA
 
-
 _UA_MAP = {
     "а": "a",
     "б": "b",

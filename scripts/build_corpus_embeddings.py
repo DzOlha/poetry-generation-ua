@@ -32,7 +32,7 @@ def build_embeddings(corpus_path: Path) -> None:
         print("All poems already have embeddings. Nothing to do.")
         return
 
-    print(f"Loading LaBSE model (sentence-transformers/LaBSE) ...")
+    print("Loading LaBSE model (sentence-transformers/LaBSE) ...")
     model = SentenceTransformer("sentence-transformers/LaBSE")
 
     batch_size = 32

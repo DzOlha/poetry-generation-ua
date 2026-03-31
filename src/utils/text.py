@@ -1,7 +1,6 @@
 import re
 from dataclasses import dataclass
 
-
 VOWELS_UA = "аеєиіїоуюя"
 
 

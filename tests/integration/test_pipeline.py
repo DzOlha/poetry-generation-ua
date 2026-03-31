@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.generation.llm import MockLLMClient, LLMClient
+from src.generation.llm import MockLLMClient
 from src.meter.stress import StressDict
 from src.pipeline.full_system import PipelineReport, check_poem, run_full_pipeline
 from src.retrieval.corpus import CorpusPoem, default_demo_corpus

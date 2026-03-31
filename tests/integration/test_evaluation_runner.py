@@ -5,7 +5,6 @@ import pytest
 
 from src.evaluation.runner import (
     ABLATION_CONFIGS,
-    AblationConfig,
     EvaluationSummary,
     format_summary_table,
     format_trace_detail,
@@ -17,16 +16,14 @@ from src.evaluation.scenarios import (
     CORNER_SCENARIOS,
     EDGE_SCENARIOS,
     NORMAL_SCENARIOS,
-    EvaluationScenario,
     ScenarioCategory,
     scenario_by_id,
     scenarios_by_category,
 )
-from src.evaluation.trace import PipelineTrace, StageRecord
+from src.evaluation.trace import PipelineTrace
 from src.generation.llm import MockLLMClient
 from src.meter.stress import StressDict
 from src.retrieval.retriever import SemanticRetriever
-
 
 # ---------------------------------------------------------------------------
 # Scenario registry tests
@@ -66,7 +63,7 @@ class TestTracedPipeline:
     def test_config_a_baseline_trace(self, stress_dict: StressDict, retriever: SemanticRetriever):
         scenario = scenario_by_id("N01")
         assert scenario is not None
-        config = ABLATION_CONFIGS[0]  # A: baseline
+        config = ABLATION_CONFIGS[0]  # A: baseline (LLM + validator, no feedback)
         trace = run_traced_pipeline(
             scenario, config,
             llm=MockLLMClient(), stress_dict=stress_dict, retriever=retriever,
@@ -75,28 +72,43 @@ class TestTracedPipeline:
         assert trace.scenario_id == "N01"
         assert trace.config_label == "A"
         assert trace.final_poem
-        assert len(trace.stages) >= 3  # retrieval(skip), prompt, generation, validation(skip)
+        assert len(trace.stages) >= 4  # retrieval(skip), metric_examples(skip), prompt, generation, validation
         assert trace.error is None
 
-    def test_config_d_full_trace(self, stress_dict: StressDict, retriever: SemanticRetriever):
+    def test_config_c_semantic_rag_trace(self, stress_dict: StressDict, retriever: SemanticRetriever):
         scenario = scenario_by_id("N01")
         assert scenario is not None
-        config = ABLATION_CONFIGS[3]  # D: full system
+        config = ABLATION_CONFIGS[2]  # C: semantic RAG + val + feedback
         trace = run_traced_pipeline(
             scenario, config,
             llm=MockLLMClient(), stress_dict=stress_dict, retriever=retriever,
         )
-        assert trace.config_label == "D"
+        assert trace.config_label == "C"
         assert any(s.name == "retrieval" for s in trace.stages)
         assert any(s.name == "validation" for s in trace.stages)
         assert any(s.name == "feedback_loop" for s in trace.stages)
         assert trace.final_metrics.get("meter_accuracy") is not None
         assert trace.final_metrics.get("rhyme_accuracy") is not None
 
+    def test_config_e_full_system_trace(self, stress_dict: StressDict, retriever: SemanticRetriever):
+        scenario = scenario_by_id("N01")
+        assert scenario is not None
+        config = ABLATION_CONFIGS[4]  # E: full system
+        trace = run_traced_pipeline(
+            scenario, config,
+            llm=MockLLMClient(), stress_dict=stress_dict, retriever=retriever,
+        )
+        assert trace.config_label == "E"
+        assert any(s.name == "retrieval" for s in trace.stages)
+        assert any(s.name == "metric_examples" for s in trace.stages)
+        assert any(s.name == "validation" for s in trace.stages)
+        assert any(s.name == "feedback_loop" for s in trace.stages)
+        assert trace.final_metrics.get("meter_accuracy") is not None
+
     def test_corner_empty_theme(self, stress_dict: StressDict, retriever: SemanticRetriever):
         scenario = scenario_by_id("C01")
         assert scenario is not None
-        config = ABLATION_CONFIGS[3]  # D
+        config = ABLATION_CONFIGS[2]  # C
         trace = run_traced_pipeline(
             scenario, config,
             llm=MockLLMClient(), stress_dict=stress_dict, retriever=retriever,
@@ -106,7 +118,7 @@ class TestTracedPipeline:
     def test_corner_unsupported_meter(self, stress_dict: StressDict, retriever: SemanticRetriever):
         scenario = scenario_by_id("C04")
         assert scenario is not None
-        config = ABLATION_CONFIGS[3]  # D
+        config = ABLATION_CONFIGS[2]  # C
         trace = run_traced_pipeline(
             scenario, config,
             llm=MockLLMClient(), stress_dict=stress_dict, retriever=retriever,
@@ -117,7 +129,7 @@ class TestTracedPipeline:
     def test_trace_serialises_to_dict(self, stress_dict: StressDict, retriever: SemanticRetriever):
         scenario = scenario_by_id("N01")
         assert scenario is not None
-        config = ABLATION_CONFIGS[2]  # C
+        config = ABLATION_CONFIGS[1]  # B
         trace = run_traced_pipeline(
             scenario, config,
             llm=MockLLMClient(), stress_dict=stress_dict, retriever=retriever,
@@ -132,7 +144,7 @@ class TestTracedPipeline:
     def test_trace_contains_full_data(self, stress_dict: StressDict, retriever: SemanticRetriever):
         scenario = scenario_by_id("N01")
         assert scenario is not None
-        config = ABLATION_CONFIGS[3]  # D: full system
+        config = ABLATION_CONFIGS[2]  # C: semantic RAG + val + feedback
         trace = run_traced_pipeline(
             scenario, config,
             llm=MockLLMClient(), stress_dict=stress_dict, retriever=retriever,
@@ -159,7 +171,7 @@ class TestTracedPipeline:
     def test_iterations_recorded_for_feedback(self, stress_dict: StressDict, retriever: SemanticRetriever):
         scenario = scenario_by_id("N01")
         assert scenario is not None
-        config = ABLATION_CONFIGS[2]  # C: feedback on
+        config = ABLATION_CONFIGS[1]  # B: feedback on
         trace = run_traced_pipeline(
             scenario, config,
             llm=MockLLMClient(), stress_dict=stress_dict, retriever=retriever,
@@ -182,7 +194,7 @@ class TestEvaluationMatrix:
         """Run 2 scenarios × 2 configs = 4 runs."""
         scenarios = [scenario_by_id("N01"), scenario_by_id("C01")]
         scenarios = [s for s in scenarios if s is not None]
-        configs = [ABLATION_CONFIGS[0], ABLATION_CONFIGS[3]]  # A and D
+        configs = [ABLATION_CONFIGS[0], ABLATION_CONFIGS[2]]  # A and C
 
         traces, summaries = run_evaluation_matrix(
             scenarios=scenarios,
@@ -215,7 +227,7 @@ class TestEvaluationMatrix:
     def test_trace_detail_format(self, stress_dict: StressDict, retriever: SemanticRetriever):
         scenario = scenario_by_id("N01")
         assert scenario is not None
-        config = ABLATION_CONFIGS[2]
+        config = ABLATION_CONFIGS[1]
         trace = run_traced_pipeline(
             scenario, config,
             llm=MockLLMClient(), stress_dict=stress_dict, retriever=retriever,

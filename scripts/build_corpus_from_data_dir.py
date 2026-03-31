@@ -153,15 +153,18 @@ def build_corpus(data_dir: Path, out_path: Path, min_count: int = 500) -> list[d
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Build RAG-ready poetry corpus from local data/ directory (no scraping).")
+    parser = argparse.ArgumentParser(
+        description="Build RAG-ready poetry corpus from local data/ directory (no scraping)."
+    )
     parser.add_argument("--data-dir", type=str, default="data", help="Path to the data directory.")
-    parser.add_argument("--out", type=str, default=str(Path("corpus") / "uk_poetry_corpus.json"), help="Output JSON path.")
+    parser.add_argument("--out", type=str, default=str(Path("corpus") / "uk_poetry_corpus.json"),
+                        help="Output JSON path.")
     parser.add_argument("--min-count", type=int, default=500, help="Minimum number of poems required.")
     parser.add_argument(
         "--embed",
         action="store_true",
         default=False,
-        help="After building the corpus, compute LaBSE embeddings for every poem and write them back to the output file.",
+        help="After building the corpus, compute LaBSE embeddings for every poem and write them back.",
     )
 
     args = parser.parse_args()

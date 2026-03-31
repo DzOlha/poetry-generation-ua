@@ -11,7 +11,7 @@ Scenarios are grouped by category:
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 
 
@@ -33,7 +33,6 @@ class EvaluationScenario:
     stanza_count: int = 1
     lines_per_stanza: int = 4
     description: str = ""
-    reference_poem: str | None = None
     tags: tuple[str, ...] = ()
 
     @property
@@ -57,12 +56,6 @@ NORMAL_SCENARIOS: list[EvaluationScenario] = [
         stanza_count=1,
         lines_per_stanza=4,
         description="Classic 4-foot iamb with cross rhyme — the most common Ukrainian verse form.",
-        reference_poem=(
-            "Весна прийшла у ліс зелений,\n"
-            "Де тінь і світло гомонить.\n"
-            "Мов сни, пливуть думки натхненні,\n"
-            "І серце в тиші гомонить.\n"
-        ),
         tags=("nature", "iamb", "cross-rhyme"),
     ),
     EvaluationScenario(
@@ -76,12 +69,6 @@ NORMAL_SCENARIOS: list[EvaluationScenario] = [
         stanza_count=1,
         lines_per_stanza=4,
         description="Trochee with paired rhyme — common in folk-style love poetry.",
-        reference_poem=(
-            "Тихо місяць ніч вітає,\n"
-            "Зірка долю провіщає.\n"
-            "Серце плаче від розлуки,\n"
-            "Тихо падають на руки.\n"
-        ),
         tags=("love", "trochee", "paired-rhyme"),
     ),
     EvaluationScenario(
@@ -95,12 +82,6 @@ NORMAL_SCENARIOS: list[EvaluationScenario] = [
         stanza_count=1,
         lines_per_stanza=4,
         description="5-foot iamb with enclosing rhyme — Shevchenko-style patriotic verse.",
-        reference_poem=(
-            "Мій рідний краю, ти моя земля,\n"
-            "Де колос спілий нахилив колосся.\n"
-            "Я чую спів пташиного голосся,\n"
-            "І сльози радості збігають з чола.\n"
-        ),
         tags=("patriotic", "iamb", "enclosing-rhyme"),
     ),
     EvaluationScenario(
@@ -114,7 +95,6 @@ NORMAL_SCENARIOS: list[EvaluationScenario] = [
         stanza_count=2,
         lines_per_stanza=4,
         description="Amphibrach with cross rhyme — melancholic, meditative rhythm.",
-        reference_poem=None,
         tags=("loneliness", "amphibrach", "cross-rhyme"),
     ),
     EvaluationScenario(
@@ -128,7 +108,6 @@ NORMAL_SCENARIOS: list[EvaluationScenario] = [
         stanza_count=2,
         lines_per_stanza=4,
         description="Dactyl with paired rhyme — modern urban theme.",
-        reference_poem=None,
         tags=("urban", "dactyl", "paired-rhyme"),
     ),
 ]

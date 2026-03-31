@@ -1,11 +1,17 @@
 """Evaluation runner — executes scenarios × ablation configs with full tracing.
 
-Ablation configurations (from spec §9):
-  A: Baseline (pure LLM)        — no retrieval, no validation, no feedback
-  B: LLM + Validator             — no retrieval, validation on, no feedback
-  C: LLM + Val + Feedback        — no retrieval, validation + feedback
-  D: Full system                 — retrieval + validation + feedback
-  E: No Retrieval                — validation + feedback, no retrieval
+Ablation configurations:
+  A: Baseline (LLM + Validator)    — no retrieval, no feedback; measures native LLM quality
+  B: LLM + Val + Feedback          — no retrieval, feedback loop on
+  C: Semantic RAG + Val + Feedback — semantic retrieval only, no metric examples
+  D: Metric Examples + Val + Feedback — metric examples only, no semantic retrieval
+  E: Full system                   — semantic retrieval + metric examples + validation + feedback
+
+Comparing configs isolates each component's contribution:
+  A→B: impact of feedback loop
+  B→C: impact of semantic retrieval (thematic RAG)
+  B→D: impact of metric examples retrieval (rhythm/rhyme RAG)
+  C→E or D→E: impact of combining both retrieval types
 
 Each run produces a PipelineTrace with stage-by-stage records and metrics.
 """
@@ -16,10 +22,8 @@ from dataclasses import dataclass
 from typing import Any
 
 from src.evaluation.metrics import (
-    bleu_score,
     meter_accuracy,
     rhyme_accuracy,
-    rouge_l_score,
 )
 from src.evaluation.scenarios import ALL_SCENARIOS, EvaluationScenario
 from src.evaluation.trace import (
@@ -32,10 +36,10 @@ from src.generation.llm import LLMClient, MockLLMClient, merge_regenerated_poem
 from src.meter.stress import StressDict
 from src.meter.validator import check_meter_poem, meter_feedback
 from src.retrieval.corpus import CorpusPoem, corpus_from_env
+from src.retrieval.metric_examples import find_metric_examples
 from src.retrieval.retriever import SemanticRetriever, build_rag_prompt
 from src.rhyme.validator import check_rhyme, rhyme_feedback
 from src.utils.text import split_nonempty_lines
-
 
 # ---------------------------------------------------------------------------
 # Ablation config
@@ -45,17 +49,18 @@ from src.utils.text import split_nonempty_lines
 class AblationConfig:
     label: str
     use_retrieval: bool
+    use_metric_examples: bool
     use_validation: bool
     use_feedback: bool
     description: str = ""
 
 
 ABLATION_CONFIGS: list[AblationConfig] = [
-    AblationConfig("A", False, False, False, "Baseline (pure LLM)"),
-    AblationConfig("B", False, True,  False, "LLM + Validator"),
-    AblationConfig("C", False, True,  True,  "LLM + Val + Feedback"),
-    AblationConfig("D", True,  True,  True,  "Full system"),
-    AblationConfig("E", False, True,  True,  "No Retrieval (= C with explicit label)"),
+    AblationConfig("A", False, False, True,  False, "Baseline (LLM + validator, no RAG, no feedback)"),
+    AblationConfig("B", False, False, True,  True,  "LLM + Val + Feedback (no RAG)"),
+    AblationConfig("C", True,  False, True,  True,  "Semantic RAG + Val + Feedback"),
+    AblationConfig("D", False, True,  True,  True,  "Metric Examples + Val + Feedback"),
+    AblationConfig("E", True,  True,  True,  True,  "Full system (semantic + metric examples + val + feedback)"),
 ]
 
 
@@ -73,6 +78,8 @@ def run_traced_pipeline(
     corpus: list[CorpusPoem] | None = None,
     max_iterations: int = 1,
     top_k: int = 5,
+    metric_examples_path: str = "corpus/ukrainian_poetry_dataset.json",
+    metric_examples_top_k: int = 2,
 ) -> PipelineTrace:
     """Run a single scenario under one ablation config, returning a full trace."""
 
@@ -105,7 +112,10 @@ def run_traced_pipeline(
             name="retrieval",
             input_summary=f"theme={scenario.theme!r}, corpus_size={len(corpus)}",
             input_data={"theme": scenario.theme, "corpus_size": len(corpus)},
-            output_summary=f"retrieved {len(retrieved)} poems, top_sim={retrieved[0].similarity:.4f}" if retrieved else "no results",
+            output_summary=(
+                f"retrieved {len(retrieved)} poems, top_sim={retrieved[0].similarity:.4f}"
+                if retrieved else "no results"
+            ),
             output_data=retrieved_data,
             metrics={"num_retrieved": len(retrieved), "top_similarity": retrieved[0].similarity if retrieved else 0.0},
             duration_sec=t.elapsed,
@@ -118,7 +128,54 @@ def run_traced_pipeline(
             metrics={"num_retrieved": 0},
         ))
 
-    # ── Stage 2: Prompt construction ────────────────────────────────────
+    # ── Stage 2: Metric examples retrieval ──────────────────────────────
+    metric_examples = []
+    if config.use_metric_examples:
+        with StageTimer() as t:
+            try:
+                metric_examples = find_metric_examples(
+                    meter=scenario.meter,
+                    feet=scenario.foot_count,
+                    scheme=scenario.rhyme_scheme,
+                    dataset_path=metric_examples_path,
+                    top_k=metric_examples_top_k,
+                )
+            except Exception as exc:
+                trace.add_stage(StageRecord(
+                    name="metric_examples",
+                    input_summary=f"meter={scenario.meter}, feet={scenario.foot_count}, scheme={scenario.rhyme_scheme}",
+                    error=str(exc),
+                ))
+                metric_examples = []
+        if not trace.stages or trace.stages[-1].name != "metric_examples":
+            trace.add_stage(StageRecord(
+                name="metric_examples",
+                input_summary=f"meter={scenario.meter}, feet={scenario.foot_count}, scheme={scenario.rhyme_scheme}",
+                output_summary=f"found {len(metric_examples)} metric examples",
+                output_data=[
+                    {
+                        "id": e.id,
+                        "meter": e.meter,
+                        "feet": e.feet,
+                        "scheme": e.scheme,
+                        "verified": e.verified,
+                        "author": e.author,
+                        "text": e.text,
+                    }
+                    for e in metric_examples
+                ],
+                metrics={"num_examples": len(metric_examples)},
+                duration_sec=t.elapsed,
+            ))
+    else:
+        trace.add_stage(StageRecord(
+            name="metric_examples",
+            input_summary="SKIPPED (config.use_metric_examples=False)",
+            output_summary="—",
+            metrics={"num_examples": 0},
+        ))
+
+    # ── Stage 3: Prompt construction ────────────────────────────────────
     with StageTimer() as t:
         prompt = build_rag_prompt(
             theme=scenario.theme,
@@ -127,10 +184,14 @@ def run_traced_pipeline(
             retrieved=retrieved,
             stanza_count=scenario.stanza_count,
             lines_per_stanza=scenario.lines_per_stanza,
+            metric_examples=metric_examples if metric_examples else None,
         )
     trace.add_stage(StageRecord(
         name="prompt_construction",
-        input_summary=f"theme={scenario.theme!r}, meter={scenario.meter}, scheme={scenario.rhyme_scheme}, structure={scenario.stanza_count}×{scenario.lines_per_stanza}",
+        input_summary=(
+            f"theme={scenario.theme!r}, meter={scenario.meter}, scheme={scenario.rhyme_scheme}, "
+            f"structure={scenario.stanza_count}×{scenario.lines_per_stanza}"
+        ),
         input_data={
             "theme": scenario.theme,
             "meter": scenario.meter,
@@ -140,14 +201,15 @@ def run_traced_pipeline(
             "lines_per_stanza": scenario.lines_per_stanza,
             "total_lines": scenario.total_lines,
             "num_retrieved": len(retrieved),
+            "num_metric_examples": len(metric_examples),
         },
         output_summary=f"prompt length={len(prompt)} chars",
         output_data=prompt,
-        metrics={"prompt_length": len(prompt)},
+        metrics={"prompt_length": len(prompt), "num_metric_examples": len(metric_examples)},
         duration_sec=t.elapsed,
     ))
 
-    # ── Stage 3: Initial generation ─────────────────────────────────────
+    # ── Stage 4: Initial generation ─────────────────────────────────────
     with StageTimer() as t:
         try:
             poem = llm.generate(prompt).text
@@ -166,7 +228,7 @@ def run_traced_pipeline(
         duration_sec=t.elapsed,
     ))
 
-    # ── Stage 4: Validation (meter + rhyme) ─────────────────────────────
+    # ── Stage 5: Validation (meter + rhyme) ─────────────────────────────
     if not config.use_validation:
         trace.add_stage(StageRecord(
             name="validation",
@@ -181,7 +243,9 @@ def run_traced_pipeline(
 
     with StageTimer() as t:
         try:
-            m_results = check_meter_poem(poem, meter=scenario.meter, foot_count=scenario.foot_count, stress_dict=stress_dict)
+            m_results = check_meter_poem(
+                poem, meter=scenario.meter, foot_count=scenario.foot_count, stress_dict=stress_dict
+            )
             r_result = check_rhyme(poem, scheme=scenario.rhyme_scheme, stress_dict=stress_dict)
         except Exception as exc:
             trace.add_stage(StageRecord(name="validation", input_data=poem, error=str(exc)))
@@ -247,7 +311,7 @@ def run_traced_pipeline(
         duration_sec=t.elapsed,
     ))
 
-    # ── Stage 5: Feedback loop ──────────────────────────────────────────
+    # ── Stage 6: Feedback loop ──────────────────────────────────────────
     if not config.use_feedback:
         trace.add_stage(StageRecord(
             name="feedback_loop",
@@ -270,7 +334,9 @@ def run_traced_pipeline(
                 prev_poem = poem
                 poem = llm.regenerate_lines(poem, fb).text
                 poem = merge_regenerated_poem(prev_poem, poem, fb)
-                m_results = check_meter_poem(poem, meter=scenario.meter, foot_count=scenario.foot_count, stress_dict=stress_dict)
+                m_results = check_meter_poem(
+                poem, meter=scenario.meter, foot_count=scenario.foot_count, stress_dict=stress_dict
+            )
                 r_result = check_rhyme(poem, scheme=scenario.rhyme_scheme, stress_dict=stress_dict)
             except Exception as exc:
                 trace.add_stage(StageRecord(name=f"feedback_iter_{it}", error=str(exc)))
@@ -301,7 +367,10 @@ def run_traced_pipeline(
     trace.add_stage(StageRecord(
         name="feedback_loop",
         input_summary=f"max_iterations={max_iterations}",
-        input_data={"max_iterations": max_iterations, "initial_poem": trace.iterations[0].poem_text if trace.iterations else ""},
+        input_data={
+            "max_iterations": max_iterations,
+            "initial_poem": trace.iterations[0].poem_text if trace.iterations else "",
+        },
         output_summary=f"{len(trace.iterations)} iterations total, final meter={m_acc:.2%} rhyme={r_acc:.2%}",
         output_data={
             "final_poem": poem,
@@ -345,13 +414,6 @@ def _compute_final_metrics(
         "rhyme_accuracy": r_acc,
     }
 
-    if scenario.reference_poem:
-        metrics["bleu"] = bleu_score(poem, scenario.reference_poem)
-        metrics["rouge_l"] = rouge_l_score(poem, scenario.reference_poem)
-    else:
-        metrics["bleu"] = None
-        metrics["rouge_l"] = None
-
     num_lines = len(split_nonempty_lines(poem))
     metrics["num_lines"] = num_lines
 
@@ -378,10 +440,11 @@ class EvaluationSummary:
     scenario_id: str
     scenario_name: str
     config_label: str
+    meter: str
+    foot_count: int
+    rhyme_scheme: str
     meter_accuracy: float
     rhyme_accuracy: float
-    bleu: float | None
-    rouge_l: float | None
     num_iterations: int
     num_lines: int
     duration_sec: float
@@ -392,10 +455,11 @@ class EvaluationSummary:
             "scenario_id": self.scenario_id,
             "scenario_name": self.scenario_name,
             "config": self.config_label,
+            "meter": self.meter,
+            "foot_count": self.foot_count,
+            "rhyme_scheme": self.rhyme_scheme,
             "meter_accuracy": round(self.meter_accuracy, 4),
             "rhyme_accuracy": round(self.rhyme_accuracy, 4),
-            "bleu": round(self.bleu, 4) if self.bleu is not None else None,
-            "rouge_l": round(self.rouge_l, 4) if self.rouge_l is not None else None,
             "iterations": self.num_iterations,
             "lines": self.num_lines,
             "duration_sec": round(self.duration_sec, 4),
@@ -409,10 +473,11 @@ def _summary_from_trace(trace: PipelineTrace, scenario: EvaluationScenario) -> E
         scenario_id=scenario.id,
         scenario_name=scenario.name,
         config_label=trace.config_label,
+        meter=scenario.meter,
+        foot_count=scenario.foot_count,
+        rhyme_scheme=scenario.rhyme_scheme,
         meter_accuracy=fm.get("meter_accuracy", 0.0),
         rhyme_accuracy=fm.get("rhyme_accuracy", 0.0),
-        bleu=fm.get("bleu"),
-        rouge_l=fm.get("rouge_l"),
         num_iterations=fm.get("feedback_iterations", 0),
         num_lines=fm.get("num_lines", 0),
         duration_sec=trace.total_duration_sec,
@@ -429,6 +494,8 @@ def run_evaluation_matrix(
     retriever: SemanticRetriever | None = None,
     corpus: list[CorpusPoem] | None = None,
     max_iterations: int = 1,
+    metric_examples_path: str = "corpus/ukrainian_poetry_dataset.json",
+    metric_examples_top_k: int = 2,
 ) -> tuple[list[PipelineTrace], list[EvaluationSummary]]:
     """Run every scenario × config combination. Returns all traces and a summary table."""
 
@@ -448,6 +515,8 @@ def run_evaluation_matrix(
                 retriever=retriever,
                 corpus=corpus,
                 max_iterations=max_iterations,
+                metric_examples_path=metric_examples_path,
+                metric_examples_top_k=metric_examples_top_k,
             )
             traces.append(trace)
             summaries.append(_summary_from_trace(trace, scenario))
@@ -461,20 +530,78 @@ def run_evaluation_matrix(
 
 def format_summary_table(summaries: list[EvaluationSummary]) -> str:
     """Format summaries as a Markdown table."""
-    header = "| Scenario | Config | Meter% | Rhyme% | BLEU | ROUGE-L | Iters | Lines | Time(s) | Error |"
-    sep =    "|----------|--------|--------|--------|------|---------|-------|-------|---------|-------|"
+    header = "| Scenario | Meter | Config | Meter% | Rhyme% | Iters | Lines | Time(s) | Error |"
+    sep =    "|----------|-------|--------|--------|--------|-------|-------|---------|-------|"
     rows = [header, sep]
     for s in summaries:
-        bleu = f"{s.bleu:.4f}" if s.bleu is not None else "—"
-        rouge = f"{s.rouge_l:.4f}" if s.rouge_l is not None else "—"
         err = s.error[:30] if s.error else "—"
+        meter_col = f"{s.meter} {s.foot_count}st {s.rhyme_scheme}"
         rows.append(
-            f"| {s.scenario_id} {s.scenario_name[:20]} | {s.config_label} "
+            f"| {s.scenario_id} {s.scenario_name[:20]} | {meter_col} | {s.config_label} "
             f"| {s.meter_accuracy:.2%} | {s.rhyme_accuracy:.2%} "
-            f"| {bleu} | {rouge} | {s.num_iterations} | {s.num_lines} "
+            f"| {s.num_iterations} | {s.num_lines} "
             f"| {s.duration_sec:.2f} | {err} |"
         )
     return "\n".join(rows)
+
+
+def format_markdown_report(
+    summaries: list[EvaluationSummary],
+    traces: list[PipelineTrace],
+) -> str:
+    """Format a human-readable Markdown report: summary table + final poem per config."""
+    # Group by scenario so each scenario gets its own section
+    scenario_ids: list[str] = list(dict.fromkeys(s.scenario_id for s in summaries))
+    trace_index: dict[tuple[str, str], PipelineTrace] = {
+        (t.scenario_id, t.config_label): t for t in traces
+    }
+
+    parts: list[str] = ["# Ablation Study Results", ""]
+
+    for sid in scenario_ids:
+        rows = [s for s in summaries if s.scenario_id == sid]
+        name = rows[0].scenario_name if rows else sid
+        first = rows[0] if rows else None
+        meter_info = (
+            f"{first.meter} {first.foot_count}-стопний, {first.rhyme_scheme}" if first else ""
+        )
+        parts += [f"## Scenario {sid} — {name}", f"*{meter_info}*", ""]
+
+        # ── Summary table ──────────────────────────────────────────────
+        parts.append("| Config | Description | Meter% | Rhyme% | Iters | Time(s) | Error |")
+        parts.append("|--------|-------------|--------|--------|-------|---------|-------|")
+        for s in rows:
+            cfg_desc = next(
+                (c.description for c in ABLATION_CONFIGS if c.label == s.config_label), ""
+            )
+            err = s.error[:40] if s.error else "—"
+            parts.append(
+                f"| **{s.config_label}** | {cfg_desc} "
+                f"| {s.meter_accuracy:.1%} | {s.rhyme_accuracy:.1%} "
+                f"| {s.num_iterations} | {s.duration_sec:.1f} | {err} |"
+            )
+        parts.append("")
+
+        # ── Final poems ────────────────────────────────────────────────
+        parts.append("### Final poems")
+        parts.append("")
+        for s in rows:
+            trace = trace_index.get((sid, s.config_label))
+            poem = trace.final_poem.strip() if trace else ""
+            cfg_desc = next(
+                (c.description for c in ABLATION_CONFIGS if c.label == s.config_label), ""
+            )
+            status = f"meter={s.meter_accuracy:.1%} rhyme={s.rhyme_accuracy:.1%}"
+            if s.error:
+                status += f" ERROR: {s.error[:60]}"
+            parts.append(f"**Config {s.config_label}** ({cfg_desc}) — {status}")
+            parts.append("")
+            parts.append("```")
+            parts.append(poem if poem else "(no poem generated)")
+            parts.append("```")
+            parts.append("")
+
+    return "\n".join(parts)
 
 
 def format_trace_detail(trace: PipelineTrace) -> str:
@@ -486,11 +613,11 @@ def format_trace_detail(trace: PipelineTrace) -> str:
         parts.append(f"  ── {stage.name} ──")
         parts.append(f"     input:   {stage.input_summary}")
         if stage.input_data is not None:
-            parts.append(f"     ┌─ INPUT DATA ─")
+            parts.append("     ┌─ INPUT DATA ─")
             _append_data(parts, stage.input_data)
         parts.append(f"     output:  {stage.output_summary}")
         if stage.output_data is not None:
-            parts.append(f"     ┌─ OUTPUT DATA ─")
+            parts.append("     ┌─ OUTPUT DATA ─")
             _append_data(parts, stage.output_data)
         if stage.metrics:
             parts.append(f"     metrics: {stage.metrics}")
@@ -504,11 +631,11 @@ def format_trace_detail(trace: PipelineTrace) -> str:
                 f"     [{it.iteration}] meter={it.meter_accuracy:.2%} "
                 f"rhyme={it.rhyme_accuracy:.2%}  violations={len(it.feedback)}"
             )
-            parts.append(f"       poem:")
+            parts.append("       poem:")
             for line in split_nonempty_lines(it.poem_text):
                 parts.append(f"         | {line}")
             if it.feedback:
-                parts.append(f"       feedback:")
+                parts.append("       feedback:")
                 for fb_line in it.feedback:
                     parts.append(f"         • {fb_line}")
     parts.append(f"  ── Final poem ({len(split_nonempty_lines(trace.final_poem))} lines) ──")

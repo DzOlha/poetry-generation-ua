@@ -12,24 +12,20 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.evaluation.runner import (
     ABLATION_CONFIGS,
-    AblationConfig,
-    EvaluationSummary,
-    PipelineTrace,
+    format_markdown_report,
     format_summary_table,
     format_trace_detail,
     run_evaluation_matrix,
-    run_traced_pipeline,
 )
 from src.evaluation.scenarios import (
     ALL_SCENARIOS,
-    EvaluationScenario,
     ScenarioCategory,
     scenario_by_id,
     scenarios_by_category,
@@ -44,10 +40,15 @@ def _parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Poetry generation evaluation harness")
     p.add_argument("--category", choices=["normal", "edge", "corner"], help="Run only scenarios in this category")
     p.add_argument("--scenario", help="Run a single scenario by ID (e.g. N01, E03, C05)")
-    p.add_argument("--config", help="Run a single ablation config (A/B/C/D/E)")
+    p.add_argument("--config", help="Run a single ablation config (A/B/C/D/E/F)")
+    p.add_argument("--metric-examples-path", default="corpus/ukrainian_poetry_dataset.json",
+                   dest="metric_examples_path", help="Path to metric examples dataset JSON")
+    p.add_argument("--metric-examples-top-k", type=int, default=2, dest="metric_examples_top_k",
+                   help="Number of metric examples to inject per run (default: 2)")
     p.add_argument("--max-iterations", type=int, default=1, help="Max feedback iterations (default: 1)")
     p.add_argument("--stanzas", type=int, default=None, help="Override stanza_count for all selected scenarios")
-    p.add_argument("--lines-per-stanza", type=int, default=None, dest="lines_per_stanza", help="Override lines_per_stanza for all selected scenarios")
+    p.add_argument("--lines-per-stanza", type=int, default=None, dest="lines_per_stanza",
+                   help="Override lines_per_stanza for all selected scenarios")
     p.add_argument("--output", "-o", help="Path to save JSON results")
     p.add_argument("--verbose", "-v", action="store_true", help="Print full stage-by-stage traces")
     return p.parse_args()
@@ -115,6 +116,8 @@ def main() -> None:
         retriever=retriever,
         corpus=corpus,
         max_iterations=args.max_iterations,
+        metric_examples_path=args.metric_examples_path,
+        metric_examples_top_k=args.metric_examples_top_k,
     )
 
     # ── Print traces (verbose) ──────────────────────────────────────────
@@ -143,14 +146,11 @@ def main() -> None:
         avg_meter = sum(r.meter_accuracy for r in cfg_rows) / len(cfg_rows)
         avg_rhyme = sum(r.rhyme_accuracy for r in cfg_rows) / len(cfg_rows)
         avg_iters = sum(r.num_iterations for r in cfg_rows) / len(cfg_rows)
-        bleu_vals = [r.bleu for r in cfg_rows if r.bleu is not None]
-        avg_bleu = sum(bleu_vals) / len(bleu_vals) if bleu_vals else None
         errors = sum(1 for r in cfg_rows if r.error)
-        bleu_str = f"{avg_bleu:.4f}" if avg_bleu is not None else "—"
         print(
             f"  Config {cfg.label} ({cfg.description}): "
             f"meter={avg_meter:.2%}  rhyme={avg_rhyme:.2%}  "
-            f"bleu={bleu_str}  avg_iters={avg_iters:.1f}  errors={errors}/{len(cfg_rows)}"
+            f"avg_iters={avg_iters:.1f}  errors={errors}/{len(cfg_rows)}"
         )
     print()
 
@@ -172,7 +172,7 @@ def main() -> None:
         )
     print()
 
-    # ── Save JSON ───────────────────────────────────────────────────────
+    # ── Save JSON + Markdown ────────────────────────────────────────────
     if args.output:
         output_dir = os.path.dirname(args.output)
         if output_dir:
@@ -184,6 +184,11 @@ def main() -> None:
         with open(args.output, "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)
         print(f"Results saved to {args.output}")
+
+        md_path = os.path.splitext(args.output)[0] + ".md"
+        with open(md_path, "w", encoding="utf-8") as f:
+            f.write(format_markdown_report(summaries, traces))
+        print(f"Report saved to  {md_path}")
 
 
 if __name__ == "__main__":

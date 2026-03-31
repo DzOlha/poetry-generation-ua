@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 import math
 import random
+from dataclasses import dataclass
 
 from src.retrieval.corpus import CorpusPoem
 
@@ -69,6 +68,7 @@ def build_rag_prompt(
     retrieved: list[RetrievalItem],
     stanza_count: int = 1,
     lines_per_stanza: int = 4,
+    metric_examples: list | None = None,
 ) -> str:
     excerpts = "\n".join(item.text.strip() for item in retrieved)
     total_lines = stanza_count * lines_per_stanza
@@ -76,9 +76,21 @@ def build_rag_prompt(
         f"{stanza_count} stanza{'s' if stanza_count > 1 else ''} "
         f"of {lines_per_stanza} lines each ({total_lines} lines total)"
     )
+
+    metric_section = ""
+    if metric_examples:
+        examples_text = "\n\n".join(e.text.strip() for e in metric_examples)
+        metric_section = (
+            f"\nUse these verified examples as METER and RHYME reference "
+            f"(they demonstrate {meter} meter with {rhyme_scheme} rhyme scheme"
+            f" — follow this rhythm and rhyme pattern exactly):\n"
+            f"{examples_text}\n"
+        )
+
     return (
         "Use the following poetic excerpts as thematic inspiration (do not copy):\n"
-        f"{excerpts}\n\n"
+        f"{excerpts}\n"
+        f"{metric_section}\n"
         f"Theme: {theme}\n"
         f"Meter: {meter}\n"
         f"Rhyme scheme: {rhyme_scheme}\n"
