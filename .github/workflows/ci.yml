@@ -13,9 +13,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5.6.0
         with:
           python-version: '3.11'
 
@@ -25,21 +25,21 @@ jobs:
       - name: Run ruff
         run: ruff check src/ tests/
 
-  # ── Job 2: Unit tests ────────────────────────────────────────────────────────
-  test-unit:
-    name: Unit tests
+  # ── Job 2: Tests (unit + integration) ────────────────────────────────────────
+  test:
+    name: Tests
     needs: lint
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5.6.0
         with:
           python-version: '3.11'
 
       - name: Cache Poetry + pip
-        uses: actions/cache@v4
+        uses: actions/cache@v4.2.3
         with:
           path: |
             ~/.cache/pypoetry
@@ -54,7 +54,7 @@ jobs:
         run: poetry install --no-root --no-interaction --no-ansi
 
       - name: Cache Stanza models
-        uses: actions/cache@v4
+        uses: actions/cache@v4.2.3
         with:
           path: ~/stanza_resources
           key: stanza-uk-v1
@@ -65,44 +65,6 @@ jobs:
 
       - name: Run unit tests
         run: poetry run python -m pytest tests/unit/ -v
-
-  # ── Job 3: Integration tests ─────────────────────────────────────────────────
-  test-integration:
-    name: Integration tests
-    needs: test-unit
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Cache Poetry + pip
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pypoetry
-            ~/.cache/pip
-          key: ${{ runner.os }}-poetry-${{ hashFiles('pyproject.toml') }}
-          restore-keys: ${{ runner.os }}-poetry-
-
-      - name: Install Poetry
-        run: pip install poetry
-
-      - name: Install dependencies
-        run: poetry install --no-root --no-interaction --no-ansi
-
-      - name: Cache Stanza models
-        uses: actions/cache@v4
-        with:
-          path: ~/stanza_resources
-          key: stanza-uk-v1
-          restore-keys: stanza-uk-
-
-      - name: Preload Stanza models
-        run: poetry run python scripts/preload_stanza.py
 
       - name: Run integration tests
         run: poetry run python -m pytest tests/integration/ -v -m integration
