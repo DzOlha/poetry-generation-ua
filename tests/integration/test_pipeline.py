@@ -136,7 +136,8 @@ class TestAblationConfigurations:
       A: Baseline (LLM + validator, no RAG, no feedback)            — validation only, no feedback loop
       B: LLM + Val + Feedback (no RAG)                             — validation + feedback, no retrieval
       C: Semantic RAG + Val + Feedback                              — semantic retrieval + validation + feedback
-      D: Metric Examples + Val + Feedback                           — metric examples + validation + feedback, no semantic retrieval
+      D: Metric Examples + Val + Feedback
+            — metric examples + validation + feedback, no semantic retrieval
       E: Full system (semantic + metric examples + val + feedback)  — all components active
     """
 
@@ -229,5 +230,7 @@ class TestAblationConfigurations:
                 llm=MockLLMClient(), stress_dict=stress_dict, retriever=retriever, corpus=corpus,
             )
             assert isinstance(trace, PipelineTrace), f"Config {config.label}: no trace returned"
-            assert trace.final_metrics.get("meter_accuracy") is not None, f"Config {config.label}: missing meter_accuracy"
-            assert trace.final_metrics.get("rhyme_accuracy") is not None, f"Config {config.label}: missing rhyme_accuracy"
+            assert trace.final_metrics.get("meter_accuracy") is not None, \
+                f"Config {config.label}: missing meter_accuracy"
+            assert trace.final_metrics.get("rhyme_accuracy") is not None, \
+                f"Config {config.label}: missing rhyme_accuracy"
