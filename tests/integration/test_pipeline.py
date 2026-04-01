@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import pytest
 
+from src.evaluation.runner import ABLATION_CONFIGS, run_traced_pipeline
+from src.evaluation.scenarios import scenario_by_id
+from src.evaluation.trace import PipelineTrace
 from src.generation.llm import MockLLMClient
 from src.meter.stress import StressDict
 from src.pipeline.full_system import PipelineReport, check_poem, run_full_pipeline
@@ -129,110 +132,102 @@ class TestRunFullPipeline:
 @pytest.mark.integration
 class TestAblationConfigurations:
     """
-    Ablation configs from spec section 9:
-    A: Baseline (pure LLM) — no retrieval, no validation, no feedback
-    B: LLM + Validator — no retrieval, validation on, no feedback
-    C: LLM + Val + Feedback — no retrieval, validation + feedback
-    D: Full system — retrieval + validation + feedback
-    E: No Retrieval — validation + feedback, no retrieval
+    Ablation configs (from src/evaluation/runner.py ABLATION_CONFIGS):
+      A: Baseline (LLM + validator, no RAG, no feedback)            — validation only, no feedback loop
+      B: LLM + Val + Feedback (no RAG)                             — validation + feedback, no retrieval
+      C: Semantic RAG + Val + Feedback                              — semantic retrieval + validation + feedback
+      D: Metric Examples + Val + Feedback                           — metric examples + validation + feedback, no semantic retrieval
+      E: Full system (semantic + metric examples + val + feedback)  — all components active
     """
 
-    def _make_llm(self) -> MockLLMClient:
-        return MockLLMClient()
-
-    def test_config_a_baseline_pure_llm(self):
-        llm = self._make_llm()
-        poem = llm.generate("тема: весна").text
-        assert isinstance(poem, str)
-        assert len(poem) > 0
-
-    def test_config_b_llm_plus_validator(self, stress_dict: StressDict):
-        llm = self._make_llm()
-        poem = llm.generate("тема: весна").text
-        report = check_poem(poem, "ямб", 4, "ABAB", stress_dict)
-        assert isinstance(report, PipelineReport)
-        assert isinstance(report.meter_accuracy, float)
-        assert isinstance(report.rhyme_accuracy, float)
-
-    def test_config_c_llm_val_feedback(self, stress_dict: StressDict, retriever: SemanticRetriever):
-        poem, report = run_full_pipeline(
-            theme="весна",
-            meter="ямб",
-            rhyme_scheme="ABAB",
-            foot_count=4,
-            corpus=[],
-            llm=self._make_llm(),
-            stress_dict=stress_dict,
-            retriever=retriever,
-            max_iterations=3,
+    def test_config_a_baseline(self, stress_dict: StressDict, retriever: SemanticRetriever):
+        """Config A: validates poem but does not run a feedback loop."""
+        scenario = scenario_by_id("N01")
+        assert scenario is not None
+        config = ABLATION_CONFIGS[0]  # A
+        trace = run_traced_pipeline(
+            scenario, config, llm=MockLLMClient(), stress_dict=stress_dict, retriever=retriever,
         )
-        assert isinstance(report, PipelineReport)
+        assert isinstance(trace, PipelineTrace)
+        assert trace.config_label == "A"
+        assert trace.final_metrics.get("meter_accuracy") is not None
+        validation_stage = next(s for s in trace.stages if s.name == "validation")
+        assert "SKIPPED" not in validation_stage.input_summary
+        feedback_stage = next(s for s in trace.stages if s.name == "feedback_loop")
+        assert "SKIPPED" in feedback_stage.input_summary
 
-    def test_config_d_full_system(self, stress_dict: StressDict, retriever: SemanticRetriever):
-        poem, report = run_full_pipeline(
-            theme="весна у лісі",
-            meter="ямб",
-            rhyme_scheme="ABAB",
-            foot_count=4,
-            corpus=default_demo_corpus(),
-            retriever=retriever,
-            llm=self._make_llm(),
-            stress_dict=stress_dict,
-            max_iterations=3,
-            top_k=3,
+    def test_config_b_val_feedback(self, stress_dict: StressDict, retriever: SemanticRetriever):
+        """Config B: validation + feedback loop, no retrieval of any kind."""
+        scenario = scenario_by_id("N01")
+        assert scenario is not None
+        config = ABLATION_CONFIGS[1]  # B
+        trace = run_traced_pipeline(
+            scenario, config, llm=MockLLMClient(), stress_dict=stress_dict, retriever=retriever, max_iterations=2,
         )
-        assert isinstance(poem, str)
-        assert isinstance(report, PipelineReport)
+        assert trace.config_label == "B"
+        retrieval_stage = next(s for s in trace.stages if s.name == "retrieval")
+        assert "SKIPPED" in retrieval_stage.input_summary
+        metric_stage = next(s for s in trace.stages if s.name == "metric_examples")
+        assert "SKIPPED" in metric_stage.input_summary
+        feedback_stage = next(s for s in trace.stages if s.name == "feedback_loop")
+        assert "SKIPPED" not in feedback_stage.input_summary
 
-    def test_config_e_no_retrieval(self, stress_dict: StressDict, retriever: SemanticRetriever):
-        poem, report = run_full_pipeline(
-            theme="самотність",
-            meter="ямб",
-            rhyme_scheme="ABAB",
-            foot_count=4,
-            corpus=[],
-            llm=self._make_llm(),
-            stress_dict=stress_dict,
-            retriever=retriever,
-            max_iterations=3,
+    def test_config_c_semantic_rag(self, stress_dict: StressDict, retriever: SemanticRetriever):
+        """Config C: semantic retrieval active, metric examples skipped."""
+        scenario = scenario_by_id("N01")
+        assert scenario is not None
+        config = ABLATION_CONFIGS[2]  # C
+        trace = run_traced_pipeline(
+            scenario, config, llm=MockLLMClient(), stress_dict=stress_dict,
+            retriever=retriever, corpus=default_demo_corpus(),
         )
-        assert isinstance(report, PipelineReport)
+        assert trace.config_label == "C"
+        retrieval_stage = next(s for s in trace.stages if s.name == "retrieval")
+        assert "SKIPPED" not in retrieval_stage.input_summary
+        metric_stage = next(s for s in trace.stages if s.name == "metric_examples")
+        assert "SKIPPED" in metric_stage.input_summary
 
-    def test_all_configs_produce_reports(self, stress_dict: StressDict, retriever: SemanticRetriever):
-        reports: dict[str, PipelineReport | None] = {}
-
-        # A: baseline
-        llm_a = self._make_llm()
-        poem_a = llm_a.generate("тема: весна").text
-        reports["A"] = check_poem(poem_a, "ямб", 4, "ABAB", stress_dict)
-
-        # B: llm + validator
-        llm_b = self._make_llm()
-        poem_b = llm_b.generate("тема: весна").text
-        reports["B"] = check_poem(poem_b, "ямб", 4, "ABAB", stress_dict)
-
-        # C: llm + val + feedback
-        _, reports["C"] = run_full_pipeline(
-            theme="весна", meter="ямб", rhyme_scheme="ABAB", foot_count=4,
-            corpus=[], llm=self._make_llm(), stress_dict=stress_dict,
-            retriever=retriever, max_iterations=3,
+    def test_config_d_metric_examples(self, stress_dict: StressDict, retriever: SemanticRetriever):
+        """Config D: metric examples active, semantic retrieval skipped."""
+        scenario = scenario_by_id("N01")
+        assert scenario is not None
+        config = ABLATION_CONFIGS[3]  # D
+        trace = run_traced_pipeline(
+            scenario, config, llm=MockLLMClient(), stress_dict=stress_dict, retriever=retriever,
         )
+        assert trace.config_label == "D"
+        retrieval_stage = next(s for s in trace.stages if s.name == "retrieval")
+        assert "SKIPPED" in retrieval_stage.input_summary
+        metric_stage = next(s for s in trace.stages if s.name == "metric_examples")
+        assert "SKIPPED" not in metric_stage.input_summary
 
-        # D: full system
-        _, reports["D"] = run_full_pipeline(
-            theme="весна", meter="ямб", rhyme_scheme="ABAB", foot_count=4,
-            corpus=default_demo_corpus(), retriever=retriever,
-            llm=self._make_llm(), stress_dict=stress_dict, max_iterations=3,
+    def test_config_e_full_system(self, stress_dict: StressDict, retriever: SemanticRetriever):
+        """Config E: all components active — semantic retrieval, metric examples, validation, feedback."""
+        scenario = scenario_by_id("N01")
+        assert scenario is not None
+        config = ABLATION_CONFIGS[4]  # E
+        trace = run_traced_pipeline(
+            scenario, config, llm=MockLLMClient(), stress_dict=stress_dict,
+            retriever=retriever, corpus=default_demo_corpus(),
         )
+        assert trace.config_label == "E"
+        retrieval_stage = next(s for s in trace.stages if s.name == "retrieval")
+        assert "SKIPPED" not in retrieval_stage.input_summary
+        metric_stage = next(s for s in trace.stages if s.name == "metric_examples")
+        assert "SKIPPED" not in metric_stage.input_summary
+        feedback_stage = next(s for s in trace.stages if s.name == "feedback_loop")
+        assert "SKIPPED" not in feedback_stage.input_summary
 
-        # E: no retrieval
-        _, reports["E"] = run_full_pipeline(
-            theme="весна", meter="ямб", rhyme_scheme="ABAB", foot_count=4,
-            corpus=[], llm=self._make_llm(), stress_dict=stress_dict,
-            retriever=retriever, max_iterations=3,
-        )
-
-        for label, report in reports.items():
-            assert report is not None, f"Config {label} produced no report"
-            assert isinstance(report.meter_accuracy, float), f"Config {label}: meter_accuracy not float"
-            assert isinstance(report.rhyme_accuracy, float), f"Config {label}: rhyme_accuracy not float"
+    def test_all_configs_produce_metrics(self, stress_dict: StressDict, retriever: SemanticRetriever):
+        """All 5 ablation configs must complete and expose meter_accuracy + rhyme_accuracy."""
+        scenario = scenario_by_id("N01")
+        assert scenario is not None
+        corpus = default_demo_corpus()
+        for config in ABLATION_CONFIGS:
+            trace = run_traced_pipeline(
+                scenario, config,
+                llm=MockLLMClient(), stress_dict=stress_dict, retriever=retriever, corpus=corpus,
+            )
+            assert isinstance(trace, PipelineTrace), f"Config {config.label}: no trace returned"
+            assert trace.final_metrics.get("meter_accuracy") is not None, f"Config {config.label}: missing meter_accuracy"
+            assert trace.final_metrics.get("rhyme_accuracy") is not None, f"Config {config.label}: missing rhyme_accuracy"
