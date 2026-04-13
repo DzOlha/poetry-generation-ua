@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Детекція метру та рими — Генератор Українських Віршів{% endblock %}
+
+{% block content %}
+<div class="page-title">
+    <h1>Детекція метру та рими</h1>
+    <p class="subtitle">Вставте текст вірша — система визначить метр та схему римування</p>
+</div>
+
+<div class="cards">
+    <section class="card" id="detect">
+        <h2>Аналіз вірша</h2>
+        <form method="post" action="/detect" id="detect-form">
+            <div class="field">
+                <label for="poem_text">Текст вірша</label>
+                <textarea id="poem_text" name="poem_text" rows="10" required
+                          placeholder="Вставте вірш для аналізу..."></textarea>
+            </div>
+
+            <div class="field">
+                <label for="sample_lines">Кількість рядків для аналізу</label>
+                <select id="sample_lines" name="sample_lines">
+                    <option value="2">2 (двовірш)</option>
+                    <option value="3">3 (терцет)</option>
+                    <option value="4" selected>4 (катрен)</option>
+                    <option value="14">14 (сонет)</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-primary" id="detect-btn">
+                <span class="btn-text">Детектувати</span>
+                <span class="btn-loading hidden">Аналізуємо...</span>
+            </button>
+        </form>
+    </section>
+</div>
+{% endblock %}

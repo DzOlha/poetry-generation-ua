@@ -25,10 +25,41 @@ jobs:
       - name: Run ruff
         run: ruff check src/ tests/
 
-  # ── Job 2: Tests (unit + integration) ────────────────────────────────────────
+  # ── Job 2: Type-check ────────────────────────────────────────────────────────
+  typecheck:
+    name: Type-check (mypy)
+    needs: lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - uses: actions/setup-python@v5.6.0
+        with:
+          python-version: '3.11'
+
+      - name: Cache Poetry + pip
+        uses: actions/cache@v4.2.3
+        with:
+          path: |
+            ~/.cache/pypoetry
+            ~/.cache/pip
+          key: ${{ runner.os }}-poetry-${{ hashFiles('pyproject.toml') }}
+          restore-keys: ${{ runner.os }}-poetry-
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: poetry install --no-root --no-interaction --no-ansi
+
+      - name: Run mypy
+        run: poetry run mypy src/ tests/
+
+  # ── Job 3: Tests (unit + integration) ────────────────────────────────────────
   test:
     name: Tests
-    needs: lint
+    needs: [lint, typecheck]
     runs-on: ubuntu-latest
 
     steps:

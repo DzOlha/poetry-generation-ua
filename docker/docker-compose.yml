@@ -8,16 +8,29 @@ services:
       - ../.env
     volumes:
       - ../:/app:cached   # синхронізація всього проєкту
-      - /app/.venv        # кеш virtualenv усередині контейнера
       - stanza_cache:/root/stanza_resources  # кеш Stanza-моделей між запусками
       - hf_cache:/root/.cache/huggingface    # кеш HuggingFace/LaBSE між запусками
     environment:
       - PYTHONPATH=/app
-      - POETRY_VIRTUALENVS_PATH=/app/.venv
-      - POETRY_VIRTUALENVS_IN_PROJECT=true
+      - POETRY_VIRTUALENVS_IN_PROJECT=false
+      - POETRY_VIRTUALENVS_PATH=/opt/venv
       - STANZA_RESOURCES_DIR=/root/stanza_resources
+    ports:
+      - "8000:8000"
     tty: true
     command: bash
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "4.0"
+          memory: 8G
+    healthcheck:
+      test: ["CMD", "python", "-c", "import src"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
 volumes:
   stanza_cache:

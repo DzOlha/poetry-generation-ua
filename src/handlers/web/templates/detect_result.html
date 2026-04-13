@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Результат детекції — Генератор Українських Віршів{% endblock %}
+
+{% block content %}
+<div class="result-page">
+
+    <div class="result-meta">
+        <span>Рядків проаналізовано: <strong>{{ sample_lines }}</strong></span>
+    </div>
+
+    <section class="card poem-card">
+        <h2>Аналізований текст</h2>
+        <pre class="poem-text">{{ poem_text }}</pre>
+    </section>
+
+    <section class="card validation-card">
+        <h2>Результат детекції</h2>
+
+        <div class="validity-badge {% if is_detected %}valid{% else %}invalid{% endif %}">
+            {% if is_detected %}&#10003; Метр та рима визначені{% else %}&#10007; Не вдалося повністю визначити{% endif %}
+        </div>
+
+        <div class="metrics">
+            {% if meter %}
+            <div class="metric">
+                <span class="metric-label">Метр</span>
+                <span class="metric-value ok">{{ meter.meter }}, {{ meter.foot_count }}-стопний</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Точність метру</span>
+                <span class="metric-value {% if meter.accuracy >= 0.8 %}ok{% else %}fail{% endif %}">
+                    {{ "%.0f"|format(meter.accuracy * 100) }}%
+                </span>
+            </div>
+            {% else %}
+            <div class="metric">
+                <span class="metric-label">Метр</span>
+                <span class="metric-value fail">&#10007; не визначено</span>
+            </div>
+            {% endif %}
+
+            {% if rhyme %}
+            <div class="metric">
+                <span class="metric-label">Схема рим</span>
+                <span class="metric-value ok">{{ rhyme.scheme }}</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Точність рими</span>
+                <span class="metric-value {% if rhyme.accuracy >= 0.8 %}ok{% else %}fail{% endif %}">
+                    {{ "%.0f"|format(rhyme.accuracy * 100) }}%
+                </span>
+            </div>
+            {% else %}
+            <div class="metric">
+                <span class="metric-label">Схема рим</span>
+                <span class="metric-value fail">&#10007; не визначено</span>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <div class="result-actions">
+        <a href="/detect" class="btn-primary">&#8592; Спробувати ще</a>
+        <a href="/" class="btn-secondary">На головну</a>
+    </div>
+
+</div>
+{% endblock %}

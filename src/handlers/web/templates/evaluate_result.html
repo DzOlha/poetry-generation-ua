@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Результат оцінки — Генератор Українських Віршів{% endblock %}
+
+{% block content %}
+<div class="result-page">
+
+    <div class="result-meta">
+        <span>Сценарій: <strong>{{ scenario.id }} — {{ scenario.name }}</strong></span>
+        <span>Конфіг: <strong>{{ config.label }}: {{ config.description }}</strong></span>
+        <span>Метр: <strong>{{ scenario.meter }} {{ scenario.foot_count }}ст. {{ scenario.rhyme_scheme }}</strong></span>
+    </div>
+
+    {% if trace.error %}
+    <div class="error-banner">Помилка: {{ trace.error }}</div>
+    {% endif %}
+
+    {% if trace.final_poem %}
+    <section class="card poem-card">
+        <h2>Згенерований вірш</h2>
+        <pre class="poem-text">{{ trace.final_poem }}</pre>
+    </section>
+    {% endif %}
+
+    <section class="card validation-card">
+        <h2>Підсумкові метрики</h2>
+        <div class="metrics">
+            {% if final_metrics.meter_accuracy is defined %}
+            <div class="metric">
+                <span class="metric-label">Метр</span>
+                <span class="metric-value {% if final_metrics.meter_accuracy >= 0.8 %}ok{% else %}fail{% endif %}">
+                    {{ "%.0f"|format(final_metrics.meter_accuracy * 100) }}%
+                </span>
+            </div>
+            {% endif %}
+            {% if final_metrics.rhyme_accuracy is defined %}
+            <div class="metric">
+                <span class="metric-label">Рима</span>
+                <span class="metric-value {% if final_metrics.rhyme_accuracy >= 0.8 %}ok{% else %}fail{% endif %}">
+                    {{ "%.0f"|format(final_metrics.rhyme_accuracy * 100) }}%
+                </span>
+            </div>
+            {% endif %}
+            {% if final_metrics.feedback_iterations is defined %}
+            <div class="metric">
+                <span class="metric-label">Ітерацій</span>
+                <span class="metric-value">{{ final_metrics.feedback_iterations }}</span>
+            </div>
+            {% endif %}
+            <div class="metric">
+                <span class="metric-label">Час</span>
+                <span class="metric-value">{{ "%.2f"|format(trace.total_duration_sec) }}s</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Стадії пайплайну</h2>
+        <div class="stages-list">
+            {% for stage in stages %}
+            <details class="stage-item">
+                <summary>
+                    <strong>{{ stage.name }}</strong>
+                    {% if stage.error %}<span class="badge-error">ERROR</span>{% endif %}
+                    {% if stage.duration_sec %}<span class="badge-time">{{ "%.3f"|format(stage.duration_sec) }}s</span>{% endif %}
+                </summary>
+                <div class="stage-body">
+                    {% if stage.input_summary %}
+                    <p><em>Input:</em> {{ stage.input_summary }}</p>
+                    {% endif %}
+                    {% if stage.output_summary %}
+                    <p><em>Output:</em> {{ stage.output_summary }}</p>
+                    {% endif %}
+                    {% if stage.metrics %}
+                    <p><em>Metrics:</em> {{ stage.metrics }}</p>
+                    {% endif %}
+                    {% if stage.error %}
+                    <p class="stage-error"><em>Error:</em> {{ stage.error }}</p>
+                    {% endif %}
+                </div>
+            </details>
+            {% endfor %}
+        </div>
+    </section>
+
+    {% if iterations %}
+    <section class="card">
+        <h2>Ітерації зворотного зв'язку</h2>
+        <table class="iter-table">
+            <thead>
+                <tr><th>#</th><th>Метр%</th><th>Рима%</th><th>Порушень</th><th>Час</th></tr>
+            </thead>
+            <tbody>
+                {% for it in iterations %}
+                <tr>
+                    <td>{{ it.iteration }}</td>
+                    <td>{{ "%.0f"|format(it.meter_accuracy * 100) }}%</td>
+                    <td>{{ "%.0f"|format(it.rhyme_accuracy * 100) }}%</td>
+                    <td>{{ it.feedback|length }}</td>
+                    <td>{{ "%.3f"|format(it.duration_sec) }}s</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    {% endif %}
+
+    <div class="result-actions">
+        <a href="/evaluate" class="btn-primary">← Нова оцінка</a>
+        <a href="/" class="btn-secondary">Генерувати вірш</a>
+    </div>
+
+</div>
+{% endblock %}

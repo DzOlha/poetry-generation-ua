@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Оцінка пайплайну — Генератор Українських Віршів{% endblock %}
+
+{% block content %}
+<div class="page-title">
+    <h1>Оцінка пайплайну</h1>
+    <p class="subtitle">Запустіть сценарій через один із конфігів абляції та перегляньте трейс</p>
+</div>
+
+{% if error %}
+<div class="error-banner">{{ error }}</div>
+{% endif %}
+
+<div class="cards">
+    <section class="card" id="evaluate">
+        <h2>Параметри оцінки</h2>
+        <form method="post" action="/evaluate">
+
+            <div class="field">
+                <label for="config_label">Конфіг абляції</label>
+                <select id="config_label" name="config_label">
+                    {% for cfg in ablation_configs %}
+                    <option value="{{ cfg.label }}">{{ cfg.label }}: {{ cfg.description }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="scenario_id">Сценарій</label>
+                <select id="scenario_id" name="scenario_id">
+                    <optgroup label="Normal">
+                        {% for s in scenarios_by_cat.normal %}
+                        <option value="{{ s.id }}">{{ s.id }} — {{ s.name }} ({{ s.meter }} {{ s.foot_count }}ст. {{ s.rhyme_scheme }})</option>
+                        {% endfor %}
+                    </optgroup>
+                    <optgroup label="Edge">
+                        {% for s in scenarios_by_cat.edge %}
+                        <option value="{{ s.id }}">{{ s.id }} — {{ s.name }} ({{ s.meter }} {{ s.foot_count }}ст. {{ s.rhyme_scheme }})</option>
+                        {% endfor %}
+                    </optgroup>
+                    <optgroup label="Corner">
+                        {% for s in scenarios_by_cat.corner %}
+                        <option value="{{ s.id }}">{{ s.id }} — {{ s.name }} ({{ s.meter }} {{ s.foot_count }}ст. {{ s.rhyme_scheme }})</option>
+                        {% endfor %}
+                    </optgroup>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="max_iterations">Макс. ітерацій</label>
+                <input id="max_iterations" name="max_iterations" type="number" value="1" min="0" max="10">
+            </div>
+
+            <button type="submit" class="btn-primary">Запустити оцінку</button>
+        </form>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Помилка — Генератор Українських Віршів{% endblock %}
+
+{% block content %}
+<section class="error-section">
+    <h2>Виникла помилка</h2>
+    <p class="error-message">{{ error }}</p>
+    <a href="/" class="back-link">← Повернутися на головну</a>
+</section>
+{% endblock %}

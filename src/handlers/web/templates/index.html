@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Генератор Українських Віршів{% endblock %}
+
+{% block content %}
+<div class="page-title">
+    <h1>Генератор Українських Віршів</h1>
+    <p class="subtitle">Задайте параметри — отримайте вірш із перевіркою метру та рими</p>
+</div>
+
+<div class="cards">
+
+    <!-- Generation form -->
+    <section class="card" id="generate">
+        <h2>Згенерувати вірш</h2>
+        <form method="post" action="/generate" id="gen-form">
+            <div class="field">
+                <label for="theme">Тема</label>
+                <input id="theme" name="theme" type="text" required
+                       placeholder="напр. весна, кохання, Україна..." autocomplete="off">
+            </div>
+
+            <div class="row">
+                <div class="field">
+                    <label for="meter">Метр</label>
+                    <select id="meter" name="meter">
+                        <option value="ямб">Ямб</option>
+                        <option value="хорей">Хорей</option>
+                        <option value="дактиль">Дактиль</option>
+                        <option value="амфібрахій">Амфібрахій</option>
+                        <option value="анапест">Анапест</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="feet">Стопи</label>
+                    <input id="feet" name="feet" type="number" value="4" min="1" max="8">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="field">
+                    <label for="scheme">Схема рим</label>
+                    <select id="scheme" name="scheme">
+                        <option value="ABAB">ABAB (перехресна)</option>
+                        <option value="AABB">AABB (суміжна)</option>
+                        <option value="ABBA">ABBA (охоплена)</option>
+                        <option value="AAAA">AAAA (монорима)</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="stanzas">Строфи</label>
+                    <input id="stanzas" name="stanzas" type="number" value="4" min="1" max="10">
+                </div>
+                <div class="field">
+                    <label for="lines">Рядків у строфі</label>
+                    <input id="lines" name="lines" type="number" value="4" min="2" max="8">
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="iterations">Макс. ітерацій виправлення</label>
+                <input id="iterations" name="iterations" type="number" value="3" min="0" max="10">
+            </div>
+
+            <button type="submit" class="btn-primary" id="gen-btn">
+                <span class="btn-text">Згенерувати</span>
+                <span class="btn-loading hidden">Генеруємо…</span>
+            </button>
+        </form>
+    </section>
+
+    <!-- Validation form -->
+    <section class="card" id="validate">
+        <h2>Перевірити вірш</h2>
+        <form method="post" action="/validate-web">
+            <div class="field">
+                <label for="poem_text">Текст вірша</label>
+                <textarea id="poem_text" name="poem_text" rows="8" required
+                          placeholder="Вставте вірш для перевірки…"></textarea>
+            </div>
+            <div class="row">
+                <div class="field">
+                    <label for="val-meter">Метр</label>
+                    <select id="val-meter" name="meter">
+                        <option value="ямб">Ямб</option>
+                        <option value="хорей">Хорей</option>
+                        <option value="дактиль">Дактиль</option>
+                        <option value="амфібрахій">Амфібрахій</option>
+                        <option value="анапест">Анапест</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="val-feet">Стопи</label>
+                    <input id="val-feet" name="feet" type="number" value="4" min="1" max="8">
+                </div>
+                <div class="field">
+                    <label for="val-scheme">Схема рим</label>
+                    <select id="val-scheme" name="scheme">
+                        <option value="ABAB">ABAB</option>
+                        <option value="AABB">AABB</option>
+                        <option value="ABBA">ABBA</option>
+                        <option value="AAAA">AAAA</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn-secondary">Перевірити</button>
+        </form>
+    </section>
+
+
+    <!-- Evaluation link -->
+    <section class="card" id="evaluate-link">
+        <h2>Оцінка пайплайну</h2>
+        <p>Запустіть один із 18 визначених сценаріїв через конфіги абляції A–E та перегляньте покроковий трейс.</p>
+        <a href="/evaluate" class="btn-secondary">Перейти до оцінки →</a>
+    </section>
+
+</div>
+{% endblock %}

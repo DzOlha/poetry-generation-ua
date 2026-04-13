@@ -15,10 +15,12 @@ RUN curl -sSL https://install.python-poetry.org | python3 -
 ENV PATH="/root/.local/bin:$PATH"
 
 # Копіюємо тільки залежності для кешування
-COPY pyproject.toml poetry.lock* ./
+COPY pyproject.toml poetry.lock ./
 
-# Встановлюємо залежності через Poetry
-RUN poetry config virtualenvs.in-project true && poetry install --no-root --no-interaction --no-ansi
+# Встановлюємо залежності через Poetry (venv поза /app, щоб bind-mount не затирав)
+ENV POETRY_VIRTUALENVS_IN_PROJECT=false \
+    POETRY_VIRTUALENVS_PATH=/opt/venv
+RUN poetry install --no-root --no-interaction --no-ansi
 
 # Копіюємо весь код
 COPY . .

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Результат — Генератор Українських Віршів{% endblock %}
+
+{% block content %}
+<div class="result-page">
+
+    {% if theme %}
+    <div class="result-meta">
+        <span>Тема: <strong>{{ theme }}</strong></span>
+        <span>Метр: <strong>{{ meter }} {{ feet }}ст.</strong></span>
+        <span>Схема: <strong>{{ scheme }}</strong></span>
+    </div>
+    {% endif %}
+
+    <section class="card poem-card">
+        <h2>{% if theme %}Згенерований вірш{% else %}Результат перевірки{% endif %}</h2>
+        <pre class="poem-text">{{ poem }}</pre>
+    </section>
+
+    <section class="card validation-card">
+        <h2>Результат перевірки</h2>
+
+        <div class="validity-badge {% if is_valid %}valid{% else %}invalid{% endif %}">
+            {% if is_valid %}✓ Вірш відповідає вимогам{% else %}✗ Є порушення{% endif %}
+        </div>
+
+        <div class="metrics">
+            <div class="metric">
+                <span class="metric-label">Метр</span>
+                <span class="metric-value {% if meter_ok %}ok{% else %}fail{% endif %}">
+                    {{ "✓" if meter_ok else "✗" }} {{ "%.0f"|format(meter_accuracy * 100) }}%
+                </span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Рима</span>
+                <span class="metric-value {% if rhyme_ok %}ok{% else %}fail{% endif %}">
+                    {{ "✓" if rhyme_ok else "✗" }} {{ "%.0f"|format(rhyme_accuracy * 100) }}%
+                </span>
+            </div>
+            {% if iterations is defined %}
+            <div class="metric">
+                <span class="metric-label">Ітерацій</span>
+                <span class="metric-value">{{ iterations }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if feedback %}
+        <details class="feedback-details">
+            <summary>Деталі порушень ({{ feedback|length }})</summary>
+            <ul class="feedback-list">
+                {% for msg in feedback %}
+                <li><pre class="feedback-msg">{{ msg }}</pre></li>
+                {% endfor %}
+            </ul>
+        </details>
+        {% endif %}
+    </section>
+
+    <div class="result-actions">
+        <a href="/" class="btn-primary">← Нова генерація</a>
+        <a href="/#validate" class="btn-secondary">Перевірити інший вірш</a>
+    </div>
+
+</div>
+{% endblock %}

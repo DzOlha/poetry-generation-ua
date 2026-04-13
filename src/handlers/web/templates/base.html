@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Генератор Українських Віршів{% endblock %}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="/" class="logo">🎭 Вірші UA</a>
+            <div class="nav-links">
+                <a href="/">Генерувати</a>
+                <a href="/#validate">Перевірити</a>
+                <a href="/evaluate">Оцінка</a>
+                <a href="/detect">Детекція</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>Генератор українських віршів · API: <a href="/docs">/docs</a></p>
+    </footer>
+
+    <script src="/static/main.js"></script>
+</body>
+</html>

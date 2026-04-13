@@ -9,6 +9,28 @@ lint:
 lint-fix:
 	docker compose -f docker/docker-compose.yml run --rm poetry poetry run ruff check --fix src/ tests/
 
+# ── Type checking ────────────────────────────────────────────────────────────
+#
+#   make typecheck   — run mypy over src/ and tests/
+
+typecheck:
+	docker compose -f docker/docker-compose.yml run --rm poetry poetry run mypy src/ tests/
+
+# ── Coverage ─────────────────────────────────────────────────────────────────
+#
+#   make coverage    — run full test suite with coverage reporting
+
+coverage:
+	docker compose -f docker/docker-compose.yml run --rm poetry bash -c \
+		"poetry run python scripts/preload_stanza.py && \
+		 poetry run python -m pytest tests/ --cov=src --cov-report=term-missing --cov-report=html"
+
+# ── Full quality gate ────────────────────────────────────────────────────────
+#
+#   make ci          — run lint + typecheck + tests (everything the CI pipeline should run)
+
+ci: lint typecheck test
+
 # ── Контейнер ─────────────────────────────────────────────────────────────────
 
 # Підняти контейнер для dev
@@ -19,9 +41,14 @@ up:
 bash:
 	docker compose -f docker/docker-compose.yml run --rm poetry bash
 
-# Запустити пайплайн через Poetry
+# Запустити демо-пайплайн через Poetry
 pipeline:
 	docker compose -f docker/docker-compose.yml run --rm poetry poetry run python scripts/run_pipeline.py
+
+# Запустити Web UI (FastAPI + Jinja2)
+serve:
+	docker compose -f docker/docker-compose.yml run --rm --service-ports poetry \
+		poetry run uvicorn src.handlers.api.app:app --host 0.0.0.0 --port 8000 --reload
 
 # Зупинити і видалити контейнер та томи
 down:
@@ -48,7 +75,7 @@ test-integration:
 
 # ── Demo (швидкий наочний запуск повної системи) ─────────────────────────────
 #
-#   make demo                    — запустити N01 (весна, ямб 4ст ABAB) через повну систему
+#   make demo                    — запустити N01 (весна, ямб 4ст ABAB) через повну систему (конфіг E)
 #   make demo SCENARIO=N03       — будь-який інший сценарій
 
 _TS := $(shell date +%Y%m%d_%H%M%S)
@@ -58,7 +85,7 @@ demo:
 		"poetry run python scripts/preload_stanza.py && \
 		 poetry run python scripts/run_evaluation.py \
 		   --scenario $(if $(SCENARIO),$(SCENARIO),N01) \
-		   --config F \
+		   --config E \
 		   --verbose \
 		   --stanzas 2 \
 		   --lines-per-stanza 4 \
@@ -66,12 +93,12 @@ demo:
 
 # ── Оцінка (конфігурується через змінні) ─────────────────────────────────────
 #
-#   make evaluate                                  — всі сценарії × всі конфіги (108 запусків)
+#   make evaluate                                  — всі сценарії × всі конфіги (90 запусків)
 #   make evaluate SCENARIO=N01                     — один сценарій, всі конфіги
-#   make evaluate SCENARIO=N01 CONFIG=F            — один сценарій, повна система
-#   make evaluate CONFIG=F                         — всі сценарії, повна система
+#   make evaluate SCENARIO=N01 CONFIG=E            — один сценарій, повна система
+#   make evaluate CONFIG=E                         — всі сценарії, повна система
 #   make evaluate CATEGORY=corner                  — тільки corner-кейси
-#   make evaluate SCENARIO=N01 CONFIG=F VERBOSE=1  — з детальними трейсами
+#   make evaluate SCENARIO=N01 CONFIG=E VERBOSE=1  — з детальними трейсами
 #   make evaluate OUTPUT=results/my_run.json       — конкретний файл для результатів
 
 SCENARIO        ?=
@@ -111,42 +138,56 @@ evaluate:
 
 # ── Corpus management ────────────────────────────────────────────────────────
 #
-# Побудувати корпус із сирих .txt-файлів у data/ (без ембедінгів):
-#   make build-corpus
-#   make build-corpus DATA_DIR=data OUT=corpus/uk_poetry_corpus.json MIN_COUNT=1
+# Тематичний корпус (uk_theme_reference_corpus.json) — вірші + LaBSE-ембедінги
+# для семантичного пошуку за темою:
+#   make build-theme-corpus
+#   make build-theme-corpus DATA_DIR=data THEME_OUT=corpus/uk_theme_reference_corpus.json MIN_COUNT=1
 #
-# Обрахувати LaBSE-ембедінги для існуючого корпусу (окремо):
-#   make embed-corpus
-#   make embed-corpus CORPUS=corpus/uk_poetry_corpus.json
+# Обрахувати LaBSE-ембедінги для існуючого тематичного корпусу (окремо):
+#   make embed-theme-corpus
+#   make embed-theme-corpus THEME_CORPUS=corpus/uk_theme_reference_corpus.json
 #
-# Побудувати корпус І одразу обрахувати ембедінги (один крок):
-#   make build-corpus-with-embeddings
-#   make build-corpus-with-embeddings DATA_DIR=data OUT=corpus/uk_poetry_corpus.json MIN_COUNT=1
+# Побудувати тематичний корпус І одразу обрахувати ембедінги (один крок):
+#   make build-theme-corpus-with-embeddings
+#
+# Метрично-римний корпус (uk_auto_metric_corpus.json) — вірші з автоматично
+# розпізнаним метром і схемою рими (brute-force detection по data/):
+#   make build-metric-corpus
+#   make build-metric-corpus DATA_DIR=data METRIC_OUT=corpus/uk_auto_metric_corpus.json
 
-DATA_DIR  ?= data
-OUT       ?= corpus/uk_poetry_corpus.json
-MIN_COUNT ?= 1
-CORPUS    ?= corpus/uk_poetry_corpus.json
+DATA_DIR       ?= data
+THEME_OUT      ?= corpus/uk_theme_reference_corpus.json
+MIN_COUNT      ?= 1
+THEME_CORPUS   ?= corpus/uk_theme_reference_corpus.json
+METRIC_OUT     ?= corpus/uk_auto_metric_corpus.json
+SAMPLE_LINES   ?=
 
-build-corpus:
+build-theme-corpus:
 	docker compose -f docker/docker-compose.yml run --rm poetry bash -c \
 		"poetry run python scripts/build_corpus_from_data_dir.py \
 		  --data-dir $(DATA_DIR) \
-		  --out $(OUT) \
+		  --out $(THEME_OUT) \
 		  --min-count $(MIN_COUNT)"
 
-embed-corpus:
+embed-theme-corpus:
 	docker compose -f docker/docker-compose.yml run --rm poetry bash -c \
 		"poetry run python scripts/build_corpus_embeddings.py \
-		  --corpus $(CORPUS)"
+		  --corpus $(THEME_CORPUS)"
 
-build-corpus-with-embeddings:
+build-theme-corpus-with-embeddings:
 	docker compose -f docker/docker-compose.yml run --rm poetry bash -c \
 		"poetry run python scripts/build_corpus_from_data_dir.py \
 		  --data-dir $(DATA_DIR) \
-		  --out $(OUT) \
+		  --out $(THEME_OUT) \
 		  --min-count $(MIN_COUNT) \
 		  --embed"
+
+build-metric-corpus:
+	docker compose -f docker/docker-compose.yml run --rm poetry bash -c \
+		"poetry run python scripts/build_metric_corpus.py \
+		  --data-dir $(DATA_DIR) \
+		  --out $(METRIC_OUT) \
+		  $(if $(SAMPLE_LINES),--sample-lines $(SAMPLE_LINES),)"
 
 # Перебудувати образ без кешу
 rebuild:

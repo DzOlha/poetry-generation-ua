@@ -3,23 +3,52 @@ name = "poetry-generation-ua"
 version = "0.1.0"
 description = "Poetry generation project"
 authors = ["Olha <olhadziuhal@gmail.com>"]
+packages = [{ include = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-sentence-transformers = "*"
-ukrainian-word-stress = "*"
-google-genai = "*"
-stanza = "*"
+sentence-transformers = ">=2.2"
+ukrainian-word-stress = ">=1.0"
+google-genai = ">=0.3"
+stanza = ">=1.5"
+fastapi = ">=0.100"
+uvicorn = {extras = ["standard"], version = ">=0.20"}
+jinja2 = ">=3.1"
+python-multipart = ">=0.0.5"
+click = ">=8.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.0"
+pytest-cov = "^5.0"
+pytest-xdist = "^3.6"
 ruff = "^0.6"
+mypy = "^1.11"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
 markers = [
     "integration: integration tests (full pipeline)",
+    "component: component tests that load real heavy ML resources (stress dictionary, embedders)",
+]
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+omit = [
+    "*/__init__.py",
+    "src/handlers/web/templates/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+    "\\.\\.\\.",
 ]
 
 [tool.ruff]
@@ -27,7 +56,91 @@ line-length = 120
 target-version = "py311"
 
 [tool.ruff.lint]
-select = ["E", "F", "I"]
+# E/W  = pycodestyle (errors + warnings)
+# F    = pyflakes (undefined names, unused imports)
+# I    = isort (import ordering)
+# B    = flake8-bugbear (likely bugs)
+# UP   = pyupgrade (modernise Python syntax)
+# C4   = flake8-comprehensions (cleaner comprehensions)
+# SIM  = flake8-simplify (readability)
+# RET  = flake8-return (consistent returns)
+# ARG  = flake8-unused-arguments
+# PIE  = flake8-pie (misc lints)
+# N    = pep8-naming (class/function/variable naming)
+select = ["E", "W", "F", "I", "B", "UP", "C4", "SIM", "RET", "ARG", "PIE", "N"]
 ignore = [
-    "E402",  # module level import not at top of file (common in scripts with sys.path.insert)
+    "B008",   # function call in default argument (FastAPI Depends uses this pattern)
+    "SIM108", # if/else expression — sometimes less readable than explicit branches
+    "UP042",  # StrEnum — existing enums extend str intentionally for JSON serialisation
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "ARG",    # test fixtures legitimately take unused args
+    "B011",   # assert False is fine in tests
+    "B017",   # pytest.raises(Exception) is acceptable when verifying a specific domain failure
+]
+"src/domain/ports/**/*.py" = [
+    "ARG",    # abstract methods naturally have unused args in their signatures
+]
+# Null-object pattern: every ITracer/ILogger method is abstract by contract but
+# the "no-op" implementation must accept the arguments to fulfil the protocol.
+"src/infrastructure/tracing/null_tracer.py" = ["ARG002"]
+"src/infrastructure/logging/stdout_logger.py" = ["ARG002"]
+"src/infrastructure/llm/mock.py" = ["ARG002"]
+"src/infrastructure/pipeline/stage_factory.py" = ["ARG002"]
+"src/infrastructure/regeneration/iteration_stop_policy.py" = ["ARG002"]
+# zip() without strict= — justified in dot-product inner loops and parallel iteration
+"src/infrastructure/validators/meter/prosody.py" = ["B905"]
+"src/infrastructure/meter/syllable_flag_strategy.py" = ["B905"]
+"src/infrastructure/metrics/semantic_relevance.py" = ["B905"]
+"src/infrastructure/retrieval/semantic_retriever.py" = ["B905"]
+"src/runners/build_embeddings_runner.py" = ["B905"]
+
+[tool.mypy]
+python_version = "3.11"
+strict_optional = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unreachable = true
+disallow_untyped_defs = true
+disallow_any_generics = true
+disallow_untyped_calls = true
+check_untyped_defs = true
+no_implicit_optional = true
+show_error_codes = true
+pretty = true
+
+[[tool.mypy.overrides]]
+# Libraries that do NOT ship type stubs: suppress missing-import errors.
+# FastAPI, Pydantic, and Click ship their own types and should NOT be listed
+# here — errors against them are real and should be fixed.
+module = [
+    "stanza",
+    "stanza.*",
+    "ukrainian_word_stress",
+    "ukrainian_word_stress.*",
+    "sentence_transformers",
+    "sentence_transformers.*",
+    "google",
+    "google.*",
+    "uvicorn",
+    "uvicorn.*",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+# Only the specific modules where FastAPI/Click/Jinja2 decorators make
+# strict typing impractical.  Other handler modules (schemas, dependencies)
+# remain under the default strict rules.
+module = [
+    "src.handlers.api.app",
+    "src.handlers.api.routers.*",
+    "src.handlers.cli.main",
+    "src.handlers.web.router",
+]
+disallow_untyped_defs = false

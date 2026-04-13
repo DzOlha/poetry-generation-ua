@@ -1,0 +1,154 @@
+/* Ukrainian Poetry Generator — Web UI styles */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --blue:    #2563eb;
+    --blue-dk: #1d4ed8;
+    --green:   #16a34a;
+    --red:     #dc2626;
+    --gray-50: #f9fafb;
+    --gray-100:#f3f4f6;
+    --gray-200:#e5e7eb;
+    --gray-600:#4b5563;
+    --gray-800:#1f2937;
+    --radius:  8px;
+    --shadow:  0 1px 3px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.08);
+}
+
+body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--gray-800);
+    background: var(--gray-50);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── Header ── */
+header { background: white; border-bottom: 1px solid var(--gray-200); padding: 0 1.5rem; }
+nav { max-width: 900px; margin: 0 auto; display: flex; align-items: center; gap: 2rem; height: 56px; }
+.logo { font-size: 1.1rem; font-weight: 700; color: var(--gray-800); text-decoration: none; }
+.nav-links { display: flex; gap: 1.5rem; }
+.nav-links a { color: var(--gray-600); text-decoration: none; font-size: .9rem; }
+.nav-links a:hover { color: var(--blue); }
+
+/* ── Main ── */
+main { flex: 1; max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; width: 100%; }
+
+/* ── Page title ── */
+.page-title { margin-bottom: 2rem; }
+.page-title h1 { font-size: 1.75rem; font-weight: 700; }
+.subtitle { color: var(--gray-600); margin-top: .25rem; }
+
+/* ── Cards ── */
+.cards { display: grid; gap: 1.5rem; }
+@media (min-width: 700px) { .cards { grid-template-columns: 1fr 1fr; } }
+
+.card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+}
+.card h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 1.25rem; }
+
+/* ── Form elements ── */
+.field { display: flex; flex-direction: column; gap: .375rem; margin-bottom: 1rem; }
+.field label { font-size: .85rem; font-weight: 500; color: var(--gray-600); }
+.row { display: flex; gap: .75rem; }
+.row .field { flex: 1; }
+
+input[type="text"], input[type="number"], select, textarea {
+    width: 100%;
+    padding: .5rem .75rem;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    font-size: .9rem;
+    font-family: inherit;
+    background: white;
+    transition: border-color .15s;
+}
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+}
+textarea { resize: vertical; }
+
+/* ── Buttons ── */
+.btn-primary, .btn-secondary {
+    display: inline-block;
+    padding: .6rem 1.25rem;
+    border: none;
+    border-radius: var(--radius);
+    font-size: .9rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background .15s;
+}
+.btn-primary  { background: var(--blue);    color: white;          width: 100%; text-align: center; margin-top: .5rem; }
+.btn-primary:hover  { background: var(--blue-dk); }
+.btn-secondary { background: var(--gray-100); color: var(--gray-800); border: 1px solid var(--gray-200); width: 100%; text-align: center; margin-top: .5rem; }
+.btn-secondary:hover { background: var(--gray-200); }
+
+/* ── Result page ── */
+.result-page { display: flex; flex-direction: column; gap: 1.5rem; }
+.result-meta { display: flex; flex-wrap: wrap; gap: 1rem; font-size: .9rem; color: var(--gray-600); }
+
+.poem-card .poem-text {
+    white-space: pre-wrap;
+    font-family: "Georgia", serif;
+    font-size: 1.05rem;
+    line-height: 1.9;
+    color: var(--gray-800);
+    background: var(--gray-50);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    border-left: 3px solid var(--blue);
+}
+
+.validity-badge {
+    display: inline-block;
+    padding: .35rem .9rem;
+    border-radius: 9999px;
+    font-size: .85rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+.validity-badge.valid   { background: #dcfce7; color: var(--green); }
+.validity-badge.invalid { background: #fee2e2; color: var(--red); }
+
+.metrics { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.metric { display: flex; flex-direction: column; gap: .2rem; }
+.metric-label { font-size: .8rem; color: var(--gray-600); }
+.metric-value { font-size: 1rem; font-weight: 600; }
+.metric-value.ok   { color: var(--green); }
+.metric-value.fail { color: var(--red); }
+
+.feedback-details { border-top: 1px solid var(--gray-200); padding-top: .75rem; margin-top: .75rem; }
+.feedback-details summary { cursor: pointer; font-size: .9rem; font-weight: 500; color: var(--gray-600); }
+.feedback-list { list-style: none; margin-top: .75rem; display: flex; flex-direction: column; gap: .75rem; }
+.feedback-msg {
+    font-family: inherit;
+    font-size: .82rem;
+    white-space: pre-wrap;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: .75rem;
+    color: var(--gray-800);
+}
+
+.result-actions { display: flex; gap: 1rem; }
+.result-actions .btn-primary, .result-actions .btn-secondary { flex: 1; }
+
+/* ── Footer ── */
+footer { padding: 1.25rem 1.5rem; text-align: center; font-size: .8rem; color: var(--gray-600); border-top: 1px solid var(--gray-200); }
+footer a { color: var(--blue); text-decoration: none; }
+
+/* ── Utility ── */
+.hidden { display: none !important; }
