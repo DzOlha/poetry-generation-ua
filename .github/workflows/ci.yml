@@ -92,6 +92,8 @@ jobs:
           restore-keys: stanza-uk-
 
       - name: Preload Stanza models
+        env:
+          PYTHONPATH: .
         run: poetry run python scripts/preload_stanza.py
 
       - name: Run unit tests with coverage
