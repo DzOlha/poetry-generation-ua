@@ -19,7 +19,9 @@ class UkrainianFeedbackFormatter(IFeedbackFormatter):
         expected = ", ".join(str(p) for p in fb.expected_stresses)
         actual = ", ".join(str(p) for p in fb.actual_stresses)
         syl_note = ""
-        expected_syllables = max(fb.expected_stresses) if fb.expected_stresses else 0
+        expected_syllables = fb.expected_syllables or (
+            max(fb.expected_stresses) if fb.expected_stresses else 0
+        )
         if expected_syllables and fb.total_syllables != expected_syllables:
             diff = fb.total_syllables - expected_syllables
             direction = f"shorten by {diff}" if diff > 0 else f"lengthen by {-diff}"

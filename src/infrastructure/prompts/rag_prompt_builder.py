@@ -26,7 +26,18 @@ class RagPromptBuilder(IPromptBuilder):
             f"Meter: {request.meter.name}\n"
             f"Rhyme scheme: {request.rhyme.pattern}\n"
             f"Structure: {structure_desc}\n"
-            f"Generate a Ukrainian poem with exactly {request.structure.total_lines} lines."
+            f"Generate a Ukrainian poem with exactly {request.structure.total_lines} lines.\n"
+            "Output ONLY the poem lines, one per line, in Ukrainian, using normal orthography.\n"
+            "STRICT FORMAT RULES — violating any is a failure:\n"
+            "- NO ALL-CAPS words marking stress (forbidden: 'І-ДУТЬ', 'СЛАВ-ний', 'БІЙ').\n"
+            "- NO syllable hyphenation inside words (forbidden: 'За-гу-бив-ся', 'ле-тить').\n"
+            "- NO syllable numbering in parentheses "
+            "(forbidden: 'Слу(1) жи(2) ли(3)', 'А (1) ни (2)').\n"
+            "- NO scansion marks ('u u -', '( - )', '(U)', '->').\n"
+            "- NO bare number sequences like '1 2 3 4 5 6 7 8'.\n"
+            "- NO English words, commentary, analysis, drafts, alternatives, "
+            "markdown, bullets, line numbers, or explanations.\n"
+            "First token of the reply must be the first word of the first poem line."
         )
 
     @staticmethod

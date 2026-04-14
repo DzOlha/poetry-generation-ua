@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from src.domain.errors import DomainError
 from src.domain.evaluation import IterationRecord, StageRecord
+from src.domain.models import Poem
 from src.domain.pipeline_context import PipelineState
 from src.domain.ports import (
     IFeedbackCycle,
@@ -63,15 +64,31 @@ class ValidatingFeedbackIterator(IFeedbackIterator):
             with StageTimer() as t_iter:
                 try:
                     prev_poem = state.poem
-                    regenerated = self._llm.regenerate_lines(
-                        state.poem, list(feedback_messages),
+                    expected_lines = state.request.structure.total_lines
+                    current_lines = len(
+                        [ln for ln in prev_poem.strip().splitlines() if ln.strip()]
                     )
-                    state.poem = self._merger.merge(
-                        prev_poem,
-                        regenerated,
-                        m_result.feedback,
-                        r_result.feedback,
-                    )
+                    if current_lines != expected_lines and state.prompt:
+                        # Initial generation parsed to wrong line count (e.g. LLM
+                        # leaked chain-of-thought). Line-by-line regeneration can
+                        # only preserve that wrong count — do a full regen instead.
+                        raw = self._llm.generate(state.prompt)
+                        state.poem = Poem.from_text(raw).as_text() or raw
+                    else:
+                        raw = self._llm.regenerate_lines(
+                            state.poem, list(feedback_messages),
+                        )
+                        regenerated = Poem.from_text(raw).as_text()
+                        if not regenerated:
+                            # LLM returned only scansion/garbage — keep prior poem.
+                            state.poem = prev_poem
+                        else:
+                            state.poem = self._merger.merge(
+                                prev_poem,
+                                regenerated,
+                                m_result.feedback,
+                                r_result.feedback,
+                            )
                     outcome = self._cycle.run(
                         state.poem, state.meter, state.rhyme,
                     )

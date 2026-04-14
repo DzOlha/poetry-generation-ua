@@ -66,9 +66,8 @@ class IMismatchTolerance(ABC):
     @abstractmethod
     def line_length_ok(
         self,
-        actual_len: int,
-        expected_len: int,
         actual_pattern: list[str],
+        expected_pattern: list[str],
     ) -> bool: ...
 
     @abstractmethod

@@ -49,7 +49,7 @@ class PatternMeterValidator(BaseMeterValidator):
             if not self._prosody.is_tolerated_mismatch(pos, actual, expected, flags)
         ]
 
-        length_ok = self._prosody.line_length_ok(len(actual), len(expected), actual)
+        length_ok = self._prosody.line_length_ok(actual, expected)
         ok = len(real_errors) <= self.allowed_mismatches and length_ok
 
         return LineMeterResult(

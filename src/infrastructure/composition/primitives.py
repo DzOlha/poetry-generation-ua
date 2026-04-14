@@ -116,5 +116,8 @@ class PrimitivesSubContainer:
 
     def line_feedback_builder(self) -> ILineFeedbackBuilder:
         return self._parent._get(
-            CacheKey.LINE_FEEDBACK_BUILDER, DefaultLineFeedbackBuilder,
+            CacheKey.LINE_FEEDBACK_BUILDER,
+            lambda: DefaultLineFeedbackBuilder(
+                template_provider=self.meter_template_provider(),
+            ),
         )

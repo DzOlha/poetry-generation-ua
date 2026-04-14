@@ -50,7 +50,9 @@ def _make_validator(
     return PatternMeterValidator(
         prosody=_build_prosody(_resolver_for(stress_dict)),
         text_processor=UkrainianTextProcessor(),
-        feedback_builder=DefaultLineFeedbackBuilder(),
+        feedback_builder=DefaultLineFeedbackBuilder(
+            template_provider=UkrainianMeterTemplateProvider(),
+        ),
         allowed_mismatches=allowed_mismatches,
     )
 
@@ -124,31 +126,60 @@ class TestLineLengthOk:
         return _noop_analyzer()
 
     def test_exact_match(self, analyzer):
-        assert analyzer.line_length_ok(4, 4, ["u", "—", "u", "—"]) is True
+        iamb4 = ["u", "—", "u", "—"]
+        assert analyzer.line_length_ok(iamb4, iamb4) is True
 
     def test_feminine_ending_one_extra(self, analyzer):
-        assert analyzer.line_length_ok(5, 4, ["u", "—", "u", "—", "u"]) is True
+        iamb2 = ["u", "—", "u", "—"]
+        actual = ["u", "—", "u", "—", "u"]
+        assert analyzer.line_length_ok(actual, iamb2) is True
 
     def test_feminine_ending_stressed_last_rejected(self, analyzer):
-        assert analyzer.line_length_ok(5, 4, ["u", "—", "u", "—", "—"]) is False
+        iamb2 = ["u", "—", "u", "—"]
+        actual = ["u", "—", "u", "—", "—"]
+        assert analyzer.line_length_ok(actual, iamb2) is False
 
     def test_dactylic_ending_two_extra(self, analyzer):
-        assert analyzer.line_length_ok(6, 4, ["u", "—", "u", "—", "u", "u"]) is True
+        iamb2 = ["u", "—", "u", "—"]
+        actual = ["u", "—", "u", "—", "u", "u"]
+        assert analyzer.line_length_ok(actual, iamb2) is True
 
     def test_dactylic_ending_rejected_if_last_stressed(self, analyzer):
-        assert analyzer.line_length_ok(6, 4, ["u", "—", "u", "—", "u", "—"]) is False
+        iamb2 = ["u", "—", "u", "—"]
+        actual = ["u", "—", "u", "—", "u", "—"]
+        assert analyzer.line_length_ok(actual, iamb2) is False
 
-    def test_catalectic_diff_minus_one(self, analyzer):
-        assert analyzer.line_length_ok(7, 8, ["—", "u", "u", "—", "u", "u", "—"]) is True
+    def test_catalectic_diff_minus_one_trisyllabic(self, analyzer):
+        # dactyl with one syllable truncated (foot_size=3, diff=-1 allowed)
+        dactyl3 = ["—", "u", "u"] * 3
+        actual = ["—", "u", "u", "—", "u", "u", "—", "u"]
+        assert analyzer.line_length_ok(actual, dactyl3) is True
 
-    def test_catalectic_minus_two(self, analyzer):
-        assert analyzer.line_length_ok(6, 9, ["—", "u", "u", "—", "u", "u"]) is True
+    def test_catalectic_diff_minus_two_trisyllabic_allowed(self, analyzer):
+        # dactyl masculine ending drops two trailing unstressed (foot_size=3, diff=-2 allowed)
+        dactyl4 = ["—", "u", "u"] * 4
+        actual = ["—", "u", "u", "—", "u", "u", "—", "u", "u", "—"]
+        assert analyzer.line_length_ok(actual, dactyl4) is True
+
+    def test_missing_full_foot_rejected_binary(self, analyzer):
+        # 5-foot iamb vs 6-foot expected: diff=-2 == foot_size → full foot missing, reject
+        iamb6 = ["u", "—"] * 6
+        actual = ["u", "—"] * 5
+        assert analyzer.line_length_ok(actual, iamb6) is False
+
+    def test_missing_full_foot_rejected_trisyllabic(self, analyzer):
+        # dactyl diff=-3 means full foot missing → reject
+        dactyl3 = ["—", "u", "u"] * 3
+        actual = ["—", "u", "u", "—", "u", "u"]
+        assert analyzer.line_length_ok(actual, dactyl3) is False
 
     def test_too_long_rejected(self, analyzer):
-        assert analyzer.line_length_ok(8, 4, ["u"] * 8) is False
+        iamb2 = ["u", "—", "u", "—"]
+        assert analyzer.line_length_ok(["u"] * 8, iamb2) is False
 
     def test_too_short_rejected(self, analyzer):
-        assert analyzer.line_length_ok(2, 9, ["u"] * 2) is False
+        dactyl3 = ["—", "u", "u"] * 3
+        assert analyzer.line_length_ok(["u"] * 2, dactyl3) is False
 
 
 class TestSyllableWordFlags:
@@ -279,7 +310,9 @@ class TestCheckMeterLine:
         assert check_meter_line("Хоч на вулиці зимно і сніжно", "анапест", 3, stress_dict).ok is True
 
     def test_pyrrhic_function_word_at_stressed_position(self, stress_dict):
-        assert check_meter_line("Реве та стогне Дніпр", "ямб", 4, stress_dict).ok is True
+        # 6 syllables → 3-foot iamb (previously mis-labelled as 4-foot, which hid the
+        # missing-foot bug that foot-size-aware line_length_ok now catches)
+        assert check_meter_line("Реве та стогне Дніпр", "ямб", 3, stress_dict).ok is True
 
     def test_pyrrhic_monosyllabic_preposition(self, stress_dict):
         assert check_meter_line("Струмок біжить в густім лісочку", "ямб", 4, stress_dict).ok is True
@@ -373,9 +406,9 @@ class TestFeedbackFormatting:
             error_positions=(2, 4,),
             total_syllables=8,
         )
-        fb = DefaultLineFeedbackBuilder().build(
-            1, MeterSpec(name="ямб", foot_count=4), result,
-        )
+        fb = DefaultLineFeedbackBuilder(
+            template_provider=UkrainianMeterTemplateProvider(),
+        ).build(1, MeterSpec(name="ямб", foot_count=4), result)
         rendered = UkrainianFeedbackFormatter().format_line(fb)
         assert "Line 2" in rendered
         assert "ямб" in rendered

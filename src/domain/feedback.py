@@ -28,6 +28,7 @@ class LineFeedback:
         expected_stresses: 1-based syllable positions that should be stressed.
         actual_stresses: 1-based syllable positions that are stressed.
         total_syllables: Observed syllable count for the line.
+        expected_syllables: Canonical syllable count for the expected meter template.
         extra_note: Optional validator-specific annotation (e.g. BSP score).
     """
 
@@ -37,6 +38,7 @@ class LineFeedback:
     expected_stresses: tuple[int, ...]
     actual_stresses: tuple[int, ...]
     total_syllables: int
+    expected_syllables: int = 0
     extra_note: str = ""
 
 

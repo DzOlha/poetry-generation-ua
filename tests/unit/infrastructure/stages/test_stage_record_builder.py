@@ -83,7 +83,7 @@ class TestDefaultStageRecordBuilder:
     def test_returns_stage_record_with_validation_name(self) -> None:
         builder = DefaultStageRecordBuilder()
         record = builder.for_validation(
-            poem_text="a\nb\nc\nd\n",
+            poem_text="а\nб\nв\nг\n",
             meter_result=_make_meter_result(),
             rhyme_result=_make_rhyme_result(),
             duration_sec=1.25,
@@ -94,7 +94,7 @@ class TestDefaultStageRecordBuilder:
     def test_summary_strings_include_line_count_and_accuracies(self) -> None:
         builder = DefaultStageRecordBuilder()
         record = builder.for_validation(
-            poem_text="a\nb\nc\nd\n",
+            poem_text="а\nб\nв\nг\n",
             meter_result=_make_meter_result(),
             rhyme_result=_make_rhyme_result(),
             duration_sec=0.1,
@@ -108,7 +108,7 @@ class TestDefaultStageRecordBuilder:
     def test_output_data_contains_meter_and_rhyme_lists(self) -> None:
         builder = DefaultStageRecordBuilder()
         record = builder.for_validation(
-            poem_text="a\nb\n",
+            poem_text="а\nб\n",
             meter_result=_make_meter_result(),
             rhyme_result=_make_rhyme_result(),
             duration_sec=0.0,
@@ -129,7 +129,7 @@ class TestDefaultStageRecordBuilder:
     def test_metrics_reflect_raw_accuracies(self) -> None:
         builder = DefaultStageRecordBuilder()
         record = builder.for_validation(
-            poem_text="a\nb\n",
+            poem_text="а\nб\n",
             meter_result=_make_meter_result(),
             rhyme_result=_make_rhyme_result(),
             duration_sec=0.0,

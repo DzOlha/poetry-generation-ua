@@ -46,6 +46,14 @@ class LineIndexMerger(IRegenerationMerger):
         if not violation_indices or len(regen_lines) < len(violation_indices):
             return regenerated  # Cannot safely merge — use regenerated.
 
+        # If every regenerated line is verbatim copy of an original line, the
+        # LLM dropped the violating line(s) instead of rewriting them. Splicing
+        # an unchanged original line into the violation slot would silently
+        # corrupt the poem (and break rhyme pairs). Keep the original instead.
+        original_set = set(original_lines)
+        if all(ln in original_set for ln in regen_lines):
+            return original.strip() + "\n"
+
         result = list(original_lines)
         for i, orig_idx in enumerate(sorted(violation_indices)):
             if i < len(regen_lines):

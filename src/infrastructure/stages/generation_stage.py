@@ -28,7 +28,8 @@ class GenerationStage(IPipelineStage):
 
         with StageTimer() as t:
             try:
-                state.poem = self._llm.generate(state.prompt)
+                raw = self._llm.generate(state.prompt)
+                state.poem = Poem.from_text(raw).as_text() or raw
             except LLMError as exc:
                 self._logger.error("LLM generation failed", error=str(exc))
                 state.abort(f"generation failed: {exc}")

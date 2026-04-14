@@ -36,8 +36,10 @@ def prosody_analyzer(
 
 
 @pytest.fixture
-def line_feedback_builder() -> DefaultLineFeedbackBuilder:
-    return DefaultLineFeedbackBuilder()
+def line_feedback_builder(
+    meter_template_provider: UkrainianMeterTemplateProvider,
+) -> DefaultLineFeedbackBuilder:
+    return DefaultLineFeedbackBuilder(template_provider=meter_template_provider)
 
 
 @pytest.fixture

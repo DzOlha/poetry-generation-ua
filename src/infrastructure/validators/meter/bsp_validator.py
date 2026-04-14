@@ -62,9 +62,7 @@ class BSPMeterValidator(BaseMeterValidator):
 
         score = self._bsp.compute_score(actual_bin, expected_bin)
         issues = self._bsp.detect_errors(actual_bin, expected_bin, flags)
-        length_ok = self._prosody.line_length_ok(
-            len(actual_pattern), len(expected_pattern), actual_pattern
-        )
+        length_ok = self._prosody.line_length_ok(actual_pattern, expected_pattern)
 
         hard_errors = [iss for iss in issues if iss.type in ("stress_missing", "stress_overflow")]
         ok = score >= self._threshold and len(hard_errors) <= self.allowed_mismatches and length_ok

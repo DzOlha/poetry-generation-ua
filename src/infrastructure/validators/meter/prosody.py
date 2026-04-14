@@ -62,18 +62,29 @@ class UkrainianProsodyAnalyzer(IProsodyAnalyzer):
 
     def line_length_ok(
         self,
-        actual_len: int,
-        expected_len: int,
         actual_pattern: list[str],
+        expected_pattern: list[str],
     ) -> bool:
-        diff = actual_len - expected_len
+        diff = len(actual_pattern) - len(expected_pattern)
         if diff == 0:
             return True
         if diff == 1:
             return actual_pattern[-1] == "u"
         if diff == 2:
             return actual_pattern[-2] == "u" and actual_pattern[-1] == "u"
-        return -3 <= diff <= -1
+        if diff >= 0:
+            return False
+        # Negative diff: allow only catalectic truncation of the final foot.
+        # A full missing foot means |diff| >= foot_size → wrong foot count.
+        foot_size = self._foot_size(expected_pattern)
+        return -foot_size < diff < 0
+
+    @staticmethod
+    def _foot_size(expected_pattern: list[str]) -> int:
+        stress_positions = [i for i, s in enumerate(expected_pattern) if s == "—"]
+        if len(stress_positions) >= 2:
+            return stress_positions[1] - stress_positions[0]
+        return len(expected_pattern) or 2
 
     def is_tolerated_mismatch(
         self,

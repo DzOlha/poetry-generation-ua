@@ -26,6 +26,31 @@ class TestFormatLine:
         msg = UkrainianFeedbackFormatter().format_line(fb)
         assert "syllables" in msg
 
+    def test_uses_expected_syllables_field_when_present(self):
+        # Dactyl: expected_stresses positions don't cover trailing unstressed
+        # syllables. Without expected_syllables, max(expected_stresses) would
+        # mis-state the expected length. The explicit field fixes this.
+        fb = LineFeedback(
+            line_idx=0, meter_name="дактиль", foot_count=3,
+            expected_stresses=(1, 4, 7),
+            actual_stresses=(1, 4, 7),
+            total_syllables=7,       # short by 2 vs the true 9
+            expected_syllables=9,
+        )
+        msg = UkrainianFeedbackFormatter().format_line(fb)
+        assert "should have ~9" in msg
+        assert "lengthen by 2" in msg
+
+    def test_falls_back_to_max_expected_stress_when_syllables_missing(self):
+        fb = LineFeedback(
+            line_idx=0, meter_name="ямб", foot_count=4,
+            expected_stresses=(2, 4, 6, 8), actual_stresses=(2, 4),
+            total_syllables=6,
+            expected_syllables=0,  # unset
+        )
+        msg = UkrainianFeedbackFormatter().format_line(fb)
+        assert "should have ~8" in msg
+
     def test_extra_note_included(self):
         fb = LineFeedback(
             line_idx=0, meter_name="ямб", foot_count=4,

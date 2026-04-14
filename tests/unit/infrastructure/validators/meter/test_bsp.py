@@ -4,6 +4,7 @@ from __future__ import annotations
 import pytest
 
 from src.domain.models import LineMeterResult, MeterSpec
+from src.infrastructure.meter import UkrainianMeterTemplateProvider
 from src.infrastructure.text import UkrainianTextProcessor
 from src.infrastructure.validators.meter.bsp_algorithm import (
     BSPAlgorithm,
@@ -252,7 +253,9 @@ class TestBSPMeterValidator:
         return BSPMeterValidator(
             prosody=prosody_analyzer,
             text_processor=UkrainianTextProcessor(),
-            feedback_builder=DefaultLineFeedbackBuilder(),
+            feedback_builder=DefaultLineFeedbackBuilder(
+                template_provider=UkrainianMeterTemplateProvider(),
+            ),
             bsp_algorithm=BSPAlgorithm(),
             score_threshold=0.6,
         )
@@ -292,7 +295,9 @@ class TestBSPMeterValidator:
         validator = BSPMeterValidator(
             prosody=prosody_analyzer,
             text_processor=UkrainianTextProcessor(),
-            feedback_builder=DefaultLineFeedbackBuilder(),
+            feedback_builder=DefaultLineFeedbackBuilder(
+                template_provider=UkrainianMeterTemplateProvider(),
+            ),
             bsp_algorithm=custom_bsp,
         )
         result = validator._validate_line("Весна прийшла у ліс", MeterSpec("ямб", 4))
@@ -308,7 +313,9 @@ class TestPatternMeterValidator:
         return PatternMeterValidator(
             prosody=prosody_analyzer,
             text_processor=UkrainianTextProcessor(),
-            feedback_builder=DefaultLineFeedbackBuilder(),
+            feedback_builder=DefaultLineFeedbackBuilder(
+                template_provider=UkrainianMeterTemplateProvider(),
+            ),
         )
 
     def test_validate_line_returns_line_meter_result(self, validator):

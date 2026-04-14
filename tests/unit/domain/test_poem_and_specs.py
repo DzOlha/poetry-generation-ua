@@ -32,6 +32,59 @@ class TestPoem:
         poem = Poem.from_text("рядок один\nрядок два\n")
         assert poem.as_text() == "рядок один\nрядок два\n"
 
+    def test_drops_allcaps_cyrillic_scansion_line(self):
+        poem = Poem.from_text(
+            "Від давніх тих часів,\n"
+            "І-ДУТЬ у СЛАВ-ний БІЙ те-ПЕР но-ВІ пол-КИ.\n"
+            "крізь біль гірких віків\n"
+        )
+        assert poem.lines == (
+            "Від давніх тих часів,",
+            "крізь біль гірких віків",
+        )
+
+    def test_drops_paren_digit_syllable_numbering(self):
+        poem = Poem.from_text(
+            "звичайний рядок один\n"
+            "Слу(1) жи(2) ли(3) всі(4) лі(5) си(6) і(7) рі(8) ки(9).\n"
+            "А (1) ни (2) ні (3) т\n"
+            "звичайний рядок два\n"
+        )
+        assert poem.lines == (
+            "звичайний рядок один",
+            "звичайний рядок два",
+        )
+
+    def test_drops_digit_only_line(self):
+        poem = Poem.from_text(
+            "рядок перший\n"
+            "1 2 3 4 5 6 7 8\n"
+            "рядок другий\n"
+        )
+        assert poem.lines == ("рядок перший", "рядок другий")
+
+    def test_drops_caps_hyphen_syllable_cyrillic(self):
+        # Cyrillic uppercase syllable with hyphens like "РІД-ну ЗЕМ-лю"
+        poem = Poem.from_text(
+            "нормальний перший рядок\n"
+            "І РІД-ну ЗЕМ-лю роз-пи-НА-ли\n"
+            "нормальний третій рядок\n"
+        )
+        assert poem.lines == (
+            "нормальний перший рядок",
+            "нормальний третій рядок",
+        )
+
+    def test_keeps_single_capital_word_line(self):
+        # A single leading capitalized word (proper noun) is fine.
+        poem = Poem.from_text("Україна — моя земля.\n")
+        assert poem.lines == ("Україна — моя земля.",)
+
+    def test_keeps_single_allcaps_token(self):
+        # One ALL-CAPS token is tolerated (e.g. acronym); scansion lines have ≥2.
+        poem = Poem.from_text("Настав час УНР здобути волю.\n")
+        assert poem.lines == ("Настав час УНР здобути волю.",)
+
 
 class TestRhymeScheme:
     def test_parses_known_patterns(self):

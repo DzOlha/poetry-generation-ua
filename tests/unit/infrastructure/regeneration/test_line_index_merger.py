@@ -62,3 +62,24 @@ class TestLineIndexMerger:
             (_line_fb(0), _line_fb(1)), (),
         )
         assert result == regenerated
+
+    def test_keeps_original_when_llm_only_drops_violating_line(self):
+        # LLM returned the poem minus line 3 (the violating one) — all
+        # regenerated lines are verbatim copies of original lines. Merger
+        # must not splice unchanged line1 into the violation slot; it must
+        # keep the original poem intact.
+        merger = LineIndexMerger()
+        original = "line1\nline2\nline3\nline4\n"
+        regenerated = "line1\nline2\nline4\n"  # line3 dropped
+        result = merger.merge(original, regenerated, (_line_fb(2),), ())
+        assert result == original
+
+    def test_subset_fallback_triggers_only_for_exact_copies(self):
+        # If even one regenerated line is a genuine rewrite, splice normally.
+        merger = LineIndexMerger()
+        original = "line1\nline2\nline3\nline4\n"
+        regenerated = "line1\nline2-FIXED\nline4\n"
+        result = merger.merge(original, regenerated, (_line_fb(1),), ())
+        lines = [ln for ln in result.splitlines() if ln.strip()]
+        # Splice path replaces line2 (violation idx) with regen_lines[0]="line1"
+        assert lines[1] == "line1"

@@ -604,7 +604,7 @@ raw_errors = [i + 1 for i in range(n) if actual[i] != expected[i]]
 real_errors = [pos for pos in raw_errors
                if not _is_tolerated_mismatch(pos - 1, actual, expected, flags)]
 
-length_ok = _line_length_ok(len(actual), len(expected), actual)
+length_ok = _line_length_ok(actual, expected)
 ok = len(real_errors) <= allowed_mismatches and length_ok
 ```
 
@@ -623,7 +623,10 @@ ok = len(real_errors) <= allowed_mismatches and length_ok
 |------------|-------|-------|
 | `+1` | останній склад `u` | жіноче закінчення |
 | `+2` | останні два склади `u u` | дактилічне закінчення |
-| `-1` до `-3` | безумовно | каталектика (усічена стопа) |
+| `-1 ≤ diff < 0` для 2-складових стоп (ямб, хорей) | безумовно | каталектика |
+| `-2 ≤ diff < 0` для 3-складових стоп (дактиль, амфібрахій, анапест) | безумовно | каталектика |
+
+Відхилення `|diff| ≥ foot_size` означає пропущену цілу стопу (напр., 5-стопний ямб замість 6-стопного: `diff=-2` для `foot_size=2`) і **відкидається**.
 
 **Допустиме відхилення `allowed_mismatches=2`:** після фільтрації пірихіїв і спондеїв, рядок вважається **правильним**, якщо реальних (не-толерантних) невідповідностей ≤ 2 і довжина рядка в межах дозволеного.
 

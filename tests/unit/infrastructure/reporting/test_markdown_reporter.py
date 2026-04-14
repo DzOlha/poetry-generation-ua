@@ -92,3 +92,82 @@ class TestFormatMarkdownReport:
         assert "## Trace Details" in md
         assert "## Aggregate by Config" in md
         assert "рядок один" in md
+
+    def test_renders_generation_model_section_when_configured(self):
+        reporter = MarkdownReporter(
+            llm_provider="gemini", llm_model="gemini-2.0-flash",
+        )
+        md = reporter.format_markdown_report([_summary()], [_trace()])
+        assert "## Generation Model" in md
+        assert "**Provider**: gemini" in md
+        assert "**Model**: gemini-2.0-flash" in md
+
+    def test_omits_generation_model_section_when_nothing_configured(self):
+        md = MarkdownReporter().format_markdown_report([_summary()], [_trace()])
+        assert "## Generation Model" not in md
+
+    def test_renders_config_legend_from_descriptions(self):
+        reporter = MarkdownReporter(
+            config_descriptions={"A": "Baseline (no RAG)", "B": "With feedback"},
+        )
+        md = reporter.format_markdown_report([_summary("A"), _summary("B")], [_trace()])
+        assert "## Config Legend" in md
+        assert "**A** — Baseline (no RAG)" in md
+        assert "**B** — With feedback" in md
+
+    def test_legend_omitted_when_no_descriptions(self):
+        md = MarkdownReporter().format_markdown_report([_summary("A")], [_trace()])
+        assert "## Config Legend" not in md
+
+    def test_summary_table_includes_config_description_column(self):
+        reporter = MarkdownReporter(config_descriptions={"A": "Baseline run"})
+        md = reporter.format_summary_table([_summary("A")])
+        assert "Config Description" in md
+        assert "Baseline run" in md
+
+
+class TestIntermediatePoems:
+    def test_renders_per_iteration_poem_block(self):
+        detail = MarkdownReporter().format_trace_detail(_trace())
+        assert "Intermediate poems (per iteration)" in detail
+        assert "[iter 0]" in detail
+        # poem_text was "вірш" — a single clean line that must appear
+        assert "| вірш" in detail
+
+    def test_iteration_poem_filters_scansion(self):
+        # Intermediate poems go through Poem.from_text → scansion stripped.
+        trace = PipelineTrace(
+            scenario_id="N01",
+            config_label="A",
+            stages=(),
+            iterations=(
+                IterationRecord(
+                    iteration=1,
+                    poem_text="добрий рядок\nСЛА-ва У-КРА-ї-НІ\nінший рядок",
+                    meter_accuracy=1.0, rhyme_accuracy=1.0,
+                    feedback=(), duration_sec=0.01,
+                ),
+            ),
+            final_poem="final",
+            final_metrics={},
+            total_duration_sec=0.1,
+        )
+        detail = MarkdownReporter().format_trace_detail(trace)
+        assert "| добрий рядок" in detail
+        assert "| інший рядок" in detail
+        assert "СЛА-ва" not in detail  # scansion stripped from rendered block
+
+    def test_reports_empty_when_all_lines_filtered(self):
+        trace = PipelineTrace(
+            scenario_id="N01", config_label="A", stages=(),
+            iterations=(
+                IterationRecord(
+                    iteration=1, poem_text="1 2 3 4\n(u) (u) ( - )",
+                    meter_accuracy=0.0, rhyme_accuracy=0.0,
+                    feedback=(), duration_sec=0.0,
+                ),
+            ),
+            final_poem="", final_metrics={}, total_duration_sec=0.0,
+        )
+        detail = MarkdownReporter().format_trace_detail(trace)
+        assert "(empty / unparsable)" in detail

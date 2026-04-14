@@ -83,7 +83,20 @@ class MetricsSubContainer:
         )
 
     def reporter(self) -> IReporter:
-        return self._parent._get(CacheKey.REPORTER, MarkdownReporter)
+        def factory() -> IReporter:
+            from src.domain.evaluation import ABLATION_CONFIGS
+
+            cfg = self._parent.config
+            provider = cfg.llm_provider or ("gemini" if cfg.gemini_api_key else "mock")
+            model = cfg.gemini_model if provider == "gemini" else None
+            descriptions = {c.label: c.description for c in ABLATION_CONFIGS if c.description}
+            return MarkdownReporter(
+                llm_provider=provider,
+                llm_model=model,
+                config_descriptions=descriptions,
+            )
+
+        return self._parent._get(CacheKey.REPORTER, factory)
 
     def results_writer(self) -> IResultsWriter:
         return self._parent._get(

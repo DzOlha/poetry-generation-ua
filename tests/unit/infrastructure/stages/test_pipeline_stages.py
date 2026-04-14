@@ -202,6 +202,35 @@ class TestGenerationStage:
         assert llm.generate_calls == 1
         assert state.poem.startswith("рядок")
 
+    def test_strips_scansion_lines_from_llm_output(self):
+        state = _make_state("E")
+        state.prompt = "prompt"
+        llm = FakeLLM(
+            response=(
+                "рядок перший звичайний,\n"
+                "І-ДУТЬ у СЛАВ-ний БІЙ те-ПЕР но-ВІ пол-КИ.\n"
+                "Слу(1) жи(2) ли(3) всі(4)\n"
+                "1 2 3 4 5 6 7 8\n"
+                "рядок останній нормальний.\n"
+            )
+        )
+        GenerationStage(llm=llm, logger=_NULL_LOGGER).run(state)
+        lines = [ln for ln in state.poem.splitlines() if ln.strip()]
+        assert lines == [
+            "рядок перший звичайний,",
+            "рядок останній нормальний.",
+        ]
+
+    def test_falls_back_to_raw_when_sanitizer_empties_output(self):
+        # If every line is scansion, sanitized result is empty — keep raw so
+        # validation still sees something instead of silently vanishing.
+        state = _make_state("E")
+        state.prompt = "prompt"
+        raw = "І-ДУТЬ у СЛАВ-ний БІЙ.\n1 2 3 4\n"
+        llm = FakeLLM(response=raw)
+        GenerationStage(llm=llm, logger=_NULL_LOGGER).run(state)
+        assert state.poem == raw
+
 
 # ---------------------------------------------------------------------------
 # ValidationStage
