@@ -50,7 +50,7 @@ class TestDetectionConfig:
     def test_defaults_are_valid(self):
         dc = DetectionConfig()
         assert dc.meter_min_accuracy == 0.85
-        assert dc.rhyme_min_accuracy == 0.75
+        assert dc.rhyme_min_accuracy == 0.5
         assert dc.sample_lines == 4
 
     @pytest.mark.parametrize("value", [-0.1, 1.1])
@@ -62,6 +62,13 @@ class TestDetectionConfig:
     def test_rhyme_min_accuracy_out_of_range(self, value):
         with pytest.raises(ConfigurationError, match="rhyme_min_accuracy"):
             DetectionConfig(rhyme_min_accuracy=value)
+
+    def test_rhyme_min_accuracy_default_tolerates_single_slant_pair(self):
+        # Regression guard: a four-line sample yields only two rhyme pairs,
+        # so the aggregate accuracy resolves to 0.0 / 0.5 / 1.0. The default
+        # must admit 0.5 — a single solid rhyme is enough signal for the
+        # scheme; requiring 0.75 would silently demand both pairs be exact.
+        assert DetectionConfig().rhyme_min_accuracy <= 0.5
 
     def test_sample_lines_too_small(self):
         with pytest.raises(ConfigurationError, match="sample_lines"):

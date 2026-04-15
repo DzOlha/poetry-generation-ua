@@ -37,6 +37,7 @@ from src.domain.models.entities import (
 # -- Results --
 from src.domain.models.results import (
     GenerationResult,
+    IterationSnapshot,
     LineMeterResult,
     MeterResult,
     RhymePairResult,
@@ -69,6 +70,7 @@ __all__ = [
     "RhymeResult",
     "ValidationResult",
     "GenerationResult",
+    "IterationSnapshot",
     # Value objects
     "ClausulaType",
     "RhymePrecision",

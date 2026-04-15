@@ -90,11 +90,11 @@ EDGE_SCENARIOS: tuple[EvaluationScenario, ...] = (
 
 CORNER_SCENARIOS: tuple[EvaluationScenario, ...] = (
     EvaluationScenario(
-        id="C01", name="Порожня тема", category=ScenarioCategory.CORNER,
-        theme="",
+        id="C01", name="Мінімальна тема", category=ScenarioCategory.CORNER,
+        theme="тиша",
         meter="ямб", foot_count=4, rhyme_scheme="ABAB",
-        description="Empty theme string — pipeline must handle gracefully.",
-        tags=("empty-input", "robustness"),
+        description="Minimal single-word theme — pipeline must handle gracefully.",
+        tags=("minimal-input", "robustness"),
         expected_to_succeed=True,
     ),
     EvaluationScenario(

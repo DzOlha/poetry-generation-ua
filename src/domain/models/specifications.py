@@ -25,9 +25,13 @@ class MeterSpec:
         parsed = MeterName.parse(self.name)
         object.__setattr__(self, "name", parsed.canonical().value)
 
-        if self.foot_count < 0:
+        if not isinstance(self.foot_count, int) or isinstance(self.foot_count, bool):
             raise UnsupportedConfigError(
-                f"foot_count must be >= 0, got {self.foot_count}"
+                f"foot_count must be an integer, got {type(self.foot_count).__name__}"
+            )
+        if not 1 <= self.foot_count <= 8:
+            raise UnsupportedConfigError(
+                f"foot_count must be in [1, 8], got {self.foot_count}"
             )
 
 
@@ -56,6 +60,22 @@ class PoemStructure:
 
     stanza_count: int
     lines_per_stanza: int
+
+    def __post_init__(self) -> None:
+        for field_name in ("stanza_count", "lines_per_stanza"):
+            val = getattr(self, field_name)
+            if not isinstance(val, int) or isinstance(val, bool):
+                raise UnsupportedConfigError(
+                    f"{field_name} must be an integer, got {type(val).__name__}"
+                )
+        if self.stanza_count < 1:
+            raise UnsupportedConfigError(
+                f"stanza_count must be >= 1, got {self.stanza_count}"
+            )
+        if self.lines_per_stanza < 1:
+            raise UnsupportedConfigError(
+                f"lines_per_stanza must be >= 1, got {self.lines_per_stanza}"
+            )
 
     @property
     def total_lines(self) -> int:

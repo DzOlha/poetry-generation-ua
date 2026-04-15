@@ -41,6 +41,32 @@ class TestBruteForceRhymeDetector:
         result = detector.detect("dummy text")
         assert result is None
 
+    def test_default_config_surfaces_scheme_for_single_solid_pair(self) -> None:
+        # Regression for the user-reported "душу/мусиш" case: in a quatrain
+        # one rhyme pair can be slant and score below the pair threshold,
+        # leaving aggregate accuracy at 0.5. The default detection cutoff
+        # must still surface the scheme — requiring 0.75 would silently
+        # demand both pairs be exact.
+        validator = _FixedAccuracyValidator("ABAB", 0.5)
+        detector = BruteForceRhymeDetector(
+            rhyme_validator=validator,
+            config=DetectionConfig(),  # use production default
+        )
+        result = detector.detect("dummy text")
+        assert result is not None
+        assert result.scheme == "ABAB"
+        assert result.accuracy == 0.5
+
+    def test_zero_accuracy_still_rejected(self) -> None:
+        # Looser detection must still reject poems with no rhyme signal at
+        # all, otherwise every input gets a spurious scheme.
+        validator = _FixedAccuracyValidator("ABAB", 0.0)
+        detector = BruteForceRhymeDetector(
+            rhyme_validator=validator,
+            config=DetectionConfig(),
+        )
+        assert detector.detect("dummy text") is None
+
     def test_picks_highest_accuracy(self) -> None:
         class _MultiValidator(IRhymeValidator):
             def validate(self, poem_text: str, scheme: RhymeScheme) -> RhymeResult:

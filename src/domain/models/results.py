@@ -12,6 +12,23 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True)
+class IterationSnapshot:
+    """Per-iteration snapshot surfaced through the service/API boundary.
+
+    Mirrors `IterationRecord` but lives in `domain.models` so handlers and
+    frontends can consume generation history without importing evaluation
+    internals.
+    """
+
+    iteration: int
+    poem: str
+    meter_accuracy: float
+    rhyme_accuracy: float
+    feedback: tuple[str, ...] = ()
+    duration_sec: float = 0.0
+
+
+@dataclass(frozen=True)
 class LineMeterResult:
     """Raw meter check for a single line, produced by IMeterValidator internals."""
 
@@ -83,6 +100,7 @@ class GenerationResult:
 
     poem: str
     validation: ValidationResult
+    iteration_history: tuple[IterationSnapshot, ...] = ()
 
     @property
     def poem_object(self) -> Poem:

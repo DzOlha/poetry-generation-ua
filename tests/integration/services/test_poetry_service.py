@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import pytest
 
+from src.domain.errors import UnsupportedConfigError
 from src.domain.models import (
     GenerationRequest,
     GenerationResult,
@@ -87,11 +88,9 @@ class TestPoetryServiceValidate:
         assert 0.0 <= result.rhyme.accuracy <= 1.0
 
     def test_empty_poem_fails_validation(self, poetry_service: PoetryService):
-        request = ValidationRequest(
-            poem_text="",
-            meter=MeterSpec(name="ямб", foot_count=4),
-            rhyme=RhymeScheme(pattern="ABAB"),
-        )
-        result = poetry_service.validate(request)
-        # Empty poems no longer pass silently — there is nothing to validate.
-        assert result.meter.ok is False
+        with pytest.raises(UnsupportedConfigError, match="poem_text must be a non-empty string"):
+            ValidationRequest(
+                poem_text="",
+                meter=MeterSpec(name="ямб", foot_count=4),
+                rhyme=RhymeScheme(pattern="ABAB"),
+            )

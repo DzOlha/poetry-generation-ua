@@ -74,10 +74,18 @@ class UkrainianProsodyAnalyzer(IProsodyAnalyzer):
             return actual_pattern[-2] == "u" and actual_pattern[-1] == "u"
         if diff >= 0:
             return False
-        # Negative diff: allow only catalectic truncation of the final foot.
-        # A full missing foot means |diff| >= foot_size → wrong foot count.
+        # Negative diff: accept only catalectic truncation, i.e. dropping
+        # trailing *unstressed* positions of the expected pattern. A dropped
+        # "—" means an actual stress position was cut off — that is a
+        # genuine foot-count error (e.g. a 4-foot iambic line with a
+        # feminine clausula, which would otherwise be silently accepted as
+        # a short 5-foot line). A full missing foot is rejected by the
+        # foot-size bound below.
         foot_size = self._foot_size(expected_pattern)
-        return -foot_size < diff < 0
+        if not -foot_size < diff < 0:
+            return False
+        dropped = expected_pattern[len(actual_pattern):]
+        return all(s == "u" for s in dropped)
 
     @staticmethod
     def _foot_size(expected_pattern: list[str]) -> int:

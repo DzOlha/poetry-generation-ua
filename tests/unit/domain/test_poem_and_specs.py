@@ -85,6 +85,21 @@ class TestPoem:
         poem = Poem.from_text("Настав час УНР здобути волю.\n")
         assert poem.lines == ("Настав час УНР здобути волю.",)
 
+    def test_drops_punctuation_only_fragment(self):
+        # Orphan fragments like ").", "— — —", "..." slip past other filters
+        # but aren't poetry — a real poem line must contain a Cyrillic letter.
+        poem = Poem.from_text(
+            "справжній перший рядок\n"
+            ").\n"
+            "— — —\n"
+            "...\n"
+            "справжній останній рядок\n"
+        )
+        assert poem.lines == (
+            "справжній перший рядок",
+            "справжній останній рядок",
+        )
+
 
 class TestRhymeScheme:
     def test_parses_known_patterns(self):

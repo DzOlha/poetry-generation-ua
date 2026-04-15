@@ -203,13 +203,17 @@ class TestGenerationStage:
         assert state.poem.startswith("рядок")
 
     def test_strips_scansion_lines_from_llm_output(self):
+        # Request structure asks for 4 lines; LLM returns 4 clean lines plus
+        # scansion/syllable-numbering noise that must be filtered out.
         state = _make_state("E")
         state.prompt = "prompt"
         llm = FakeLLM(
             response=(
                 "рядок перший звичайний,\n"
                 "І-ДУТЬ у СЛАВ-ний БІЙ те-ПЕР но-ВІ пол-КИ.\n"
+                "рядок другий звичайний,\n"
                 "Слу(1) жи(2) ли(3) всі(4)\n"
+                "рядок третій звичайний,\n"
                 "1 2 3 4 5 6 7 8\n"
                 "рядок останній нормальний.\n"
             )
@@ -218,8 +222,29 @@ class TestGenerationStage:
         lines = [ln for ln in state.poem.splitlines() if ln.strip()]
         assert lines == [
             "рядок перший звичайний,",
+            "рядок другий звичайний,",
+            "рядок третій звичайний,",
             "рядок останній нормальний.",
         ]
+
+    def test_keeps_raw_when_filtered_output_is_too_short(self):
+        # If CoT leakage dominates and filtering leaves fewer lines than
+        # requested, keep the raw LLM output so validators fail loudly and
+        # the feedback iterator regenerates from scratch — instead of
+        # showing a broken fragment (e.g. lone ").") as a "poem".
+        state = _make_state("E")  # expects 4 lines
+        state.prompt = "prompt"
+        llm = FakeLLM(
+            response=(
+                "Wait, let me think about meter here...\n"
+                "(u - u - u - u -)\n"
+                ").\n"
+            )
+        )
+        GenerationStage(llm=llm, logger=_NULL_LOGGER).run(state)
+        # Raw (unfiltered) content is preserved verbatim.
+        assert "Wait, let me think" in state.poem
+        assert "(u - u - u - u -)" in state.poem
 
     def test_falls_back_to_raw_when_sanitizer_empties_output(self):
         # If every line is scansion, sanitized result is empty — keep raw so

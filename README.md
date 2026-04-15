@@ -575,7 +575,7 @@ Generate a Ukrainian poem with exactly 8 lines.
 
 * **Normal** (N01–N05) — typical requests: iamb+ABAB, trochee+AABB, amphibrach, dactyl
 * **Edge** (E01–E05) — boundary conditions: 2-foot minimal, 6-foot alexandrine, monorhyme AAAA, abstract theme
-* **Corner** (C01–C08) — adversarial inputs: empty theme, XSS injection, unsupported meter, mixed languages, zero feet
+* **Corner** (C01–C08) — adversarial inputs: minimal theme, XSS injection, unsupported meter, mixed languages, zero feet
 
 #### Ablation Configs
 

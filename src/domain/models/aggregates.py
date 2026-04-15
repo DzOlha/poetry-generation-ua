@@ -17,12 +17,17 @@ _DIGIT_ONLY_RE = re.compile(r"^[\d\s\-–—]+$")
 # ALL-CAPS Cyrillic tokens (≥2 letters), e.g. "ДУТЬ", "СЛАВ", "РІД".
 # Two or more of these in one line = scansion markup, not poetry.
 _CAPS_CYR_TOKEN_RE = re.compile(r"[А-ЯІЇЄҐ]{2,}")
+# Any Cyrillic letter — a real poem line must contain at least one.
+# Fragments like ")." or "— — —" slip past every other filter but aren't poetry.
+_CYR_LETTER_RE = re.compile(r"[А-Яа-яІіЇїЄєҐґ]")
 
 
 def _is_poem_line(line: str) -> bool:
     if not line:
         return False
     if line[0] in "*#>`":
+        return False
+    if not _CYR_LETTER_RE.search(line):
         return False
     if _LATIN_RE.search(line):
         return False

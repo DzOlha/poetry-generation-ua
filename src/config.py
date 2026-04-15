@@ -59,7 +59,14 @@ class DetectionConfig:
     """
 
     meter_min_accuracy: float = 0.85
-    rhyme_min_accuracy: float = 0.75
+    # Detection is intentionally looser than generation/validation. At a
+    # four-line sample there are typically only two rhyme pairs, so the
+    # aggregate accuracy can only be 0.0 / 0.5 / 1.0 — a 0.75 cutoff would
+    # silently demand *both* pairs pass. That wrongly rejects quatrains
+    # where one pair is a slant rhyme (e.g. "душу / мусиш"). 0.5 admits the
+    # scheme as soon as a single solid pair supports it, while still
+    # filtering the all-mismatch case.
+    rhyme_min_accuracy: float = 0.5
     sample_lines: int = 4
     feet_min: int = 2
     feet_max: int = 6

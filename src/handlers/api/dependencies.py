@@ -9,7 +9,7 @@ from __future__ import annotations
 from fastapi import Request
 
 from src.domain.evaluation import AblationConfig
-from src.domain.ports import IFeedbackFormatter, IScenarioRegistry
+from src.domain.ports import IFeedbackFormatter, IMetricCalculatorRegistry, IScenarioRegistry
 from src.services.detection_service import DetectionService
 from src.services.evaluation_service import EvaluationService
 from src.services.poetry_service import PoetryService
@@ -43,3 +43,8 @@ def get_ablation_configs(request: Request) -> list[AblationConfig]:
 def get_detection_service(request: Request) -> DetectionService:
     """Return the singleton DetectionService built at app startup."""
     return request.app.state.detection_service
+
+
+def get_metric_registry(request: Request) -> IMetricCalculatorRegistry:
+    """Return the container's IMetricCalculatorRegistry."""
+    return request.app.state.container.metric_registry()

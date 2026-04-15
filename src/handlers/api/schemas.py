@@ -7,12 +7,15 @@ to/from domain objects only. Formatting structured `LineFeedback` /
 """
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from src.domain.detection import DetectionResult, MeterDetection, RhymeDetection
 from src.domain.models import (
     GenerationRequest,
     GenerationResult,
+    IterationSnapshot,
     MeterSpec,
     PoemStructure,
     RhymeScheme,
@@ -26,7 +29,7 @@ from src.domain.models import (
 
 class MeterSpecSchema(BaseModel):
     name: str = Field(default="ямб")
-    foot_count: int = Field(default=4, ge=1, le=10)
+    foot_count: int = Field(default=4, ge=1, le=8)
 
     def to_domain(self) -> MeterSpec:
         return MeterSpec(name=self.name, foot_count=self.foot_count)
@@ -48,15 +51,15 @@ class RhymeSchemeSchema(BaseModel):
 
 
 class PoemStructureSchema(BaseModel):
-    stanza_count: int = Field(default=4, ge=1, le=20)
-    lines_per_stanza: int = Field(default=4, ge=2, le=10)
+    stanza_count: int = Field(default=4, ge=1, le=10)
+    lines_per_stanza: Literal[4] = 4
 
     def to_domain(self) -> PoemStructure:
         return PoemStructure(stanza_count=self.stanza_count, lines_per_stanza=self.lines_per_stanza)
 
     @classmethod
     def from_domain(cls, s: PoemStructure) -> PoemStructureSchema:
-        return cls(stanza_count=s.stanza_count, lines_per_stanza=s.lines_per_stanza)
+        return cls(stanza_count=s.stanza_count)
 
 
 # ---------------------------------------------------------------------------
@@ -68,7 +71,7 @@ class GenerationRequestSchema(BaseModel):
     meter: MeterSpecSchema = Field(default_factory=MeterSpecSchema)
     rhyme: RhymeSchemeSchema = Field(default_factory=RhymeSchemeSchema)
     structure: PoemStructureSchema = Field(default_factory=PoemStructureSchema)
-    max_iterations: int = Field(default=3, ge=0, le=10)
+    max_iterations: int = Field(default=3, ge=0, le=3)
     top_k: int = Field(default=5, ge=1, le=20)
     metric_examples_top_k: int = Field(default=3, ge=0, le=10)
 
@@ -186,9 +189,30 @@ class DetectionResultSchema(BaseModel):
 # Generation response schemas
 # ---------------------------------------------------------------------------
 
+class IterationSnapshotSchema(BaseModel):
+    iteration: int
+    poem: str
+    meter_accuracy: float
+    rhyme_accuracy: float
+    feedback: list[str]
+    duration_sec: float
+
+    @classmethod
+    def from_domain(cls, s: IterationSnapshot) -> IterationSnapshotSchema:
+        return cls(
+            iteration=s.iteration,
+            poem=s.poem,
+            meter_accuracy=s.meter_accuracy,
+            rhyme_accuracy=s.rhyme_accuracy,
+            feedback=list(s.feedback),
+            duration_sec=s.duration_sec,
+        )
+
+
 class GenerationResultSchema(BaseModel):
     poem: str
     validation: ValidationResultSchema
+    iteration_history: list[IterationSnapshotSchema] = Field(default_factory=list)
 
     @classmethod
     def from_strings(
@@ -202,4 +226,7 @@ class GenerationResultSchema(BaseModel):
             validation=ValidationResultSchema.from_strings(
                 r.validation, meter_msgs, rhyme_msgs,
             ),
+            iteration_history=[
+                IterationSnapshotSchema.from_domain(s) for s in r.iteration_history
+            ],
         )

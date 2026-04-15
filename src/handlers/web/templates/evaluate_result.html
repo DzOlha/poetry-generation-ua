@@ -41,10 +41,26 @@
                 </span>
             </div>
             {% endif %}
+            {% if final_metrics.semantic_relevance is defined %}
+            <div class="metric">
+                <span class="metric-label">Семантична релевантність</span>
+                <span class="metric-value {% if final_metrics.semantic_relevance >= 0.5 %}ok{% else %}fail{% endif %}">
+                    {{ "%.0f"|format(final_metrics.semantic_relevance * 100) }}%
+                </span>
+            </div>
+            {% endif %}
+            {% if final_metrics.regeneration_success is defined %}
+            <div class="metric">
+                <span class="metric-label">Успішність регенерації</span>
+                <span class="metric-value {% if final_metrics.regeneration_success >= 0.5 %}ok{% else %}fail{% endif %}">
+                    {{ "%.0f"|format(final_metrics.regeneration_success * 100) }}%
+                </span>
+            </div>
+            {% endif %}
             {% if final_metrics.feedback_iterations is defined %}
             <div class="metric">
-                <span class="metric-label">Ітерацій</span>
-                <span class="metric-value">{{ final_metrics.feedback_iterations }}</span>
+                <span class="metric-label">Спроб</span>
+                <span class="metric-value">{{ final_metrics.feedback_iterations + 1 }}</span>
             </div>
             {% endif %}
             <div class="metric">
@@ -99,6 +115,11 @@
                     <td>{{ it.feedback|length }}</td>
                     <td>{{ "%.3f"|format(it.duration_sec) }}s</td>
                 </tr>
+                {% if it.poem_text %}
+                <tr class="iter-poem-row">
+                    <td colspan="5"><pre class="iter-poem">{{ it.poem_text }}</pre></td>
+                </tr>
+                {% endif %}
                 {% endfor %}
             </tbody>
         </table>

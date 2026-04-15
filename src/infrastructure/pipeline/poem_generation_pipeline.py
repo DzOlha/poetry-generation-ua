@@ -11,6 +11,7 @@ from src.domain.evaluation import DEFAULT_GENERATION_CONFIG
 from src.domain.models import (
     GenerationRequest,
     GenerationResult,
+    IterationSnapshot,
     MeterResult,
     RhymeResult,
     ValidationResult,
@@ -41,11 +42,28 @@ class DefaultPoemGenerationPipeline(IPoemGenerationPipeline):
 
         # `iterations` counts additional feedback passes — the validation stage
         # seeds iteration 0, so len(iterations) - 1 == feedback passes performed.
-        total_iterations = max(0, len(tracer.iterations()) - 1)
+        raw_iterations = tracer.iterations()
+        total_iterations = max(0, len(raw_iterations) - 1)
+
+        iteration_history = tuple(
+            IterationSnapshot(
+                iteration=rec.iteration,
+                poem=rec.poem_text,
+                meter_accuracy=rec.meter_accuracy,
+                rhyme_accuracy=rec.rhyme_accuracy,
+                feedback=rec.feedback,
+                duration_sec=rec.duration_sec,
+            )
+            for rec in raw_iterations
+        )
 
         validation = ValidationResult(
             meter=meter_result,
             rhyme=rhyme_result,
             iterations=total_iterations,
         )
-        return GenerationResult(poem=state.poem, validation=validation)
+        return GenerationResult(
+            poem=state.poem,
+            validation=validation,
+            iteration_history=iteration_history,
+        )

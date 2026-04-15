@@ -11,7 +11,26 @@
 
     <section class="card poem-card">
         <h2>Аналізований текст</h2>
+        {% if line_displays %}
+        <div class="poem-annotated">
+            <div class="poem-legend">
+                <span><span class="sy sy-exp">А</span> очікуваний наголос (за визначеним метром)</span>
+                <span><span class="sy sy-act">А</span> реальний наголос</span>
+                <span><span class="sy sy-both">А</span> збіг</span>
+            </div>
+            {% for ld in line_displays %}
+                {% if ld.blank %}
+                <div class="poem-line blank">&nbsp;</div>
+                {% else %}
+                <div class="poem-line {% if ld.ok %}line-ok{% else %}line-bad{% endif %}">
+                    <span class="poem-line-text">{% if ld.segments %}{% for s in ld.segments %}{% if s.tag %}<span class="sy sy-{{ s.tag }}">{{ s.ch }}</span>{% else %}{{ s.ch }}{% endif %}{% endfor %}{% else %}{{ ld.text }}{% endif %}</span>{% if ld.length_note or ld.annotation %} <span class="line-note">— {% if ld.length_note %}{{ ld.length_note }}{% endif %}{% if ld.annotation %}{% if ld.length_note %}; {% endif %}{{ ld.annotation }}{% endif %}</span>{% endif %}
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% else %}
         <pre class="poem-text">{{ poem_text }}</pre>
+        {% endif %}
     </section>
 
     <section class="card validation-card">

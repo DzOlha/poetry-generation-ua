@@ -33,7 +33,7 @@
                 </div>
                 <div class="field">
                     <label for="feet">Стопи</label>
-                    <input id="feet" name="feet" type="number" value="4" min="1" max="8">
+                    <input id="feet" name="feet" type="number" value="4" min="1" max="8" required>
                 </div>
             </div>
 
@@ -49,17 +49,18 @@
                 </div>
                 <div class="field">
                     <label for="stanzas">Строфи</label>
-                    <input id="stanzas" name="stanzas" type="number" value="4" min="1" max="10">
+                    <input id="stanzas" name="stanzas" type="number" value="4" min="1" max="10" required>
                 </div>
                 <div class="field">
                     <label for="lines">Рядків у строфі</label>
-                    <input id="lines" name="lines" type="number" value="4" min="2" max="8">
+                    <input id="lines" type="number" value="4" readonly
+                           title="Наразі підтримується лише 4 рядки у строфі (катрен)">
                 </div>
             </div>
 
             <div class="field">
                 <label for="iterations">Макс. ітерацій виправлення</label>
-                <input id="iterations" name="iterations" type="number" value="3" min="0" max="10">
+                <input id="iterations" name="iterations" type="number" value="3" min="0" max="3" required>
             </div>
 
             <button type="submit" class="btn-primary" id="gen-btn">
@@ -91,7 +92,7 @@
                 </div>
                 <div class="field">
                     <label for="val-feet">Стопи</label>
-                    <input id="val-feet" name="feet" type="number" value="4" min="1" max="8">
+                    <input id="val-feet" name="feet" type="number" value="4" min="1" max="8" required>
                 </div>
                 <div class="field">
                     <label for="val-scheme">Схема рим</label>

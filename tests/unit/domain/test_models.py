@@ -1,6 +1,8 @@
 """Unit tests for the value/command/result objects in src.domain.models."""
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from src.domain.errors import UnsupportedConfigError
@@ -38,12 +40,13 @@ class TestMeterSpec:
         # Construction accepts 'iamb' but canonicalises to the Ukrainian form.
         assert MeterSpec(name="iamb", foot_count=4).name == "ямб"
 
-    def test_negative_foot_count_raises(self):
+    def test_out_of_range_foot_count_raises(self):
         with pytest.raises(UnsupportedConfigError):
             MeterSpec(name="ямб", foot_count=-1)
-
-    def test_zero_foot_count_is_allowed(self):
-        assert MeterSpec(name="ямб", foot_count=0).foot_count == 0
+        with pytest.raises(UnsupportedConfigError):
+            MeterSpec(name="ямб", foot_count=0)
+        with pytest.raises(UnsupportedConfigError):
+            MeterSpec(name="ямб", foot_count=9)
 
 
 # ===========================================================================
@@ -78,19 +81,36 @@ class TestPoemStructure:
         with pytest.raises((AttributeError, TypeError)):
             s.stanza_count = 3  # type: ignore[misc]
 
+    def test_non_positive_stanza_count_rejected(self):
+        with pytest.raises(UnsupportedConfigError):
+            PoemStructure(stanza_count=0, lines_per_stanza=4)
+
+    def test_non_positive_lines_per_stanza_rejected(self):
+        with pytest.raises(UnsupportedConfigError):
+            PoemStructure(stanza_count=1, lines_per_stanza=0)
+
+    def test_non_int_fields_rejected(self):
+        with pytest.raises(UnsupportedConfigError):
+            PoemStructure(stanza_count="1", lines_per_stanza=4)  # type: ignore[arg-type]
+        with pytest.raises(UnsupportedConfigError):
+            PoemStructure(stanza_count=1, lines_per_stanza=True)
+
 
 # ===========================================================================
 # GenerationRequest
 # ===========================================================================
 
 class TestGenerationRequest:
+    def _base_kwargs(self) -> dict[str, Any]:
+        return {
+            "theme": "весна",
+            "meter": MeterSpec(name="ямб", foot_count=4),
+            "rhyme": RhymeScheme(pattern="ABAB"),
+            "structure": PoemStructure(stanza_count=1, lines_per_stanza=4),
+        }
+
     def test_creates_with_required_args(self):
-        req = GenerationRequest(
-            theme="весна",
-            meter=MeterSpec(name="ямб", foot_count=4),
-            rhyme=RhymeScheme(pattern="ABAB"),
-            structure=PoemStructure(stanza_count=1, lines_per_stanza=4),
-        )
+        req = GenerationRequest(**self._base_kwargs())
         assert req.theme == "весна"
         assert req.structure.total_lines == 4
 
@@ -103,6 +123,51 @@ class TestGenerationRequest:
         )
         assert req.max_iterations == 3
         assert req.top_k == 5
+
+    def test_empty_theme_rejected(self):
+        with pytest.raises(UnsupportedConfigError):
+            GenerationRequest(**{**self._base_kwargs(), "theme": "   "})
+
+    @pytest.mark.parametrize("value", [-1, 11])
+    def test_max_iterations_out_of_range(self, value):
+        with pytest.raises(UnsupportedConfigError):
+            GenerationRequest(**{**self._base_kwargs(), "max_iterations": value})
+
+    @pytest.mark.parametrize("value", [0, 21])
+    def test_top_k_out_of_range(self, value):
+        with pytest.raises(UnsupportedConfigError):
+            GenerationRequest(**{**self._base_kwargs(), "top_k": value})
+
+    @pytest.mark.parametrize("value", [-1, 11])
+    def test_metric_examples_top_k_out_of_range(self, value):
+        with pytest.raises(UnsupportedConfigError):
+            GenerationRequest(
+                **{**self._base_kwargs(), "metric_examples_top_k": value},
+            )
+
+    def test_non_int_max_iterations_rejected(self):
+        with pytest.raises(UnsupportedConfigError):
+            GenerationRequest(**{**self._base_kwargs(), "max_iterations": "3"})
+
+
+class TestValidationRequest:
+    def test_empty_poem_rejected(self):
+        from src.domain.models import ValidationRequest
+        with pytest.raises(UnsupportedConfigError):
+            ValidationRequest(
+                poem_text="",
+                meter=MeterSpec("ямб", 4),
+                rhyme=RhymeScheme("ABAB"),
+            )
+
+    def test_whitespace_poem_rejected(self):
+        from src.domain.models import ValidationRequest
+        with pytest.raises(UnsupportedConfigError):
+            ValidationRequest(
+                poem_text="   \n   ",
+                meter=MeterSpec("ямб", 4),
+                rhyme=RhymeScheme("ABAB"),
+            )
 
 
 # ===========================================================================

@@ -5,17 +5,34 @@
 {% block content %}
 <div class="result-page">
 
-    {% if theme %}
     <div class="result-meta">
-        <span>Тема: <strong>{{ theme }}</strong></span>
+        {% if theme %}<span>Тема: <strong>{{ theme }}</strong></span>{% endif %}
         <span>Метр: <strong>{{ meter }} {{ feet }}ст.</strong></span>
-        <span>Схема: <strong>{{ scheme }}</strong></span>
+        <span>Схема римування: <strong>{{ scheme }}</strong></span>
     </div>
-    {% endif %}
 
     <section class="card poem-card">
         <h2>{% if theme %}Згенерований вірш{% else %}Результат перевірки{% endif %}</h2>
+        {% if line_displays %}
+        <div class="poem-annotated">
+            <div class="poem-legend">
+                <span><span class="sy sy-exp">А</span> очікуваний наголос</span>
+                <span><span class="sy sy-act">А</span> реальний наголос</span>
+                <span><span class="sy sy-both">А</span> збіг</span>
+            </div>
+            {% for ld in line_displays %}
+                {% if ld.blank %}
+                <div class="poem-line blank">&nbsp;</div>
+                {% else %}
+                <div class="poem-line {% if ld.ok %}line-ok{% else %}line-bad{% endif %}">
+                    <span class="poem-line-text">{% if ld.segments %}{% for s in ld.segments %}{% if s.tag %}<span class="sy sy-{{ s.tag }}">{{ s.ch }}</span>{% else %}{{ s.ch }}{% endif %}{% endfor %}{% else %}{{ ld.text }}{% endif %}</span>{% if ld.length_note or ld.annotation %} <span class="line-note">— {% if ld.length_note %}{{ ld.length_note }}{% endif %}{% if ld.annotation %}{% if ld.length_note %}; {% endif %}{{ ld.annotation }}{% endif %}</span>{% endif %}
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% else %}
         <pre class="poem-text">{{ poem }}</pre>
+        {% endif %}
     </section>
 
     <section class="card validation-card">
@@ -27,21 +44,37 @@
 
         <div class="metrics">
             <div class="metric">
-                <span class="metric-label">Метр</span>
+                <span class="metric-label">Метр ({{ meter }} {{ feet }}ст.)</span>
                 <span class="metric-value {% if meter_ok %}ok{% else %}fail{% endif %}">
                     {{ "✓" if meter_ok else "✗" }} {{ "%.0f"|format(meter_accuracy * 100) }}%
                 </span>
             </div>
             <div class="metric">
-                <span class="metric-label">Рима</span>
+                <span class="metric-label">Рима ({{ scheme }})</span>
                 <span class="metric-value {% if rhyme_ok %}ok{% else %}fail{% endif %}">
                     {{ "✓" if rhyme_ok else "✗" }} {{ "%.0f"|format(rhyme_accuracy * 100) }}%
                 </span>
             </div>
+            {% if extra_metrics and extra_metrics.semantic_relevance is defined %}
+            <div class="metric">
+                <span class="metric-label">Семантична релевантність</span>
+                <span class="metric-value {% if extra_metrics.semantic_relevance >= 0.5 %}ok{% else %}fail{% endif %}">
+                    {{ "%.0f"|format(extra_metrics.semantic_relevance * 100) }}%
+                </span>
+            </div>
+            {% endif %}
+            {% if extra_metrics and extra_metrics.regeneration_success is defined %}
+            <div class="metric">
+                <span class="metric-label">Успішність регенерації</span>
+                <span class="metric-value {% if extra_metrics.regeneration_success >= 0 %}ok{% else %}fail{% endif %}">
+                    {{ "%+.0f"|format(extra_metrics.regeneration_success * 100) }}%
+                </span>
+            </div>
+            {% endif %}
             {% if iterations is defined %}
             <div class="metric">
-                <span class="metric-label">Ітерацій</span>
-                <span class="metric-value">{{ iterations }}</span>
+                <span class="metric-label">Спроб</span>
+                <span class="metric-value">{{ iterations + 1 }}</span>
             </div>
             {% endif %}
         </div>
@@ -58,9 +91,92 @@
         {% endif %}
     </section>
 
+    {% if iteration_history %}
+    <section class="card">
+        <h2>Ітерації зворотного зв'язку</h2>
+        <div class="iter-list">
+            {% for it in iteration_history %}
+            {% set iter_displays = iteration_displays[loop.index0] if iteration_displays and iteration_displays|length > loop.index0 else [] %}
+            <details class="iter-item">
+                <summary class="iter-summary">
+                    <span class="iter-idx">Ітерація {{ it.iteration }}</span>
+                    <span class="iter-badge {% if it.meter_accuracy >= 0.8 %}ok{% else %}fail{% endif %}">
+                        метр {{ "%.0f"|format(it.meter_accuracy * 100) }}%
+                    </span>
+                    <span class="iter-badge {% if it.rhyme_accuracy >= 0.8 %}ok{% else %}fail{% endif %}">
+                        рима {{ "%.0f"|format(it.rhyme_accuracy * 100) }}%
+                    </span>
+                    <span class="iter-badge">порушень: {{ it.feedback|length }}</span>
+                    <span class="iter-badge">{{ "%.3f"|format(it.duration_sec) }}s</span>
+                </summary>
+                <div class="iter-body">
+                    <div class="metrics">
+                        <div class="metric">
+                            <span class="metric-label">Метр</span>
+                            <span class="metric-value {% if it.meter_accuracy >= 0.8 %}ok{% else %}fail{% endif %}">
+                                {{ "%.0f"|format(it.meter_accuracy * 100) }}%
+                            </span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Рима</span>
+                            <span class="metric-value {% if it.rhyme_accuracy >= 0.8 %}ok{% else %}fail{% endif %}">
+                                {{ "%.0f"|format(it.rhyme_accuracy * 100) }}%
+                            </span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Порушень</span>
+                            <span class="metric-value">{{ it.feedback|length }}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Час</span>
+                            <span class="metric-value">{{ "%.3f"|format(it.duration_sec) }}s</span>
+                        </div>
+                    </div>
+                    {% if it.poem %}
+                    <details class="iter-poem-details" open>
+                        <summary>Вірш цієї ітерації</summary>
+                        {% if iter_displays %}
+                        <div class="poem-annotated iter-annotated">
+                            {% for ld in iter_displays %}
+                                {% if ld.blank %}
+                                <div class="poem-line blank">&nbsp;</div>
+                                {% else %}
+                                <div class="poem-line {% if ld.ok %}line-ok{% else %}line-bad{% endif %}">
+                                    <span class="poem-line-text">{% if ld.segments %}{% for s in ld.segments %}{% if s.tag %}<span class="sy sy-{{ s.tag }}">{{ s.ch }}</span>{% else %}{{ s.ch }}{% endif %}{% endfor %}{% else %}{{ ld.text }}{% endif %}</span>{% if ld.length_note or ld.annotation %} <span class="line-note">— {% if ld.length_note %}{{ ld.length_note }}{% endif %}{% if ld.annotation %}{% if ld.length_note %}; {% endif %}{{ ld.annotation }}{% endif %}</span>{% endif %}
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <pre class="iter-poem">{{ it.poem }}</pre>
+                        {% endif %}
+                    </details>
+                    {% endif %}
+                    {% if it.feedback %}
+                    <details class="iter-feedback-details">
+                        <summary>Деталі порушень ({{ it.feedback|length }})</summary>
+                        <ul class="feedback-list">
+                            {% for msg in it.feedback %}
+                            <li><pre class="feedback-msg">{{ msg }}</pre></li>
+                            {% endfor %}
+                        </ul>
+                    </details>
+                    {% endif %}
+                </div>
+            </details>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
     <div class="result-actions">
+        {% if theme %}
         <a href="/" class="btn-primary">← Нова генерація</a>
         <a href="/#validate" class="btn-secondary">Перевірити інший вірш</a>
+        {% else %}
+        <a href="/#validate" class="btn-primary">← Нова перевірка</a>
+        <a href="/" class="btn-secondary">Генерувати вірш</a>
+        {% endif %}
     </div>
 
 </div>

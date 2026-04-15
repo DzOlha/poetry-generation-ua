@@ -12,6 +12,7 @@ from pydantic import ValidationError as PydanticValidationError
 from src.domain.detection import DetectionResult, MeterDetection, RhymeDetection
 from src.domain.models import (
     GenerationResult,
+    IterationSnapshot,
     MeterResult,
     MeterSpec,
     PoemStructure,
@@ -101,24 +102,24 @@ class TestPoemStructureSchema:
         assert s.lines_per_stanza == 4
 
     def test_to_domain_constructs_poem_structure(self) -> None:
-        s = PoemStructureSchema(stanza_count=2, lines_per_stanza=6)
+        s = PoemStructureSchema(stanza_count=2, lines_per_stanza=4)
         ps = s.to_domain()
         assert isinstance(ps, PoemStructure)
         assert ps.stanza_count == 2
-        assert ps.lines_per_stanza == 6
-        assert ps.total_lines == 12
+        assert ps.lines_per_stanza == 4
+        assert ps.total_lines == 8
 
     def test_stanza_count_out_of_range(self) -> None:
         with pytest.raises(PydanticValidationError):
             PoemStructureSchema(stanza_count=0, lines_per_stanza=4)
         with pytest.raises(PydanticValidationError):
-            PoemStructureSchema(stanza_count=21, lines_per_stanza=4)
+            PoemStructureSchema(stanza_count=11, lines_per_stanza=4)
 
-    def test_lines_per_stanza_out_of_range(self) -> None:
+    def test_lines_per_stanza_must_be_four(self) -> None:
         with pytest.raises(PydanticValidationError):
-            PoemStructureSchema(stanza_count=4, lines_per_stanza=1)
+            PoemStructureSchema(stanza_count=4, lines_per_stanza=2)  # type: ignore[arg-type]
         with pytest.raises(PydanticValidationError):
-            PoemStructureSchema(stanza_count=4, lines_per_stanza=11)
+            PoemStructureSchema(stanza_count=4, lines_per_stanza=6)  # type: ignore[arg-type]
 
 
 # ---------------------------------------------------------------------------
@@ -153,7 +154,7 @@ class TestGenerationRequestSchema:
         with pytest.raises(PydanticValidationError):
             GenerationRequestSchema(theme="весна", max_iterations=-1)
         with pytest.raises(PydanticValidationError):
-            GenerationRequestSchema(theme="весна", max_iterations=11)
+            GenerationRequestSchema(theme="весна", max_iterations=4)
 
     def test_defaults_fill_nested_schemas(self) -> None:
         schema = GenerationRequestSchema(theme="мінімальний")
@@ -226,6 +227,46 @@ class TestGenerationResultSchemaFromStrings:
         schema = GenerationResultSchema.from_strings(r, meter_msgs=[], rhyme_msgs=[])
         assert schema.poem == "рядок 1\nрядок 2\n"
         assert schema.validation.is_valid is True
+        assert schema.iteration_history == []
+
+    def test_exposes_iteration_history_for_frontend(self) -> None:
+        # The web UI's "feedback iterations" panel needs the intermediate
+        # drafts, not just the final poem — ensure the schema carries them.
+        v = ValidationResult(
+            meter=MeterResult(ok=True, accuracy=1.0),
+            rhyme=RhymeResult(ok=True, accuracy=1.0),
+            iterations=1,
+        )
+        history = (
+            IterationSnapshot(
+                iteration=0,
+                poem="чернетка 0",
+                meter_accuracy=0.5,
+                rhyme_accuracy=1.0,
+                feedback=("виправ рядок 2",),
+                duration_sec=0.8,
+            ),
+            IterationSnapshot(
+                iteration=1,
+                poem="чернетка 1",
+                meter_accuracy=1.0,
+                rhyme_accuracy=1.0,
+                feedback=(),
+                duration_sec=28.9,
+            ),
+        )
+        r = GenerationResult(
+            poem="чернетка 1", validation=v, iteration_history=history,
+        )
+        schema = GenerationResultSchema.from_strings(r, meter_msgs=[], rhyme_msgs=[])
+        assert len(schema.iteration_history) == 2
+        first = schema.iteration_history[0]
+        assert first.iteration == 0
+        assert first.poem == "чернетка 0"
+        assert first.meter_accuracy == 0.5
+        assert first.feedback == ["виправ рядок 2"]
+        assert first.duration_sec == 0.8
+        assert schema.iteration_history[1].poem == "чернетка 1"
 
 
 # ---------------------------------------------------------------------------

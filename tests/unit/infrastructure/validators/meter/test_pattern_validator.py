@@ -161,6 +161,26 @@ class TestLineLengthOk:
         actual = ["—", "u", "u", "—", "u", "u", "—", "u", "u", "—"]
         assert analyzer.line_length_ok(actual, dactyl4) is True
 
+    def test_iamb_feminine_ending_masquerading_as_short_pentameter_rejected(
+        self, analyzer,
+    ):
+        # Regression: a 4-foot iamb with feminine clausula (9 syllables,
+        # stresses at 2/4/6/8) used to pass as a "catalectic" 5-foot iamb
+        # because the length check allowed diff=-1 unconditionally and the
+        # pattern comparison was truncated to min(actual, expected). The
+        # dropped expected position is "—", so this must now fail.
+        iamb5 = ["u", "—"] * 5                     # 10 syllables expected
+        actual = ["u", "—", "u", "—", "u", "—", "u", "—", "u"]  # 9 syl, 4 feet
+        assert analyzer.line_length_ok(actual, iamb5) is False
+
+    def test_trochaic_catalexis_diff_minus_one_allowed(self, analyzer):
+        # Classical trochaic catalexis: trochee pentameter drops its final
+        # unstressed syllable. The dropped position in the expected pattern
+        # is "u", so truncation is legitimate.
+        trochee5 = ["—", "u"] * 5                  # 10 syllables expected
+        actual = ["—", "u", "—", "u", "—", "u", "—", "u", "—"]  # 9 syl, ends on —
+        assert analyzer.line_length_ok(actual, trochee5) is True
+
     def test_missing_full_foot_rejected_binary(self, analyzer):
         # 5-foot iamb vs 6-foot expected: diff=-2 == foot_size → full foot missing, reject
         iamb6 = ["u", "—"] * 6
@@ -321,6 +341,27 @@ class TestCheckMeterLine:
         result = check_meter_line("Реве та стогне Дніпр широкий", "ямб", 4, stress_dict)
         assert result.ok is True
         assert len(result.error_positions) == 0
+
+    def test_four_foot_iamb_feminine_line_rejected_as_pentameter(self, stress_dict):
+        # Regression for the web-UI case: the user requested 5-foot iamb
+        # but the LLM produced these 4-foot iambic lines with feminine
+        # clausulae (9 syllables, stresses at 2/4/6/8). The validator used
+        # to mark them as "100% meter" because of the catalectic loophole.
+        for line in [
+            "впадуть тяжкі твої кайдани",
+            "згниють в землі лихі тирани",
+        ]:
+            result = check_meter_line(line, "ямб", 5, stress_dict)
+            assert result.ok is False, f"short iamb line erroneously accepted: {line!r}"
+            assert result.total_syllables == 9
+
+    def test_four_foot_iamb_feminine_line_accepted_as_tetrameter(self, stress_dict):
+        # Same lines are legitimate 4-foot iamb with feminine clausula.
+        for line in [
+            "впадуть тяжкі твої кайдани",
+            "згниють в землі лихі тирани",
+        ]:
+            assert check_meter_line(line, "ямб", 4, stress_dict).ok is True
 
     def test_wrong_meter_detected(self, stress_dict):
         result = check_meter_line(
