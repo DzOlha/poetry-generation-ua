@@ -149,7 +149,7 @@ class ValidationResultSchema(BaseModel):
 
 class DetectionRequestSchema(BaseModel):
     poem_text: str = Field(..., min_length=1)
-    sample_lines: int | None = Field(default=None, ge=2, le=14)
+    sample_lines: int | None = Field(default=4, ge=4, le=4)
 
 
 class MeterDetectionSchema(BaseModel):

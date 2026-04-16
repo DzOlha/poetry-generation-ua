@@ -19,13 +19,22 @@
             </div>
 
             <div class="field">
-                <label for="sample_lines">Кількість рядків для аналізу</label>
-                <select id="sample_lines" name="sample_lines">
-                    <option value="2">2 (двовірш)</option>
-                    <option value="3">3 (терцет)</option>
-                    <option value="4" selected>4 (катрен)</option>
-                    <option value="14">14 (сонет)</option>
-                </select>
+                <label>Що визначати</label>
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="detect_meter" value="1" checked>
+                        Метр
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="detect_rhyme" value="1" checked>
+                        Схема римування
+                    </label>
+                </div>
+            </div>
+
+            <div class="info-box" id="rhyme-hint">
+                <strong>&#9432;</strong> Для визначення схеми римування потрібні 4-рядкові строфи (катрени).
+                Кількість рядків має бути кратною 4. Строфи можна розділяти порожнім рядком.
             </div>
 
             <button type="submit" class="btn-primary" id="detect-btn">
@@ -35,4 +44,16 @@
         </form>
     </section>
 </div>
+
+<script>
+(function() {
+    var rhymeCheckbox = document.querySelector('input[name="detect_rhyme"]');
+    var hint = document.getElementById('rhyme-hint');
+    function toggle() {
+        hint.style.display = rhymeCheckbox.checked ? '' : 'none';
+    }
+    rhymeCheckbox.addEventListener('change', toggle);
+    toggle();
+})();
+</script>
 {% endblock %}

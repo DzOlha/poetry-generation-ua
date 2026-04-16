@@ -93,7 +93,7 @@ def _make_service() -> EvaluationService:
     return build_evaluation_service(cfg, logger=NullLogger(), llm=llm)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def eval_service():
     return _make_service()
 

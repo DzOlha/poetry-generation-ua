@@ -278,15 +278,15 @@ class TestDetectionRequestSchema:
         with pytest.raises(PydanticValidationError):
             DetectionRequestSchema(poem_text="")
 
-    def test_sample_lines_default_is_none(self) -> None:
+    def test_sample_lines_default_is_four(self) -> None:
         schema = DetectionRequestSchema(poem_text="текст вірша")
-        assert schema.sample_lines is None
+        assert schema.sample_lines == 4
 
     def test_sample_lines_out_of_range(self) -> None:
         with pytest.raises(PydanticValidationError):
-            DetectionRequestSchema(poem_text="текст", sample_lines=1)
+            DetectionRequestSchema(poem_text="текст", sample_lines=2)
         with pytest.raises(PydanticValidationError):
-            DetectionRequestSchema(poem_text="текст", sample_lines=15)
+            DetectionRequestSchema(poem_text="текст", sample_lines=14)
 
 
 class TestDetectionResultSchema:

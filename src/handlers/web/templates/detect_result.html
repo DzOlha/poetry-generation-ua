@@ -6,75 +6,90 @@
 <div class="result-page">
 
     <div class="result-meta">
-        <span>Рядків проаналізовано: <strong>{{ sample_lines }}</strong></span>
+        <span>Рядків проаналізовано: <strong>{{ validated_lines }}</strong></span>
+        {% if want_rhyme and stanzas|length > 1 %}
+        <span>Строф: <strong>{{ stanzas|length }}</strong></span>
+        {% endif %}
     </div>
 
     <section class="card poem-card">
         <h2>Аналізований текст</h2>
-        {% if line_displays %}
+        {% if want_meter %}
+        <div class="poem-legend">
+            <span><span class="sy sy-exp">А</span> очікуваний наголос (за визначеним метром)</span>
+            <span><span class="sy sy-act">А</span> реальний наголос</span>
+            <span><span class="sy sy-both">А</span> збіг</span>
+        </div>
+        {% endif %}
+
         <div class="poem-annotated">
-            <div class="poem-legend">
-                <span><span class="sy sy-exp">А</span> очікуваний наголос (за визначеним метром)</span>
-                <span><span class="sy sy-act">А</span> реальний наголос</span>
-                <span><span class="sy sy-both">А</span> збіг</span>
-            </div>
-            {% for ld in line_displays %}
-                {% if ld.blank %}
-                <div class="poem-line blank">&nbsp;</div>
-                {% else %}
-                <div class="poem-line {% if ld.ok %}line-ok{% else %}line-bad{% endif %}">
-                    <span class="poem-line-text">{% if ld.segments %}{% for s in ld.segments %}{% if s.tag %}<span class="sy sy-{{ s.tag }}">{{ s.ch }}</span>{% else %}{{ s.ch }}{% endif %}{% endfor %}{% else %}{{ ld.text }}{% endif %}</span>{% if ld.length_note or ld.annotation %} <span class="line-note">— {% if ld.length_note %}{{ ld.length_note }}{% endif %}{% if ld.annotation %}{% if ld.length_note %}; {% endif %}{{ ld.annotation }}{% endif %}</span>{% endif %}
-                </div>
+            {% for stanza in stanzas %}
+                {% if stanzas|length > 1 %}
+                    {% if not loop.first %}
+                    <div class="poem-line blank">&nbsp;</div>
+                    {% endif %}
+                    <div class="stanza-annotation">Строфа {{ loop.index }}:{% if want_meter %}{% if stanza.meter %} {{ stanza.meter.meter }}, {{ stanza.meter.foot_count }}-стопний{% endif %}{% if stanza.meter_accuracy is not none %} {{ "%.0f"|format(stanza.meter_accuracy * 100) }}%{% else %} метр не визначено{% endif %}{% endif %}{% if want_meter and want_rhyme %}; {% endif %}{% if want_rhyme %}{% if stanza.rhyme %} рима {{ stanza.rhyme.scheme }}{% endif %}{% if stanza.rhyme_accuracy is not none %} {{ "%.0f"|format(stanza.rhyme_accuracy * 100) }}%{% else %} рима не визначено{% endif %}{% endif %}</div>
                 {% endif %}
+
+                {% for ld in stanza.line_displays %}
+                    {% if ld.blank %}
+                    <div class="poem-line blank">&nbsp;</div>
+                    {% else %}
+                    <div class="poem-line {% if ld.ok is defined %}{% if ld.ok %}line-ok{% else %}line-bad{% endif %}{% endif %}">
+                        <span class="poem-line-text">{% if ld.segments %}{% for s in ld.segments %}{% if s.tag %}<span class="sy sy-{{ s.tag }}">{{ s.ch }}</span>{% else %}{{ s.ch }}{% endif %}{% endfor %}{% else %}{{ ld.text }}{% endif %}</span>{% if ld.length_note is defined and ld.length_note or ld.annotation is defined and ld.annotation %} <span class="line-note">— {% if ld.length_note is defined and ld.length_note %}{{ ld.length_note }}{% endif %}{% if ld.annotation is defined and ld.annotation %}{% if ld.length_note is defined and ld.length_note %}; {% endif %}{{ ld.annotation }}{% endif %}</span>{% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
             {% endfor %}
         </div>
-        {% else %}
-        <pre class="poem-text">{{ poem_text }}</pre>
-        {% endif %}
     </section>
 
     <section class="card validation-card">
         <h2>Результат детекції</h2>
 
         <div class="validity-badge {% if is_detected %}valid{% else %}invalid{% endif %}">
-            {% if is_detected %}&#10003; Метр та рима визначені{% else %}&#10007; Не вдалося повністю визначити{% endif %}
+            {% if is_detected %}&#10003; Визначено{% else %}&#10007; Не вдалося повністю визначити{% endif %}
         </div>
 
         <div class="metrics">
-            {% if meter %}
-            <div class="metric">
-                <span class="metric-label">Метр</span>
-                <span class="metric-value ok">{{ meter.meter }}, {{ meter.foot_count }}-стопний</span>
-            </div>
-            <div class="metric">
-                <span class="metric-label">Точність метру</span>
-                <span class="metric-value {% if meter.accuracy >= 0.8 %}ok{% else %}fail{% endif %}">
-                    {{ "%.0f"|format(meter.accuracy * 100) }}%
-                </span>
-            </div>
-            {% else %}
-            <div class="metric">
-                <span class="metric-label">Метр</span>
-                <span class="metric-value fail">&#10007; не визначено</span>
-            </div>
+            {% if want_meter %}
+                {% if meter %}
+                <div class="metric">
+                    <span class="metric-label">Метр</span>
+                    <span class="metric-value ok">{{ meter.meter }}, {{ meter.foot_count }}-стопний</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Точність метру</span>
+                    <span class="metric-value {% if meter.accuracy >= 0.8 %}ok{% else %}fail{% endif %}">
+                        {{ "%.0f"|format(meter.accuracy * 100) }}%
+                    </span>
+                </div>
+                {% else %}
+                <div class="metric">
+                    <span class="metric-label">Метр</span>
+                    <span class="metric-value fail">&#10007; не визначено</span>
+                </div>
+                {% endif %}
             {% endif %}
 
-            {% if rhyme %}
-            <div class="metric">
-                <span class="metric-label">Схема рим</span>
-                <span class="metric-value ok">{{ rhyme.scheme }}</span>
-            </div>
-            <div class="metric">
-                <span class="metric-label">Точність рими</span>
-                <span class="metric-value {% if rhyme.accuracy >= 0.8 %}ok{% else %}fail{% endif %}">
-                    {{ "%.0f"|format(rhyme.accuracy * 100) }}%
-                </span>
-            </div>
-            {% else %}
-            <div class="metric">
-                <span class="metric-label">Схема рим</span>
-                <span class="metric-value fail">&#10007; не визначено</span>
-            </div>
+            {% if want_rhyme %}
+                {% if rhyme %}
+                <div class="metric">
+                    <span class="metric-label">Схема рим</span>
+                    <span class="metric-value ok">{{ rhyme.scheme }}</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Точність рими</span>
+                    <span class="metric-value {% if rhyme.accuracy >= 0.8 %}ok{% else %}fail{% endif %}">
+                        {{ "%.0f"|format(rhyme.accuracy * 100) }}%
+                    </span>
+                </div>
+                {% else %}
+                <div class="metric">
+                    <span class="metric-label">Схема рим</span>
+                    <span class="metric-value fail">&#10007; не визначено</span>
+                </div>
+                {% endif %}
             {% endif %}
         </div>
     </section>

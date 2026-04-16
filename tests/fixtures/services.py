@@ -11,12 +11,12 @@ from src.infrastructure.llm.mock import MockLLMProvider
 from src.services.poetry_service import PoetryService
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def app_config() -> AppConfig:
     return dc_replace(AppConfig.from_env(), offline_embedder=True)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def poetry_service(mock_llm: MockLLMProvider, app_config: AppConfig) -> PoetryService:
     """Full PoetryService built through the composition root.
 

@@ -7,6 +7,7 @@ from src.domain.ports import IStressResolver
 from src.infrastructure.meter import (
     DefaultSyllableFlagStrategy,
     UkrainianMeterTemplateProvider,
+    UkrainianWeakStressLexicon,
 )
 from src.infrastructure.phonetics import UkrainianIpaTranscriber
 from src.infrastructure.stress import UkrainianSyllableCounter
@@ -22,27 +23,29 @@ from src.infrastructure.validators.rhyme.phonetic_validator import PhoneticRhyme
 from src.infrastructure.validators.rhyme.scheme_extractor import StandardRhymeSchemeExtractor
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def prosody_analyzer(
     meter_template_provider: UkrainianMeterTemplateProvider,
     syllable_flag_strategy: DefaultSyllableFlagStrategy,
     stress_resolver: IStressResolver,
+    weak_stress_lexicon: UkrainianWeakStressLexicon,
 ) -> UkrainianProsodyAnalyzer:
     return UkrainianProsodyAnalyzer(
         template_provider=meter_template_provider,
         flag_strategy=syllable_flag_strategy,
         stress_resolver=stress_resolver,
+        weak_stress_lexicon=weak_stress_lexicon,
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def line_feedback_builder(
     meter_template_provider: UkrainianMeterTemplateProvider,
 ) -> DefaultLineFeedbackBuilder:
     return DefaultLineFeedbackBuilder(template_provider=meter_template_provider)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def meter_validator(
     prosody_analyzer: UkrainianProsodyAnalyzer,
     text_processor: UkrainianTextProcessor,
@@ -55,7 +58,7 @@ def meter_validator(
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def rhyme_pair_analyzer(
     stress_resolver: IStressResolver,
     phonetic_transcriber: UkrainianIpaTranscriber,
@@ -70,7 +73,7 @@ def rhyme_pair_analyzer(
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def rhyme_validator(
     text_processor: UkrainianTextProcessor,
     rhyme_pair_analyzer: PhoneticRhymePairAnalyzer,
@@ -83,7 +86,7 @@ def rhyme_validator(
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def poem_validator(
     meter_validator: PatternMeterValidator,
     rhyme_validator: PhoneticRhymeValidator,

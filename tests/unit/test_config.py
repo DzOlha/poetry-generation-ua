@@ -70,9 +70,13 @@ class TestDetectionConfig:
         # scheme; requiring 0.75 would silently demand both pairs be exact.
         assert DetectionConfig().rhyme_min_accuracy <= 0.5
 
-    def test_sample_lines_too_small(self):
+    def test_sample_lines_must_be_four(self):
         with pytest.raises(ConfigurationError, match="sample_lines"):
-            DetectionConfig(sample_lines=1)
+            DetectionConfig(sample_lines=2)
+
+    def test_sample_lines_rejects_larger_values(self):
+        with pytest.raises(ConfigurationError, match="sample_lines"):
+            DetectionConfig(sample_lines=14)
 
     def test_feet_range_invalid(self):
         with pytest.raises(ConfigurationError, match="feet_min"):

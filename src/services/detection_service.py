@@ -35,16 +35,15 @@ class DetectionService(IDetectionService):
 
     def detect(self, poem_text: str, sample_lines: int | None = None) -> DetectionResult:
         n_lines = sample_lines or self._default_sample_lines
-        sample = self._sampler.sample(poem_text, n_lines)
-        if sample is None:
+        if self._sampler.sample(poem_text, n_lines) is None:
             self._logger.info(
                 "Poem too short for detection",
                 required_lines=n_lines,
             )
             return DetectionResult(meter=None, rhyme=None)
 
-        meter = self._meter.detect(sample)
-        rhyme = self._rhyme.detect(sample)
+        meter = self._meter.detect(poem_text)
+        rhyme = self._rhyme.detect(poem_text)
 
         self._logger.info(
             "Detection complete",

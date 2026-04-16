@@ -55,17 +55,24 @@ def null_logger() -> ILogger:
     return NullLogger()
 
 
-@pytest.fixture
-def stress_dict(null_logger) -> IStressDictionary:
-    return UkrainianStressDict(logger=null_logger, on_ambiguity="first")
+# --- Session-scoped heavy resources (loaded once per test run) ---
+
+@pytest.fixture(scope="session")
+def _session_logger() -> ILogger:
+    return NullLogger()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
+def stress_dict(_session_logger) -> IStressDictionary:
+    return UkrainianStressDict(logger=_session_logger, on_ambiguity="first")
+
+
+@pytest.fixture(scope="session")
 def syllable_counter() -> UkrainianSyllableCounter:
     return UkrainianSyllableCounter()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def stress_resolver(
     stress_dict: IStressDictionary,
     syllable_counter: UkrainianSyllableCounter,
@@ -76,64 +83,64 @@ def stress_resolver(
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def text_processor() -> UkrainianTextProcessor:
     return UkrainianTextProcessor()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def meter_template_provider() -> UkrainianMeterTemplateProvider:
     return UkrainianMeterTemplateProvider()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def weak_stress_lexicon() -> UkrainianWeakStressLexicon:
     return UkrainianWeakStressLexicon()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def syllable_flag_strategy(weak_stress_lexicon) -> DefaultSyllableFlagStrategy:
     return DefaultSyllableFlagStrategy(weak_stress_lexicon=weak_stress_lexicon)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def meter_canonicalizer() -> UkrainianMeterCanonicalizer:
     return UkrainianMeterCanonicalizer()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def phonetic_transcriber() -> UkrainianIpaTranscriber:
     return UkrainianIpaTranscriber()
 
 
-@pytest.fixture
-def offline_embedder(null_logger) -> OfflineDeterministicEmbedder:
-    return OfflineDeterministicEmbedder(logger=null_logger)
+@pytest.fixture(scope="session")
+def offline_embedder(_session_logger) -> OfflineDeterministicEmbedder:
+    return OfflineDeterministicEmbedder(logger=_session_logger)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def regeneration_prompt_builder():
     from src.infrastructure.prompts import NumberedLinesRegenerationPromptBuilder
 
     return NumberedLinesRegenerationPromptBuilder()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def mock_llm(regeneration_prompt_builder) -> MockLLMProvider:
     return MockLLMProvider(regeneration_prompt_builder=regeneration_prompt_builder)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def demo_corpus() -> list[ThemeExcerpt]:
     return DemoThemeRepository().load()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def retriever(offline_embedder) -> SemanticRetriever:
     return SemanticRetriever(offline_embedder)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def feedback_formatter() -> IFeedbackFormatter:
     from src.infrastructure.feedback import UkrainianFeedbackFormatter
 

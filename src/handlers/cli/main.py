@@ -136,7 +136,7 @@ def evaluate(
 @cli.command()
 @click.argument("poem_text", required=False)
 @click.option("--poem-file", type=click.Path(exists=True))
-@click.option("--sample-lines", default=None, type=int, help="Lines to sample (default: from config).")
+@click.option("--sample-lines", default=4, type=int, help="Stanza size (fixed at 4).")
 def detect(
     poem_text: str | None,
     poem_file: str | None,

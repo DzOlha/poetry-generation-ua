@@ -111,6 +111,7 @@ class PrimitivesSubContainer:
                 template_provider=self.meter_template_provider(),
                 flag_strategy=self.syllable_flag_strategy(),
                 stress_resolver=self.stress_resolver(),
+                weak_stress_lexicon=self.weak_stress_lexicon(),
             ),
         )
 

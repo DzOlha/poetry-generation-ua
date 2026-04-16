@@ -12,6 +12,7 @@ from src.domain.ports import (
     IProsodyAnalyzer,
     IStressResolver,
     ISyllableFlagStrategy,
+    IWeakStressLexicon,
 )
 
 
@@ -23,10 +24,12 @@ class UkrainianProsodyAnalyzer(IProsodyAnalyzer):
         template_provider: IMeterTemplateProvider,
         flag_strategy: ISyllableFlagStrategy,
         stress_resolver: IStressResolver,
+        weak_stress_lexicon: IWeakStressLexicon,
     ) -> None:
         self._templates = template_provider
         self._flags = flag_strategy
         self._stress = stress_resolver
+        self._weak = weak_stress_lexicon
 
     # ------------------------------------------------------------------
     # IProsodyAnalyzer
@@ -46,6 +49,9 @@ class UkrainianProsodyAnalyzer(IProsodyAnalyzer):
         cursor = 0
         for w, syl in zip(words, syllables_per_word):
             if syl <= 0:
+                continue
+            if syl == 1 and self._weak.is_weak(w):
+                cursor += syl
                 continue
             s_idx = self._stress.resolve(w)
             s_idx = min(max(0, s_idx), syl - 1)

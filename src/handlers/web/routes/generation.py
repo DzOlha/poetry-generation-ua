@@ -77,12 +77,17 @@ def _line_displays(
             continue
         expected_set = set(result.expected_stresses)
         actual_set = set(result.actual_stresses)
-        expected_len = max(result.total_syllables, max(expected_set, default=0))
+        stresses = sorted(result.expected_stresses)
+        if len(stresses) >= 2:
+            foot_size = stresses[1] - stresses[0]
+            expected_len = foot_size * len(stresses)
+        else:
+            expected_len = max(stresses, default=0)
         actual_len = result.total_syllables
         diff = actual_len - expected_len
-        if diff > 0:
+        if not result.ok and diff > 0:
             length_note = f"на {diff} склад(и/ів) довше очікуваного ({expected_len})"
-        elif diff < 0:
+        elif not result.ok and diff < 0:
             length_note = f"на {-diff} склад(и/ів) коротше очікуваного ({expected_len})"
         else:
             length_note = ""
@@ -91,8 +96,8 @@ def _line_displays(
             "text": text,
             "ok": result.ok,
             "segments": _line_segments(text, expected_set, actual_set),
-            "annotation": result.annotation,
             "length_note": length_note,
+            "annotation": result.annotation,
         })
     return displays
 

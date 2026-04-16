@@ -59,6 +59,17 @@ class TestExtractWords:
         words = tp.extract_words("пам'ятник м'який")
         assert len(words) == 2
 
+    def test_unicode_right_quote_apostrophe(self, tp: UkrainianTextProcessor):
+        # U+2019 (right single quotation mark) — common in web input
+        words = tp.extract_words("нап\u2019ються")
+        assert len(words) == 1
+        assert words[0] == "нап\u2019ються"
+
+    def test_modifier_letter_apostrophe(self, tp: UkrainianTextProcessor):
+        # U+02BC (modifier letter apostrophe) — Ukrainian standard
+        words = tp.extract_words("пам\u02BCятник")
+        assert len(words) == 1
+
     def test_empty_string(self, tp: UkrainianTextProcessor):
         assert tp.extract_words("") == []
 

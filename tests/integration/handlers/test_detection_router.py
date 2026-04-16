@@ -14,7 +14,7 @@ from src.config import AppConfig, DetectionConfig
 from src.handlers.api.app import create_app
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def client() -> Generator[TestClient, None, None]:
     config = AppConfig(
         offline_embedder=True,
@@ -56,7 +56,7 @@ class TestDetectionRouter:
                 "poem_text": (
                     "Рядок один\nРядок два\nРядок три\nРядок чотири"
                 ),
-                "sample_lines": 2,
+                "sample_lines": 4,
             },
         )
         assert response.status_code == 200

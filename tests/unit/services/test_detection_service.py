@@ -70,8 +70,8 @@ class TestDetectionService:
     def test_passes_custom_sample_lines(self) -> None:
         sampler = _FakeSampler()
         svc = _make_service(sampler=sampler)
-        svc.detect("some text", sample_lines=14)
-        assert sampler.last_line_count == 14
+        svc.detect("some text", sample_lines=4)
+        assert sampler.last_line_count == 4
 
     def test_uses_default_sample_lines(self) -> None:
         sampler = _FakeSampler()

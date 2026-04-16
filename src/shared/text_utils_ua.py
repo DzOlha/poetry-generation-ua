@@ -29,7 +29,7 @@ def split_nonempty_lines(text: str) -> list[str]:
 
 def extract_words_ua(text: str) -> list[str]:
     """Extract Ukrainian words (including apostrophes and hyphens) as lowercase."""
-    return re.findall(r"[а-яіїєґʼ'-]+", text.lower())
+    return re.findall(r"[а-яіїєґʼ\u2019'-]+", text.lower())
 
 
 def count_syllables_ua(word: str) -> int:

@@ -53,8 +53,22 @@ class TestPenultimateFallbackStressResolver:
     def test_always_returns_int(self, stress_resolver):
         assert isinstance(stress_resolver.resolve("весна"), int)
 
-    def test_fallback_penultimate_syllable(self, fallback_resolver):
-        assert fallback_resolver.resolve("весна") == count_syllables_ua("весна") - 1
+    def test_vowel_final_gets_penultimate(self, fallback_resolver):
+        # "стогне" ends in vowel → penultimate (index 0)
+        assert fallback_resolver.resolve("стогне") == 0
+
+    def test_consonant_final_gets_last(self, fallback_resolver):
+        # "горить" ends in "ь" (soft final) → penultimate (index 0)
+        # "вітер" ends in "р" (hard consonant) → last (index 1)
+        assert fallback_resolver.resolve("вітер") == 1
+
+    def test_soft_sign_final_gets_penultimate(self, fallback_resolver):
+        # "місяць" ends in "ь" → penultimate (index 0)
+        assert fallback_resolver.resolve("місяць") == 0
+
+    def test_j_final_gets_penultimate(self, fallback_resolver):
+        # "широкий" ends in "й" → penultimate (index 1)
+        assert fallback_resolver.resolve("широкий") == 1
 
     def test_single_syllable_fallback(self, fallback_resolver):
         assert fallback_resolver.resolve("ліс") == 0

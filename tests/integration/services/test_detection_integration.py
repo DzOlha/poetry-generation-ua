@@ -7,7 +7,7 @@ from src.composition_root import build_container, build_detection_service
 from src.config import AppConfig, DetectionConfig
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def detection_service():
     config = AppConfig(
         offline_embedder=True,
@@ -46,8 +46,8 @@ class TestDetectionIntegration:
 
     @pytest.mark.component
     def test_custom_sample_lines(self, detection_service) -> None:
-        # 2-line sample from a 4-line poem
-        result = detection_service.detect(_IAMB_4_ABAB, sample_lines=2)
+        # sample_lines=4 (the only supported value) from a 4-line poem
+        result = detection_service.detect(_IAMB_4_ABAB, sample_lines=4)
         # Should succeed or fail gracefully — no crash
         assert isinstance(result.is_detected, bool)
 

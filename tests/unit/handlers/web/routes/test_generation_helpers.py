@@ -97,37 +97,31 @@ class TestLineDisplays:
         assert displays[0].get("segments") is not None
         assert displays[1].get("segments") is None
 
-    def test_length_note_when_actual_longer(self) -> None:
-        # expected_len is max(total, max(expected)) = 5, actual_len = 5 → 0
-        # so no note. Adjust expected_stresses to force smaller expected_len.
-        # expected_len = max(5, 2) = 5, actual_len = 5 → still equal.
-        # Force shorter expected by capping total < max(expected).
-        result3 = LineMeterResult(
+    def test_length_note_when_actual_shorter(self) -> None:
+        # 4-foot iamb expects 8 syllables, actual line has 4
+        result = LineMeterResult(
             ok=False,
             expected_stresses=(2, 4, 6, 8),
             actual_stresses=(2, 4),
             error_positions=(),
             total_syllables=4,
         )
-        displays3 = _line_displays("мама тата", (result3,))
-        note = str(displays3[0]["length_note"])
+        displays = _line_displays("мама тата", (result,))
+        note = str(displays[0]["length_note"])
         assert "коротше" in note and "(8)" in note
 
-    def test_length_note_when_actual_shorter(self) -> None:
-        # expected_len = max(6, 4) = 6, actual_len = 6 → equal, no note.
-        # Make expected shorter via smaller total.
-        result2 = LineMeterResult(
+    def test_length_note_when_actual_longer(self) -> None:
+        # 2-foot iamb expects 4 syllables, actual line has 6
+        result = LineMeterResult(
             ok=False,
-            expected_stresses=(2,),
+            expected_stresses=(2, 4),
             actual_stresses=(2, 4, 6),
             error_positions=(),
             total_syllables=6,
         )
-        displays2 = _line_displays("рядочок довгий", (result2,))
-        note = displays2[0]["length_note"]
-        # expected_len = max(6, 2) = 6, actual_len = 6 → still equal; here
-        # note is empty — valid case: both lengths agree.
-        assert note == ""
+        displays = _line_displays("рядочок довгий", (result,))
+        note = str(displays[0]["length_note"])
+        assert "довше" in note and "(4)" in note
 
     def test_length_note_empty_when_lengths_match(self) -> None:
         displays = _line_displays("рядок", (self._result(),))
@@ -146,3 +140,45 @@ class TestLineDisplays:
         result = self._result(annotation="BSP score 0.72")
         displays = _line_displays("рядок", (result,))
         assert displays[0]["annotation"] == "BSP score 0.72"
+
+    def test_catalexis_no_length_note(self) -> None:
+        # 4-foot iamb feminine ending: 9 syllables instead of 8, but ok=True
+        result = self._result(
+            ok=True,
+            expected=(2, 4, 6, 8),
+            actual=(2, 4, 6, 8),
+            total=9,
+        )
+        displays = _line_displays("рядочок", (result,))
+        assert displays[0]["length_note"] == ""
+
+    def test_catalectic_truncation_no_length_note(self) -> None:
+        # Trochee catalexis: 7 syllables instead of 8, but ok=True
+        result = self._result(
+            ok=True,
+            expected=(1, 3, 5, 7),
+            actual=(1, 3, 5, 7),
+            total=7,
+        )
+        displays = _line_displays("рядочок", (result,))
+        assert displays[0]["length_note"] == ""
+
+    def test_length_note_only_when_not_ok(self) -> None:
+        # Same diff but ok=True → no note; ok=False → note
+        result_ok = self._result(
+            ok=True, expected=(2, 4, 6, 8), actual=(2, 4), total=4,
+        )
+        result_bad = self._result(
+            ok=False, expected=(2, 4, 6, 8), actual=(2, 4), total=4,
+        )
+        assert _line_displays("рядок", (result_ok,))[0]["length_note"] == ""
+        assert _line_displays("рядок", (result_bad,))[0]["length_note"] != ""
+
+    def test_expected_len_computed_from_foot_size(self) -> None:
+        # Dactyl 3-foot: stresses at (1, 4, 7), foot_size=3, expected=9
+        result = self._result(
+            ok=False, expected=(1, 4, 7), actual=(1,), total=5,
+        )
+        displays = _line_displays("рядочок", (result,))
+        note = str(displays[0]["length_note"])
+        assert "(9)" in note

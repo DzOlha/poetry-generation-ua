@@ -54,8 +54,8 @@ class DetectionConfig:
     """Thresholds for brute-force meter/rhyme auto-detection.
 
     Higher thresholds yield fewer but more reliable classifications.
-    ``sample_lines`` controls how many leading lines are sampled from each
-    poem; set to 14 for sonnet compound-scheme detection.
+    ``sample_lines`` is fixed at 4 (quatrain) — the only stanza size
+    currently supported by the rhyme scheme extractor.
     """
 
     meter_min_accuracy: float = 0.85
@@ -80,9 +80,9 @@ class DetectionConfig:
             raise ConfigurationError(
                 f"rhyme_min_accuracy must be in [0, 1], got {self.rhyme_min_accuracy}"
             )
-        if self.sample_lines < 2:
+        if self.sample_lines != 4:
             raise ConfigurationError(
-                f"sample_lines must be >= 2, got {self.sample_lines}"
+                f"sample_lines must be 4 (quatrain), got {self.sample_lines}"
             )
         if not 1 <= self.feet_min <= self.feet_max:
             raise ConfigurationError(
