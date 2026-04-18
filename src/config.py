@@ -92,10 +92,20 @@ class DetectionConfig:
 
 @dataclass(frozen=True)
 class LLMReliabilityConfig:
-    """Knobs for the LLM decorator stack (timeout + retry)."""
+    """Knobs for the LLM decorator stack (timeout + retry).
 
-    timeout_sec: float = 60.0
-    retry_max_attempts: int = 3
+    Defaults are tuned for reasoning-first models (Gemini Pro 2.5 / 3.x)
+    whose CoT commonly takes 60-120 s per call. 120 s accommodates the
+    upper end of legitimate reasoning; more than that usually means the
+    model has wandered and ``TimeoutLLMProvider`` should abort so the
+    feedback iterator can move on. Retries are kept at 2 because
+    re-submitting after a timeout rarely helps (the next attempt tends
+    to hit the same ceiling) — but transient 5xx / rate-limit responses
+    still get a second try.
+    """
+
+    timeout_sec: float = 120.0
+    retry_max_attempts: int = 2
     retry_base_delay_sec: float = 1.0
     retry_max_delay_sec: float = 10.0
     retry_multiplier: float = 2.0
@@ -135,7 +145,15 @@ class AppConfig:
     gemini_api_key: str = ""
     gemini_model: str = "gemini-2.0-flash"
     gemini_temperature: float = 0.9
-    gemini_max_tokens: int = 4096
+    # 8192 gives reasoning models (2.5+ / 3.x) headroom for chain-of-thought
+    # plus the final ``<POEM>...</POEM>`` block. At 4096 Gemini Pro typically
+    # hits the ceiling mid-CoT and the envelope is never emitted.
+    gemini_max_tokens: int = 8192
+    # When True, pass ``ThinkingConfig(thinking_budget=0, include_thoughts=False)``
+    # to tell Gemini to skip reasoning entirely. Defaults to False because
+    # thinking-only variants (e.g. Gemini 3.x Pro preview) reject budget 0
+    # with ``INVALID_ARGUMENT``. Enable only for models that support it.
+    gemini_disable_thinking: bool = False
     llm_reliability: LLMReliabilityConfig = field(default_factory=LLMReliabilityConfig)
 
     # Data paths
@@ -222,14 +240,30 @@ class AppConfig:
     def from_env(cls) -> AppConfig:
         """Build config from environment variables."""
         def _bool(name: str, default: bool = False) -> bool:
-            return os.getenv(name, str(default)).lower() in ("1", "true", "yes", "y", "on")
+            return _str(name, str(default)).lower() in ("1", "true", "yes", "y", "on")
+
+        def _str(name: str, default: str = "") -> str:
+            """Read a string env var, stripping whitespace and any trailing
+            inline ``# comment`` that docker-compose's env_file parser
+            leaves attached to the value. Protects against the common
+            mistake ``LLM_PROVIDER=   # "" = auto`` copied from a template.
+            """
+            raw = os.getenv(name, default)
+            if "#" in raw:
+                raw = raw.split("#", 1)[0]
+            return raw.strip()
 
         return cls(
-            llm_provider=os.getenv("LLM_PROVIDER", ""),
-            gemini_api_key=os.getenv("GEMINI_API_KEY", ""),
-            gemini_model=os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
+            llm_provider=_str("LLM_PROVIDER"),
+            gemini_api_key=_str("GEMINI_API_KEY"),
+            gemini_model=_str("GEMINI_MODEL", "gemini-2.0-flash"),
             gemini_temperature=float(os.getenv("GEMINI_TEMPERATURE", "0.9")),
-            gemini_max_tokens=int(os.getenv("GEMINI_MAX_TOKENS", "4096")),
+            gemini_max_tokens=int(os.getenv("GEMINI_MAX_TOKENS", "8192")),
+            gemini_disable_thinking=_bool("GEMINI_DISABLE_THINKING", False),
+            llm_reliability=LLMReliabilityConfig(
+                timeout_sec=float(os.getenv("LLM_TIMEOUT_SEC", "120")),
+                retry_max_attempts=int(os.getenv("LLM_RETRY_MAX_ATTEMPTS", "2")),
+            ),
             corpus_path=Path(
                 os.getenv("CORPUS_PATH", str(_BASE_DIR / "corpus" / "uk_theme_reference_corpus.json"))
             ),

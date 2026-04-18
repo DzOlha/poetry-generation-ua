@@ -42,9 +42,16 @@ class MeterName(str, Enum):
         for member in cls:
             if member.value == key:
                 return member
+        # Only advertise the canonical Ukrainian names in the user-facing
+        # message — English aliases (iamb/trochee/…) are kept internally
+        # for corpus round-tripping but surface as noise to end users.
+        ukrainian = [
+            MeterName.IAMB.value, MeterName.TROCHEE.value, MeterName.DACTYL.value,
+            MeterName.AMPHIBRACH.value, MeterName.ANAPEST.value,
+        ]
         raise UnsupportedConfigError(
-            f"Unsupported meter: {raw!r}. "
-            f"Supported: {sorted(m.value for m in cls)}"
+            f"Невідомий метр: {raw!r}. "
+            f"Підтримувані метри: {', '.join(ukrainian)}."
         )
 
     def canonical(self) -> MeterName:
@@ -80,8 +87,8 @@ class RhymePattern(str, Enum):
             if member.value == key:
                 return member
         raise UnsupportedConfigError(
-            f"Unsupported rhyme scheme: {raw!r}. "
-            f"Supported: {[m.value for m in cls]}"
+            f"Невідома схема римування: {raw!r}. "
+            f"Підтримувані схеми: {', '.join(m.value for m in cls)}."
         )
 
 

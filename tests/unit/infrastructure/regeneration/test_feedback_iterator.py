@@ -24,7 +24,7 @@ from src.domain.ports import (
 from src.domain.ports.pipeline import FeedbackCycleOutcome
 from src.infrastructure.logging import NullLogger
 from src.infrastructure.regeneration.feedback_iterator import ValidatingFeedbackIterator
-from src.infrastructure.tracing import PipelineTracer
+from src.infrastructure.tracing import NullLLMCallRecorder, PipelineTracer
 
 # ---------------------------------------------------------------------------
 # Fakes
@@ -150,6 +150,7 @@ def _make_iterator(
         regeneration_merger=merger or _RecordingMerger(),
         stop_policy=_NeverStop(),
         logger=NullLogger(),
+        llm_call_recorder=NullLLMCallRecorder(),
     )
 
 

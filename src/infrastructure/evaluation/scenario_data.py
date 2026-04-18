@@ -109,7 +109,7 @@ CORNER_SCENARIOS: tuple[EvaluationScenario, ...] = (
         meter="ямб", foot_count=4, rhyme_scheme="ABAB",
         description="Very long theme (>200 chars) — tests prompt truncation / retrieval robustness.",
         tags=("long-input", "robustness"),
-        expected_to_succeed=False,
+        expected_to_succeed=True,
     ),
     EvaluationScenario(
         id="C03", name="Тема латиницею", category=ScenarioCategory.CORNER,
@@ -117,7 +117,7 @@ CORNER_SCENARIOS: tuple[EvaluationScenario, ...] = (
         meter="ямб", foot_count=4, rhyme_scheme="ABAB",
         description="Theme in English (Latin script) — tests retrieval with language mismatch.",
         tags=("language-mismatch", "robustness"),
-        expected_to_succeed=False,
+        expected_to_succeed=True,
     ),
     EvaluationScenario(
         id="C04", name="Невідомий метр", category=ScenarioCategory.CORNER,
@@ -133,7 +133,7 @@ CORNER_SCENARIOS: tuple[EvaluationScenario, ...] = (
         meter="ямб", foot_count=1, rhyme_scheme="ABAB",
         description="1-foot iamb — single stressed syllable per line, extreme minimal.",
         tags=("extreme-minimal", "robustness"),
-        expected_to_succeed=False,
+        expected_to_succeed=True,
     ),
     EvaluationScenario(
         id="C06", name="Спецсимволи в темі", category=ScenarioCategory.CORNER,
@@ -141,7 +141,7 @@ CORNER_SCENARIOS: tuple[EvaluationScenario, ...] = (
         meter="хорей", foot_count=4, rhyme_scheme="AABB",
         description="Special characters, HTML, emoji in theme — tests input sanitization.",
         tags=("injection", "robustness"),
-        expected_to_succeed=False,
+        expected_to_succeed=True,
     ),
     EvaluationScenario(
         id="C07", name="Змішана тема (укр + рус)", category=ScenarioCategory.CORNER,
@@ -149,7 +149,7 @@ CORNER_SCENARIOS: tuple[EvaluationScenario, ...] = (
         meter="ямб", foot_count=4, rhyme_scheme="ABAB",
         description="Mixed Ukrainian/Russian — tests that output stays in Ukrainian.",
         tags=("mixed-language", "robustness"),
-        expected_to_succeed=False,
+        expected_to_succeed=True,
     ),
     EvaluationScenario(
         id="C08", name="Нульова кількість стоп", category=ScenarioCategory.CORNER,

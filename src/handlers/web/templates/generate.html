@@ -89,14 +89,24 @@
                 <strong>&#9432;</strong> За замовчуванням підтримуються лише 4-рядкові строфи (катрени).
             </div>
 
-            <button type="submit" class="btn-primary" id="gen-btn"
-                    {% if llm_info and not llm_info.ready %}disabled aria-disabled="true"{% endif %}>
-                <span class="btn-text">Згенерувати</span>
-                <span class="btn-loading hidden">Генеруємо…</span>
-            </button>
+            <div class="form-actions">
+                <button type="submit" class="btn-primary" id="gen-btn"
+                        {% if llm_info and not llm_info.ready %}disabled aria-disabled="true"{% endif %}>
+                    <span class="btn-text">Згенерувати</span>
+                    <span class="btn-loading hidden">Генеруємо…</span>
+                </button>
+                <button type="button" class="btn-secondary btn-cancel hidden" id="gen-cancel">
+                    Скасувати
+                </button>
+            </div>
             <div class="form-hint">
                 <span class="form-hint-icon">⏱</span>
                 Генерація може зайняти до 1 хвилини — LLM пише початковий вірш, а потім ітеративно його виправляє.
+            </div>
+            <div class="form-warning hidden" id="gen-warning" role="status" aria-live="polite">
+                <strong>&#9432;</strong> Триває довше ніж очікувалось. LLM (reasoning-модель)
+                може думати до кількох хвилин. «Скасувати» закриває очікування у вашому браузері —
+                сервер може продовжити обробку фоновно, поки не завершить або не спрацює timeout.
             </div>
         </form>
     </section>

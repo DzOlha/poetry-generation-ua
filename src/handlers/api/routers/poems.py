@@ -78,6 +78,8 @@ def generate_poem(
             rhyme_accuracy=s.rhyme_accuracy,
             feedback=tuple(s.feedback),
             duration_sec=s.duration_sec,
+            raw_llm_response=s.raw_llm_response,
+            sanitized_llm_response=s.sanitized_llm_response,
         )
         for s in result.iteration_history
     )

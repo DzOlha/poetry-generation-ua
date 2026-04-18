@@ -27,11 +27,13 @@ class MeterSpec:
 
         if not isinstance(self.foot_count, int) or isinstance(self.foot_count, bool):
             raise UnsupportedConfigError(
-                f"foot_count must be an integer, got {type(self.foot_count).__name__}"
+                f"Кількість стоп має бути цілим числом, отримано "
+                f"{type(self.foot_count).__name__}."
             )
         if not 1 <= self.foot_count <= 8:
             raise UnsupportedConfigError(
-                f"foot_count must be in [1, 8], got {self.foot_count}"
+                f"Кількість стоп має бути в діапазоні від 1 до 8, "
+                f"отримано {self.foot_count}."
             )
 
 
@@ -62,19 +64,24 @@ class PoemStructure:
     lines_per_stanza: int
 
     def __post_init__(self) -> None:
-        for field_name in ("stanza_count", "lines_per_stanza"):
+        labels = {
+            "stanza_count": "Кількість строф",
+            "lines_per_stanza": "Кількість рядків у строфі",
+        }
+        for field_name, label in labels.items():
             val = getattr(self, field_name)
             if not isinstance(val, int) or isinstance(val, bool):
                 raise UnsupportedConfigError(
-                    f"{field_name} must be an integer, got {type(val).__name__}"
+                    f"{label} має бути цілим числом, отримано {type(val).__name__}."
                 )
         if self.stanza_count < 1:
             raise UnsupportedConfigError(
-                f"stanza_count must be >= 1, got {self.stanza_count}"
+                f"Кількість строф має бути не менша за 1, отримано {self.stanza_count}."
             )
         if self.lines_per_stanza < 1:
             raise UnsupportedConfigError(
-                f"lines_per_stanza must be >= 1, got {self.lines_per_stanza}"
+                f"Кількість рядків у строфі має бути не менша за 1, "
+                f"отримано {self.lines_per_stanza}."
             )
 
     @property

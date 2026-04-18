@@ -133,6 +133,31 @@ class TestPoem:
             "справжній останній рядок",
         )
 
+    def test_keeps_short_monometer_lines_with_punctuation(self):
+        # Scenario C05 (iambic monometer, foot_count=1 → 2 syllables per line):
+        # legitimate output is a handful of 2-4-Cyrillic-letter words with
+        # sentence-end punctuation. All four must be preserved.
+        poem = Poem.from_text(
+            "Поріг,\n"  # 5 letters
+            "Вогні.\n"  # 5 letters
+            "Доріг\n"   # 5 letters, no punctuation — still passes the strict bar
+            "У сні.\n"  # 4 letters — would fail strict bar, saved by trailing period
+        )
+        assert poem.lines == ("Поріг,", "Вогні.", "Доріг", "У сні.")
+
+    def test_drops_short_fragment_without_punctuation(self):
+        # A bare 3-letter Cyrillic stub without terminating punctuation is
+        # still a scansion fragment, not a verse line.
+        poem = Poem.from_text(
+            "справжній рядок з багатьма словами\n"
+            "жен\n"
+            "інший справжній рядок тут\n"
+        )
+        assert poem.lines == (
+            "справжній рядок з багатьма словами",
+            "інший справжній рядок тут",
+        )
+
 
 class TestRhymeScheme:
     def test_parses_known_patterns(self):

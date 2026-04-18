@@ -60,6 +60,8 @@ def iteration_record_to_dict(rec: IterationRecord) -> dict[str, Any]:
         "rhyme_accuracy": round(rec.rhyme_accuracy, 4),
         "feedback": rec.feedback,
         "duration_sec": round(rec.duration_sec, 4),
+        "raw_llm_response": rec.raw_llm_response,
+        "sanitized_llm_response": rec.sanitized_llm_response,
     }
 
 

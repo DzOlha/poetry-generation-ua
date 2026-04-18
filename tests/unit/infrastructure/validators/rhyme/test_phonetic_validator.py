@@ -96,7 +96,7 @@ class TestCheckRhyme:
     def test_unsupported_scheme_raises(self, stress_dict: IStressDictionary):
         scheme = object.__new__(RhymeScheme)
         object.__setattr__(scheme, "pattern", "XYZW")
-        with pytest.raises(UnsupportedConfigError, match="Unsupported rhyme scheme"):
+        with pytest.raises(UnsupportedConfigError, match="Невідома схема римування"):
             _make_validator(stress_dict).validate("a\nb\nc\nd\n", scheme)
 
     def test_too_few_lines_returns_empty_pairs(self, stress_dict: IStressDictionary):

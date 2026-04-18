@@ -26,6 +26,11 @@ class IterationSnapshot:
     rhyme_accuracy: float
     feedback: tuple[str, ...] = ()
     duration_sec: float = 0.0
+    # Debug trace: raw provider output and post-sanitizer text for the
+    # LLM call that produced this iteration. Empty when the snapshot
+    # originates from a test double that bypasses the decorator stack.
+    raw_llm_response: str = ""
+    sanitized_llm_response: str = ""
 
 
 @dataclass(frozen=True)

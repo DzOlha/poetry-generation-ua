@@ -52,7 +52,10 @@ class StandardRhymeSchemeExtractor(IRhymeSchemeExtractor):
         stanza_pairs.sort()
 
         if not stanza_pairs:
-            raise UnsupportedConfigError(f"Unsupported rhyme scheme: '{scheme}'")
+            raise UnsupportedConfigError(
+                f"Невідома схема римування: '{scheme}'. "
+                f"Підтримувані схеми: ABAB, AABB, ABBA, AAAA."
+            )
 
         # Repeat stanza pairs across all complete stanzas
         all_pairs: list[tuple[int, int]] = []

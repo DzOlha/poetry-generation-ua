@@ -70,7 +70,7 @@ class TestEdgeCases:
         assert pairs == [(0, 2), (1, 3)]
 
     def test_no_repeated_letters_raises(self, extractor: StandardRhymeSchemeExtractor) -> None:
-        with pytest.raises(UnsupportedConfigError, match="Unsupported rhyme scheme"):
+        with pytest.raises(UnsupportedConfigError, match="Невідома схема римування"):
             extractor.extract_pairs("ABCD", 4)
 
     def test_aaaa_all_pairs_single_stanza(self, extractor: StandardRhymeSchemeExtractor) -> None:

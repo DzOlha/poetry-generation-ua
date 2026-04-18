@@ -53,6 +53,8 @@ class DefaultPoemGenerationPipeline(IPoemGenerationPipeline):
                 rhyme_accuracy=rec.rhyme_accuracy,
                 feedback=rec.feedback,
                 duration_sec=rec.duration_sec,
+                raw_llm_response=rec.raw_llm_response,
+                sanitized_llm_response=rec.sanitized_llm_response,
             )
             for rec in raw_iterations
         )

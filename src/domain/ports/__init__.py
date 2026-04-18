@@ -71,6 +71,7 @@ from src.domain.ports.evaluation import (
 
 # -- HTTP --
 from src.domain.ports.http import HttpErrorResponse, IHttpErrorMapper
+from src.domain.ports.llm_trace import ILLMCallRecorder, LLMCallSnapshot
 from src.domain.ports.logging import ILogger
 
 # -- Metrics --
@@ -129,6 +130,9 @@ from src.domain.ports.rhyme import (
 # -- Runner --
 from src.domain.ports.runner import IRunner
 
+# -- Sanitization --
+from src.domain.ports.sanitization import IPoemExtractor, IPoemOutputSanitizer
+
 # -- Stress & phonetics --
 from src.domain.ports.stress import (
     IMeterCanonicalizer,
@@ -175,6 +179,9 @@ __all__ = [
     "IDetectionService",
     # Logging
     "ILogger",
+    # LLM call tracing
+    "ILLMCallRecorder",
+    "LLMCallSnapshot",
     # Text
     "ILineSplitter",
     "ITokenizer",
@@ -219,6 +226,9 @@ __all__ = [
     "IRhymeSchemeExtractor",
     "RhymePairAnalysis",
     "IRhymePairAnalyzer",
+    # Sanitization
+    "IPoemExtractor",
+    "IPoemOutputSanitizer",
     # Value objects (re-exported from models for convenience)
     "ClausulaType",
     "RhymePrecision",

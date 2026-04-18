@@ -19,9 +19,11 @@ from src.domain.ports import (
     IFeedbackCycle,
     IFeedbackIterator,
     IIterationStopPolicy,
+    ILLMCallRecorder,
     ILLMProvider,
     ILogger,
     IRegenerationMerger,
+    LLMCallSnapshot,
 )
 from src.infrastructure.tracing.stage_timer import StageTimer
 
@@ -36,12 +38,14 @@ class ValidatingFeedbackIterator(IFeedbackIterator):
         regeneration_merger: IRegenerationMerger,
         stop_policy: IIterationStopPolicy,
         logger: ILogger,
+        llm_call_recorder: ILLMCallRecorder,
     ) -> None:
         self._llm = llm
         self._cycle = feedback_cycle
         self._merger = regeneration_merger
         self._stop = stop_policy
         self._logger = logger
+        self._llm_recorder = llm_call_recorder
 
     def iterate(self, state: PipelineState) -> None:
         m_result = state.last_meter_result
@@ -61,6 +65,7 @@ class ValidatingFeedbackIterator(IFeedbackIterator):
                 it, state.max_iterations, m_result, r_result, state.tracer.iterations(),
             ):
                 break
+            llm_snapshot: LLMCallSnapshot = LLMCallSnapshot()
             with StageTimer() as t_iter:
                 try:
                     prev_poem = state.poem
@@ -73,6 +78,7 @@ class ValidatingFeedbackIterator(IFeedbackIterator):
                         # leaked chain-of-thought). Line-by-line regeneration can
                         # only preserve that wrong count — do a full regen instead.
                         raw = self._llm.generate(state.prompt)
+                        llm_snapshot = self._llm_recorder.snapshot()
                         regenerated = Poem.from_text(raw).as_text()
                         if not regenerated:
                             # Full regen also came back as pure CoT/garbage — keep
@@ -85,6 +91,7 @@ class ValidatingFeedbackIterator(IFeedbackIterator):
                         raw = self._llm.regenerate_lines(
                             state.poem, list(feedback_messages),
                         )
+                        llm_snapshot = self._llm_recorder.snapshot()
                         regenerated = Poem.from_text(raw).as_text()
                         if not regenerated:
                             # LLM returned only scansion/garbage — keep prior poem.
@@ -121,6 +128,8 @@ class ValidatingFeedbackIterator(IFeedbackIterator):
                 rhyme_accuracy=r_result.accuracy,
                 feedback=feedback_messages,
                 duration_sec=t_iter.elapsed,
+                raw_llm_response=llm_snapshot.raw,
+                sanitized_llm_response=llm_snapshot.sanitized,
             ))
 
         state.last_meter_result = m_result

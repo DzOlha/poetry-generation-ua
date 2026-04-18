@@ -1,6 +1,8 @@
 """Gemini LLM provider — Google Gemini API adapter."""
 from __future__ import annotations
 
+from typing import Any
+
 from src.domain.errors import LLMError
 from src.domain.ports import IRegenerationPromptBuilder
 from src.infrastructure.llm.base import BaseLLMProvider
@@ -16,6 +18,7 @@ class GeminiProvider(BaseLLMProvider):
         model: str = "gemini-2.0-flash",
         temperature: float = 0.9,
         max_output_tokens: int = 4096,
+        disable_thinking: bool = True,
     ) -> None:
         super().__init__(regeneration_prompt_builder=regeneration_prompt_builder)
         try:
@@ -31,6 +34,7 @@ class GeminiProvider(BaseLLMProvider):
         self._model_name = model
         self._temperature = temperature
         self._max_output_tokens = max_output_tokens
+        self._disable_thinking = disable_thinking
 
     _FORBIDDEN_OUTPUT_RULES = (
         "STRICT OUTPUT RULES — violating ANY of these is a failure:\n"
@@ -52,10 +56,19 @@ class GeminiProvider(BaseLLMProvider):
         "of the last poem line.\n"
     )
 
+    _ENVELOPE_RULE = (
+        "You may reason freely BEFORE emitting <POEM>. Emit the literal tag "
+        "<POEM> on its own, then the final Ukrainian poem (one line per verse "
+        "line, normal orthography), then </POEM> immediately after the last "
+        "poem line. Write NOTHING after </POEM>. All format rules below apply "
+        "to the content BETWEEN the tags.\n\n"
+    )
+
     def generate(self, prompt: str) -> str:
         system = (
             "You are a Ukrainian poetry generator. "
-            "Return ONLY the final poem text in Ukrainian — one line per verse line.\n\n"
+            "Your final poem must be wrapped between <POEM> and </POEM> tags.\n\n"
+            + self._ENVELOPE_RULE
             + self._FORBIDDEN_OUTPUT_RULES
         )
         return self._call(prompt, system_instruction=system)
@@ -63,12 +76,13 @@ class GeminiProvider(BaseLLMProvider):
     def regenerate_lines(self, poem: str, feedback: list[str]) -> str:
         prompt = self._build_regeneration_prompt(poem, feedback)
         system = (
-            "You are refining a Ukrainian poem. Output ONLY the full poem text "
-            "with all lines, in Ukrainian, one line per verse line.\n"
+            "You are refining a Ukrainian poem. Your final corrected poem must "
+            "be wrapped between <POEM> and </POEM> tags.\n"
             "The feedback you receive may show syllable stress diagrams and "
             "numbered syllables to explain violations — those are EXPLANATIONS, "
             "NOT the format you should output. Your output must be plain poem lines "
             "in normal Ukrainian orthography.\n\n"
+            + self._ENVELOPE_RULE
             + self._FORBIDDEN_OUTPUT_RULES
         )
         return self._call(prompt, system_instruction=system)
@@ -79,6 +93,7 @@ class GeminiProvider(BaseLLMProvider):
                 temperature=self._temperature,
                 max_output_tokens=self._max_output_tokens,
                 system_instruction=system_instruction,
+                thinking_config=self._build_thinking_config(),
             )
             response = self._client.models.generate_content(
                 model=self._model_name,
@@ -92,3 +107,26 @@ class GeminiProvider(BaseLLMProvider):
         if not text:
             raise LLMError("Gemini returned an empty response")
         return text.strip() + "\n"
+
+    def _build_thinking_config(self) -> Any:
+        """Return a ``ThinkingConfig`` that suppresses visible reasoning, or None.
+
+        Reasoning-first Gemini variants (2.5 Pro / 3.x Pro) emit extensive
+        chain-of-thought by default and truncate before reaching the poem
+        envelope once ``max_output_tokens`` is hit. Setting
+        ``thinking_budget=0`` + ``include_thoughts=False`` redirects the
+        whole token budget to the actual answer. Silently skipped when the
+        installed SDK version does not ship ``ThinkingConfig`` — older
+        models ignore the field anyway.
+        """
+        if not self._disable_thinking:
+            return None
+        thinking_cfg_cls = getattr(self._types, "ThinkingConfig", None)
+        if thinking_cfg_cls is None:
+            return None
+        try:
+            return thinking_cfg_cls(thinking_budget=0, include_thoughts=False)
+        except TypeError:
+            # SDK version exposes the class but with different kwargs —
+            # keep running without the optimisation rather than crash.
+            return None

@@ -23,10 +23,17 @@ _CYR_LETTER_RE = re.compile(r"[А-Яа-яІіЇїЄєҐґ]")
 # Leading "N:" or "N." echoed back from the numbered-regen prompt template
 # (e.g. "1: рядок", "2. рядок"). We strip these; the remainder is re-evaluated.
 _LINE_NUMBER_PREFIX_RE = re.compile(r"^\d+\s*[:.]\s*")
-# Minimum Cyrillic letters for a plausible poem line — catches scansion
-# fragments like "1: КО" (→ "КО" after strip), "жен", "шу" that otherwise
-# slip through the filter because they are short real Cyrillic tokens.
+# Minimum Cyrillic letters for a plausible poem line. Default ``_MIN_CYR_LETTERS``
+# is strict so stand-alone syllable stubs like ``КО``, ``жен``, ``шу`` that
+# leak from scansion are rejected. Lines ending with sentence punctuation
+# (``.``, ``,``, ``!``, ``?``, ``;``, ``:``, ``…``) are syntactically
+# "finished" — they get the relaxed ``_MIN_CYR_LETTERS_PUNCT`` threshold so
+# legitimate short-meter verse survives (scenario C05, iambic monometer,
+# produces lines like ``У сні.`` with only 4 Cyrillic letters). Raw
+# fragments without any punctuation must clear the stricter bar.
 _MIN_CYR_LETTERS = 5
+_MIN_CYR_LETTERS_PUNCT = 2
+_SENTENCE_END_RE = re.compile(r"[.,!?;:…]$")
 
 
 def _strip_line_number_prefix(line: str) -> str:
@@ -49,7 +56,11 @@ def _is_poem_line(line: str) -> bool:
         return False
     if _DIGIT_ONLY_RE.match(line):
         return False
-    if len(_CYR_LETTER_RE.findall(line)) < _MIN_CYR_LETTERS:
+    cyr_count = len(_CYR_LETTER_RE.findall(line))
+    threshold = (
+        _MIN_CYR_LETTERS_PUNCT if _SENTENCE_END_RE.search(line) else _MIN_CYR_LETTERS
+    )
+    if cyr_count < threshold:
         return False
     return len(_CAPS_CYR_TOKEN_RE.findall(line)) < 2
 

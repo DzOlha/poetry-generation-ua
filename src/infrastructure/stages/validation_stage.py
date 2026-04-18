@@ -12,6 +12,7 @@ from src.domain.evaluation import IterationRecord, StageRecord
 from src.domain.pipeline_context import PipelineState
 from src.domain.ports import (
     IFeedbackFormatter,
+    ILLMCallRecorder,
     ILogger,
     IMeterValidator,
     IPipelineStage,
@@ -36,6 +37,7 @@ class ValidationStage(IPipelineStage):
         skip_policy: IStageSkipPolicy,
         logger: ILogger,
         record_builder: IStageRecordBuilder,
+        llm_call_recorder: ILLMCallRecorder,
     ) -> None:
         self._meter_validator = meter_validator
         self._rhyme_validator = rhyme_validator
@@ -43,6 +45,7 @@ class ValidationStage(IPipelineStage):
         self._skip = skip_policy
         self._logger: ILogger = logger
         self._record_builder = record_builder
+        self._llm_recorder = llm_call_recorder
 
     @property
     def name(self) -> str:
@@ -86,6 +89,7 @@ class ValidationStage(IPipelineStage):
             )
         )
 
+        snapshot = self._llm_recorder.snapshot()
         state.tracer.add_iteration(IterationRecord(
             iteration=0,
             poem_text=state.poem,
@@ -93,4 +97,6 @@ class ValidationStage(IPipelineStage):
             rhyme_accuracy=r_result.accuracy,
             feedback=tuple(fb_messages),
             duration_sec=t.elapsed,
+            raw_llm_response=snapshot.raw,
+            sanitized_llm_response=snapshot.sanitized,
         ))

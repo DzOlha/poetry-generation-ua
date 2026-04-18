@@ -25,8 +25,13 @@ class UkrainianMeterTemplateProvider(IMeterTemplateProvider):
     def template_for(self, meter_name: str) -> list[str]:
         key = (meter_name or "").strip().lower()
         if key not in METER_TEMPLATES:
+            # Advertise only the Ukrainian names to end users; English
+            # aliases in ``METER_TEMPLATES`` exist for corpus/config
+            # round-tripping but add noise to error messages.
+            ukrainian = ["ямб", "хорей", "дактиль", "амфібрахій", "анапест"]
             raise UnsupportedConfigError(
-                f"Unsupported meter: '{meter_name}'. Supported: {sorted(METER_TEMPLATES)}"
+                f"Невідомий метр: {meter_name!r}. "
+                f"Підтримувані метри: {', '.join(ukrainian)}."
             )
         return list(METER_TEMPLATES[key])
 

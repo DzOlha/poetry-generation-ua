@@ -272,6 +272,8 @@ class IterationSnapshotSchema(BaseModel):
     # Per-line annotated display for this iteration's poem snapshot.
     # Empty when the snapshot can't be re-validated (e.g. domain error).
     line_displays: list[LineDisplaySchema] = Field(default_factory=list)
+    raw_llm_response: str = ""
+    sanitized_llm_response: str = ""
 
     @classmethod
     def from_domain(cls, s: IterationSnapshot) -> IterationSnapshotSchema:
@@ -282,6 +284,8 @@ class IterationSnapshotSchema(BaseModel):
             rhyme_accuracy=s.rhyme_accuracy,
             feedback=list(s.feedback),
             duration_sec=s.duration_sec,
+            raw_llm_response=s.raw_llm_response,
+            sanitized_llm_response=s.sanitized_llm_response,
         )
 
 
@@ -407,6 +411,8 @@ class EvaluationIterationSchema(BaseModel):
     feedback: list[str]
     duration_sec: float
     line_displays: list[LineDisplaySchema] = Field(default_factory=list)
+    raw_llm_response: str = ""
+    sanitized_llm_response: str = ""
 
     @classmethod
     def from_domain(cls, it: IterationRecord) -> EvaluationIterationSchema:
@@ -417,6 +423,8 @@ class EvaluationIterationSchema(BaseModel):
             rhyme_accuracy=it.rhyme_accuracy,
             feedback=list(it.feedback),
             duration_sec=it.duration_sec,
+            raw_llm_response=it.raw_llm_response,
+            sanitized_llm_response=it.sanitized_llm_response,
         )
 
 

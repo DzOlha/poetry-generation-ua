@@ -34,6 +34,7 @@ def build_gemini_provider(
         model=config.gemini_model,
         temperature=config.gemini_temperature,
         max_output_tokens=config.gemini_max_tokens,
+        disable_thinking=config.gemini_disable_thinking,
     )
 
 

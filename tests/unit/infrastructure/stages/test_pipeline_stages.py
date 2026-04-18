@@ -31,7 +31,7 @@ from src.infrastructure.stages import (
     RetrievalStage,
     ValidationStage,
 )
-from src.infrastructure.tracing import PipelineTracer
+from src.infrastructure.tracing import NullLLMCallRecorder, PipelineTracer
 
 _NULL_LOGGER = NullLogger()
 _SKIP_POLICY = DefaultStageSkipPolicy()
@@ -277,6 +277,7 @@ class TestValidationStage:
             skip_policy=_SKIP_POLICY,
             logger=_NULL_LOGGER,
             record_builder=DefaultStageRecordBuilder(),
+            llm_call_recorder=NullLLMCallRecorder(),
         )
         stage.run(state)
         assert state.last_meter_result is not None

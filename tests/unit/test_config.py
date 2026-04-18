@@ -91,8 +91,8 @@ class TestDetectionConfig:
 class TestLLMReliabilityConfig:
     def test_defaults_are_valid(self):
         rc = LLMReliabilityConfig()
-        assert rc.timeout_sec == 60.0
-        assert rc.retry_max_attempts == 3
+        assert rc.timeout_sec == 120.0
+        assert rc.retry_max_attempts == 2
 
     @pytest.mark.parametrize("value", [0.0, -1.0, -100.0])
     def test_timeout_sec_must_be_positive(self, value):

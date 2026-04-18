@@ -149,6 +149,11 @@ class IterationRecord:
     rhyme_accuracy: float
     feedback: tuple[str, ...]
     duration_sec: float = 0.0
+    # Debug trace: raw provider output and post-sanitizer text for the
+    # LLM call that produced this iteration. Empty when no LLM call was
+    # observed (e.g. mock providers that bypass the decorator stack).
+    raw_llm_response: str = ""
+    sanitized_llm_response: str = ""
 
 
 @dataclass(frozen=True)

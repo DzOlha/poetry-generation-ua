@@ -115,7 +115,7 @@ class TestBuildExpectedPattern:
 
     def test_unsupported_meter_raises(self):
         analyzer = _noop_analyzer()
-        with pytest.raises(UnsupportedConfigError, match="Unsupported meter"):
+        with pytest.raises(UnsupportedConfigError, match="Невідомий метр"):
             analyzer.build_expected_pattern("невідомий", 4)
 
     def test_case_insensitive(self):

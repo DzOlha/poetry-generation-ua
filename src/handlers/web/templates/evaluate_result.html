@@ -246,6 +246,23 @@
                         </ul>
                     </details>
                     {% endif %}
+                    {% if it.raw_llm_response or it.sanitized_llm_response %}
+                    <details class="iter-llm-trace-details">
+                        <summary>LLM trace (raw / sanitized)</summary>
+                        {% if it.raw_llm_response %}
+                        <div class="llm-trace-block">
+                            <h4>Оригінальна відповідь моделі</h4>
+                            <pre class="llm-trace raw">{{ it.raw_llm_response }}</pre>
+                        </div>
+                        {% endif %}
+                        {% if it.sanitized_llm_response %}
+                        <div class="llm-trace-block">
+                            <h4>Після sanitizer (піде на вхід валідатора)</h4>
+                            <pre class="llm-trace sanitized">{{ it.sanitized_llm_response }}</pre>
+                        </div>
+                        {% endif %}
+                    </details>
+                    {% endif %}
                 </div>
             </details>
             {% endfor %}

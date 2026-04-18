@@ -27,11 +27,14 @@ from src.domain.ports import (
     IFeedbackCycle,
     IFeedbackIterator,
     IIterationStopPolicy,
+    ILLMCallRecorder,
     ILLMProvider,
     ILLMProviderFactory,
     IMetricRepository,
     IPipeline,
+    IPoemExtractor,
     IPoemGenerationPipeline,
+    IPoemOutputSanitizer,
     IPromptBuilder,
     IProviderInfo,
     IRegenerationMerger,
@@ -50,8 +53,10 @@ from src.infrastructure.embeddings import (
 from src.infrastructure.llm import DefaultLLMProviderFactory
 from src.infrastructure.llm.decorators import (
     ExponentialBackoffRetry,
+    ExtractingLLMProvider,
     LoggingLLMProvider,
     RetryingLLMProvider,
+    SanitizingLLMProvider,
     TimeoutLLMProvider,
 )
 from src.infrastructure.llm.provider_info import LLMProviderInfo
@@ -78,6 +83,10 @@ from src.infrastructure.repositories.theme_repository import (
     JsonThemeRepository,
 )
 from src.infrastructure.retrieval import SemanticRetriever
+from src.infrastructure.sanitization import (
+    RegexPoemOutputSanitizer,
+    SentinelPoemExtractor,
+)
 from src.infrastructure.stages import (
     FeedbackLoopStage,
     GenerationStage,
@@ -86,6 +95,7 @@ from src.infrastructure.stages import (
     RetrievalStage,
     ValidationStage,
 )
+from src.infrastructure.tracing import InMemoryLLMCallRecorder
 
 if TYPE_CHECKING:
     from src.composition_root import Container
@@ -175,6 +185,17 @@ class GenerationSubContainer:
             lambda: DefaultLLMProviderFactory(config=self._parent.config),
         )
 
+    def poem_output_sanitizer(self) -> IPoemOutputSanitizer:
+        return self._parent._get(
+            CacheKey.POEM_OUTPUT_SANITIZER, RegexPoemOutputSanitizer,
+        )
+
+    def poem_extractor(self) -> IPoemExtractor:
+        return self._parent._get(CacheKey.POEM_EXTRACTOR, SentinelPoemExtractor)
+
+    def llm_call_recorder(self) -> ILLMCallRecorder:
+        return self._parent._get(CacheKey.LLM_CALL_RECORDER, InMemoryLLMCallRecorder)
+
     def llm(self) -> ILLMProvider:
         def factory() -> ILLMProvider:
             if self._parent.injected_llm is not None:
@@ -187,8 +208,19 @@ class GenerationSubContainer:
 
     def _wrap_with_reliability(self, provider: ILLMProvider) -> ILLMProvider:
         rel: LLMReliabilityConfig = self._parent.config.llm_reliability
-        timed = TimeoutLLMProvider(
+        recorder = self.llm_call_recorder()
+        extracted = ExtractingLLMProvider(
             inner=provider,
+            extractor=self.poem_extractor(),
+            recorder=recorder,
+        )
+        sanitized = SanitizingLLMProvider(
+            inner=extracted,
+            sanitizer=self.poem_output_sanitizer(),
+            recorder=recorder,
+        )
+        timed = TimeoutLLMProvider(
+            inner=sanitized,
             timeout_sec=rel.timeout_sec,
         )
         retrying = RetryingLLMProvider(
@@ -232,6 +264,7 @@ class GenerationSubContainer:
                 regeneration_merger=self.regeneration_merger(),
                 stop_policy=self.iteration_stop_policy(),
                 logger=self._parent.logger,
+                llm_call_recorder=self.llm_call_recorder(),
             ),
         )
 
@@ -288,6 +321,7 @@ class GenerationSubContainer:
                         skip_policy=skip,
                         logger=self._parent.logger,
                         record_builder=self._parent.metrics.stage_record_builder(),
+                        llm_call_recorder=self.llm_call_recorder(),
                     ),
                     togglable=True,
                 ),
