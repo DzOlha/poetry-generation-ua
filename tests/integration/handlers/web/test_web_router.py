@@ -110,3 +110,63 @@ class TestEvaluateRun:
         assert response.status_code == 200
         body = response.text
         assert "Unknown scenario ID" in body or "ZZZZZ" in body
+
+
+@pytest.mark.integration
+class TestWebReadinessGuard:
+    """With no API key and auto-provider, the web generate/evaluate forms
+    must refuse to run the pipeline and render an error page instead —
+    mirroring the JSON API's 503 guard so a direct form POST can't bypass
+    the disabled-button UI."""
+
+    @pytest.fixture(scope="class")
+    def unconfigured_client(self) -> Generator[TestClient, None, None]:
+        cfg = replace(
+            AppConfig.from_env(),
+            offline_embedder=True,
+            llm_provider="",
+            gemini_api_key="",
+        )
+        app = create_app(cfg)
+        with TestClient(app) as ready_client:
+            yield ready_client
+
+    def test_generate_form_shows_error_banner_when_key_missing(
+        self, unconfigured_client: TestClient,
+    ):
+        response = unconfigured_client.get("/generate")
+        assert response.status_code == 200
+        body = response.text
+        # Banner text + disabled-button marker appear only when
+        # llm_info.ready is False.
+        assert "GEMINI_API_KEY" in body
+        assert 'aria-disabled="true"' in body
+
+    def test_generate_post_blocks_pipeline_when_key_missing(
+        self, unconfigured_client: TestClient,
+    ):
+        response = unconfigured_client.post("/generate", data={
+            "theme": "весна", "meter": "ямб", "feet": "4",
+            "scheme": "ABAB", "stanzas": "1", "iterations": "1",
+        })
+        # Handler rendered error.html instead of calling the pipeline —
+        # status stays 200 but body reflects the refusal.
+        assert response.status_code == 200
+        assert "GEMINI_API_KEY" in response.text
+
+    def test_evaluate_form_shows_error_banner_when_key_missing(
+        self, unconfigured_client: TestClient,
+    ):
+        response = unconfigured_client.get("/evaluate")
+        assert response.status_code == 200
+        assert "GEMINI_API_KEY" in response.text
+        assert 'aria-disabled="true"' in response.text
+
+    def test_evaluate_post_blocks_pipeline_when_key_missing(
+        self, unconfigured_client: TestClient,
+    ):
+        response = unconfigured_client.post("/evaluate", data={
+            "scenario_id": "N01", "config_label": "A", "max_iterations": "1",
+        })
+        assert response.status_code == 200
+        assert "GEMINI_API_KEY" in response.text

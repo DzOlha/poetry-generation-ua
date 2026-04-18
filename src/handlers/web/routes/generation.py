@@ -4,11 +4,11 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
 
+from src.config import LLMInfo
 from src.domain.errors import DomainError
 from src.domain.evaluation import IterationRecord
 from src.domain.models import (
     GenerationRequest,
-    LineMeterResult,
     MeterSpec,
     PoemStructure,
     RhymeScheme,
@@ -22,84 +22,31 @@ from src.domain.ports import (
 )
 from src.handlers.api.dependencies import (
     get_feedback_formatter,
+    get_llm_info,
     get_metric_registry,
     get_poetry_service,
 )
+from src.handlers.shared.line_displays import line_displays as _line_displays
 from src.handlers.web.routes._shared import templates
 from src.services.poetry_service import PoetryService
-from src.shared.text_utils_ua import VOWELS_UA
 
 router = APIRouter()
 
 
-def _line_segments(
-    text: str,
-    expected: set[int],
-    actual: set[int],
-) -> list[dict[str, object]]:
-    """Split a line into char-level segments, tagging the k-th vowel with its stress role."""
-    segments: list[dict[str, object]] = []
-    vowel_idx = 0
-    for ch in text:
-        if ch.lower() in VOWELS_UA:
-            vowel_idx += 1
-            exp = vowel_idx in expected
-            act = vowel_idx in actual
-            if exp and act:
-                tag = "both"
-            elif exp:
-                tag = "exp"
-            elif act:
-                tag = "act"
-            else:
-                tag = ""
-            segments.append({"ch": ch, "tag": tag})
-        else:
-            segments.append({"ch": ch, "tag": ""})
-    return segments
+@router.get("/generate", response_class=HTMLResponse)
+def generate_form(
+    request: Request,
+    llm_info: LLMInfo = Depends(get_llm_info),
+) -> HTMLResponse:
+    return templates.TemplateResponse(
+        request=request, name="generate.html",
+        context={"llm_info": llm_info},
+    )
 
 
-def _line_displays(
-    poem_text: str,
-    line_results: tuple[LineMeterResult, ...],
-) -> list[dict[str, object]]:
-    """Pair raw poem lines with their per-line meter results for UI rendering."""
-    results = iter(line_results)
-    displays: list[dict[str, object]] = []
-    for raw in poem_text.splitlines():
-        text = raw.strip()
-        if not text:
-            displays.append({"blank": True})
-            continue
-        result = next(results, None)
-        if result is None:
-            displays.append({"blank": False, "text": text, "segments": None})
-            continue
-        expected_set = set(result.expected_stresses)
-        actual_set = set(result.actual_stresses)
-        stresses = sorted(result.expected_stresses)
-        if len(stresses) >= 2:
-            foot_size = stresses[1] - stresses[0]
-            expected_len = foot_size * len(stresses)
-        else:
-            expected_len = max(stresses, default=0)
-        actual_len = result.total_syllables
-        diff = actual_len - expected_len
-        if not result.ok and diff > 0:
-            length_note = f"на {diff} склад(и/ів) довше очікуваного ({expected_len})"
-        elif not result.ok and diff < 0:
-            length_note = f"на {-diff} склад(и/ів) коротше очікуваного ({expected_len})"
-        else:
-            length_note = ""
-        displays.append({
-            "blank": False,
-            "text": text,
-            "ok": result.ok,
-            "segments": _line_segments(text, expected_set, actual_set),
-            "length_note": length_note,
-            "annotation": result.annotation,
-        })
-    return displays
+@router.get("/validate", response_class=HTMLResponse)
+def validate_form(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(request=request, name="validate.html", context={})
 
 
 @router.post("/generate", response_class=HTMLResponse)
@@ -114,7 +61,16 @@ def generate_web(
     service: PoetryService = Depends(get_poetry_service),
     formatter: IFeedbackFormatter = Depends(get_feedback_formatter),
     metric_registry: IMetricCalculatorRegistry = Depends(get_metric_registry),
+    llm_info: LLMInfo = Depends(get_llm_info),
 ) -> HTMLResponse:
+    # Defense-in-depth: refuse to run the pipeline when the LLM stack isn't
+    # ready (e.g. GEMINI_API_KEY missing). Mirror the client-side disabled
+    # button so a direct POST still hits a clean error page.
+    if not llm_info.ready:
+        return templates.TemplateResponse(
+            request=request, name="error.html",
+            context={"error": llm_info.error},
+        )
     try:
         gen_request = GenerationRequest(
             theme=theme,

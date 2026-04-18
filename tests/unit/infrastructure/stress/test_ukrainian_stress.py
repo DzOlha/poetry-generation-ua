@@ -77,3 +77,29 @@ class TestPenultimateFallbackStressResolver:
     def test_result_within_syllable_range(self, stress_resolver, word: str):
         idx = stress_resolver.resolve(word)
         assert 0 <= idx < count_syllables_ua(word)
+
+    @pytest.mark.parametrize(
+        "word,expected_idx",
+        [
+            # Abstract feminine nouns in "-ота" — stress consistently on last
+            # syllable in standard Ukrainian. The generic rule would wrongly
+            # pick penultimate because these end in the vowel "а".
+            ("німота", 2),     # ні-мо-та́ — 3 syllables, last
+            ("пустота", 2),    # пу-сто-та́ — 3 syllables, last
+            ("самота", 2),     # са-мо-та́ — 3 syllables, last
+            ("доброта", 2),    # до-бро-та́ — 3 syllables, last
+            ("сліпота", 2),    # слі-по-та́ — 3 syllables, last
+            ("красота", 2),    # кра-со-та́ — 3 syllables, last
+        ],
+    )
+    def test_ota_suffix_rule_picks_last_syllable(
+        self, fallback_resolver, word: str, expected_idx: int,
+    ):
+        assert fallback_resolver.resolve(word) == expected_idx
+
+    def test_ota_suffix_rule_skipped_for_short_words(self, fallback_resolver):
+        # Short words (<3 syllables) ending in "-ота" should still go through
+        # the generic rule — the suffix rule only fires for 3+ syllables to
+        # avoid false positives on random short Cyrillic fragments.
+        # "лота" — 2 syllables ending in vowel → penultimate (index 0).
+        assert fallback_resolver.resolve("лота") == 0

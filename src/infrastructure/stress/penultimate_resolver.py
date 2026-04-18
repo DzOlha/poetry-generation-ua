@@ -5,12 +5,19 @@ based on the final segment of the word — the strongest single predictor
 of default stress in free-stress Slavic languages (Dolatian & Guekguezian,
 Cambridge Phonology 2019).
 
-Heuristic:
-  - Words ending in a vowel, «й», or «ь» → penultimate syllable.
-  - Words ending in a hard consonant       → last syllable.
+Heuristic layers, applied in order:
+  1. Suffix rules — Ukrainian suffixes with highly consistent stress
+     patterns override the generic fallback. Currently:
+       * «-ота» (abstract feminine nouns) → last syllable
+         (пустота́, німота́, самота́, красота́, сліпота́, доброта́).
+  2. Generic final-segment rule:
+       * ends in a vowel / «й» / «ь» → penultimate syllable,
+       * ends in a hard consonant    → last syllable.
 
-On a representative sample of Ukrainian poetry vocabulary this heuristic
-achieves ~79% accuracy vs ~25% for the naive "always last" rule.
+On a representative sample of Ukrainian poetry vocabulary the generic
+heuristic achieves ~79% accuracy vs ~25% for the naive "always last" rule;
+the suffix rules correct the small but systematically wrong slice where
+the generic rule picks the wrong syllable.
 """
 from __future__ import annotations
 
@@ -20,6 +27,14 @@ from src.shared.text_utils_ua import VOWELS_UA
 # Characters treated as "soft" finals — these endings statistically
 # correlate with penultimate stress in Ukrainian.
 _SOFT_FINALS = frozenset(VOWELS_UA + "йь")
+
+# Suffixes with highly consistent last-syllable stress. Each entry must
+# only be added when nearly every Ukrainian word with that ending is
+# last-stressed, so accuracy stays above the generic heuristic's baseline.
+_SUFFIXES_LAST_STRESS: tuple[str, ...] = (
+    "ота",  # пустота́, німота́, самота́, сліпота́, доброта́, красота́, теплота́
+)
+_MIN_SYLLABLES_FOR_SUFFIX_RULE = 3
 
 
 class PenultimateFallbackStressResolver(IStressResolver):
@@ -56,6 +71,11 @@ class PenultimateFallbackStressResolver(IStressResolver):
         n = self._syllables.count(word)
         if n <= 1:
             return 0
-        if word[-1].lower() in _SOFT_FINALS:
+        lowered = word.lower()
+        if n >= _MIN_SYLLABLES_FOR_SUFFIX_RULE:
+            for suffix in _SUFFIXES_LAST_STRESS:
+                if lowered.endswith(suffix):
+                    return n - 1
+        if lowered[-1] in _SOFT_FINALS:
             return max(0, n - 2)  # penultimate
         return n - 1              # last

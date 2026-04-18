@@ -159,9 +159,9 @@ def _make_iterator(
 
 class TestSanitizationOfRegeneratedOutput:
     def test_scansion_lines_stripped_before_merger(self):
-        poem = "рядок1\nрядок2\nрядок3\nрядок4\n"
+        poem = "рядок номер один\nрядок номер два\nрядок номер три\nрядок номер чотири\n"
         llm = _ScriptedLLM(regen_responses=[
-            "чистий один\nІ-ДУТЬ у СЛАВ-ний БІЙ\n1 2 3 4\nчистий два\n"
+            "чистий перший рядок вірша\nІ-ДУТЬ у СЛАВ-ний БІЙ\n1 2 3 4\nчистий другий рядок вірша\n"
         ])
         merger = _RecordingMerger()
         state = _make_state(
@@ -175,13 +175,13 @@ class TestSanitizationOfRegeneratedOutput:
         _, regenerated_seen = merger.calls[0]
         assert "І-ДУТЬ" not in regenerated_seen
         assert "1 2 3 4" not in regenerated_seen
-        assert "чистий один" in regenerated_seen
-        assert "чистий два" in regenerated_seen
+        assert "чистий перший" in regenerated_seen
+        assert "чистий другий" in regenerated_seen
 
     def test_all_scansion_keeps_previous_poem(self):
         # If every line of regen output is stripped, sanitized is empty and
         # the iterator must keep prev_poem rather than feed empty to merger.
-        poem = "рядок1\nрядок2\nрядок3\nрядок4\n"
+        poem = "рядок номер один\nрядок номер два\nрядок номер три\nрядок номер чотири\n"
         llm = _ScriptedLLM(regen_responses=[
             "І-ДУТЬ у СЛАВ-ний БІЙ те-ПЕР но-ВІ пол-КИ.\n1 2 3 4 5 6\n"
         ])
@@ -200,9 +200,14 @@ class TestSanitizationOfRegeneratedOutput:
 class TestFullRegenPathOnLineCountMismatch:
     def test_uses_generate_not_regenerate_when_line_count_mismatches(self):
         # state.poem has 2 lines but structure expects 4 → full regen path.
-        poem = "тільки два\nрядки тут\n"
+        poem = "перший рядок недобудованого вірша\nдругий рядок недобудованого вірша\n"
         llm = _ScriptedLLM(
-            generate_response="один\nдва\nтри\nчотири\n",
+            generate_response=(
+                "Вулиці втомлено світяться знов,\n"
+                "Темрява випила залишки мов.\n"
+                "Натовпом сунуть чужі містяни,\n"
+                "Холодом дихають сірі стіни.\n"
+            ),
         )
         state = _make_state(
             poem=poem, expected_lines=4, max_iterations=1,
@@ -212,12 +217,17 @@ class TestFullRegenPathOnLineCountMismatch:
 
         assert len(llm.generate_calls) == 1
         assert llm.regen_calls == []
-        assert "один" in state.poem and "чотири" in state.poem
+        assert "Вулиці втомлено" in state.poem
+        assert "Холодом дихають" in state.poem
 
     def test_full_regen_also_sanitized(self):
-        poem = "лише\nдва\n"  # 2 != expected 4 → full regen
+        poem = "лише перший короткий рядок\nі другий короткий рядок\n"  # 2 != 4 → full regen
         raw = (
-            "один\nдва\nІ-ДУТЬ у СЛАВ-ний БІЙ\nтри\nчотири\n"
+            "Вулиці втомлено світяться знов,\n"
+            "Темрява випила залишки мов.\n"
+            "І-ДУТЬ у СЛАВ-ний БІЙ те-ПЕР но-ВІ пол-КИ.\n"
+            "Натовпом сунуть чужі містяни,\n"
+            "Холодом дихають сірі стіни.\n"
         )
         llm = _ScriptedLLM(generate_response=raw)
         state = _make_state(
@@ -226,7 +236,31 @@ class TestFullRegenPathOnLineCountMismatch:
         )
         _make_iterator(llm).iterate(state)
         assert "І-ДУТЬ" not in state.poem
-        assert "один" in state.poem
+        assert "Вулиці втомлено" in state.poem
+
+    def test_full_regen_returns_only_cot_keeps_previous_poem(self):
+        # Full-regen branch: LLM leaks only chain-of-thought / scansion, so
+        # Poem.from_text sanitises the entire output to an empty string. The
+        # iterator must NOT fall back to the raw LLM reply — that would
+        # contaminate state.poem with garbage like "КОЖЕН проХОЖИЙ (Ko-zhen
+        # pro-cho-zhyj — stress on CHO. / u u / u)". Keep prev_poem instead.
+        poem = "лише\nдва\n"  # 2 != expected 4 → full regen
+        raw = (
+            "КОЖЕН проХОЖИЙ — неМОВ опеЧАТка. "
+            "(Ko-zhen pro-cho-zhyj - stress on CHO. / u u / u)\n"
+            "1 2 3 4 5 6 7 8 9\n"
+            "Wait, let me think about this again.\n"
+        )
+        llm = _ScriptedLLM(generate_response=raw)
+        state = _make_state(
+            poem=poem, expected_lines=4, max_iterations=1,
+            meter_acc=0.5, meter_feedback=(_line_fb(0),),
+        )
+        _make_iterator(llm).iterate(state)
+        assert state.poem == poem
+        assert "КОЖЕН" not in state.poem
+        assert "Ko-zhen" not in state.poem
+        assert "Wait" not in state.poem
 
 
 class TestEarlyExit:

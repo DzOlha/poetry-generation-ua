@@ -1,120 +1,97 @@
 {% extends "base.html" %}
 
-{% block title %}Генератор Українських Віршів{% endblock %}
+{% block title %}Вірші UA — генерація, перевірка, детекція українських віршів{% endblock %}
 
 {% block content %}
-<div class="page-title">
-    <h1>Генератор Українських Віршів</h1>
-    <p class="subtitle">Задайте параметри — отримайте вірш із перевіркою метру та рими</p>
-</div>
+<section class="hero">
+    <div class="hero-inner">
+        <span class="hero-eyebrow">Інструмент для поезії українською мовою</span>
+        <h1 class="hero-title">Створюйте, перевіряйте та аналізуйте вірші українською</h1>
+        <p class="hero-subtitle">
+            Інтелектуальна система для роботи з класичною поетикою: генерація за заданими
+            метром і схемою римування, автоматична перевірка та детекція метру та рими,
+            а також розширене конфігурування пайплайну.
+        </p>
+        <div class="hero-actions">
+            <a href="/generate" class="btn-primary btn-hero">Згенерувати вірш</a>
+            <a href="#features" class="btn-ghost btn-hero">Дізнатися більше</a>
+        </div>
+    </div>
+</section>
 
-<div class="cards">
+<section class="features" id="features">
+    <div class="features-header">
+        <h2>Чотири можливості — чотири окремі інструменти</h2>
+        <p class="features-subtitle">Кожна функція — на окремій сторінці, щоб нічого не відволікало від задачі.</p>
+    </div>
 
-    <!-- Generation form -->
-    <section class="card" id="generate">
-        <h2>Згенерувати вірш</h2>
-        <form method="post" action="/generate" id="gen-form">
-            <div class="field">
-                <label for="theme">Тема</label>
-                <input id="theme" name="theme" type="text" required
-                       placeholder="напр. весна, кохання, Україна..." autocomplete="off">
-            </div>
+    <div class="feature-grid">
 
-            <div class="row">
-                <div class="field">
-                    <label for="meter">Метр</label>
-                    <select id="meter" name="meter">
-                        <option value="ямб">Ямб</option>
-                        <option value="хорей">Хорей</option>
-                        <option value="дактиль">Дактиль</option>
-                        <option value="амфібрахій">Амфібрахій</option>
-                        <option value="анапест">Анапест</option>
-                    </select>
-                </div>
-                <div class="field">
-                    <label for="feet">Стопи</label>
-                    <input id="feet" name="feet" type="number" value="4" min="1" max="8" required>
-                </div>
-            </div>
+        <a href="/generate" class="feature-card">
+            <div class="feature-icon">🪶</div>
+            <h3 class="feature-title">Генерація вірша</h3>
+            <p class="feature-desc">
+                Створіть вірш за заданим метром (ямб, хорей, дактиль, амфібрахій, анапест),
+                кількістю стоп, схемою римування та кількістю строф. Система ітеративно
+                виправляє ритм, поки не досягне цільової точності.
+            </p>
+            <span class="feature-cta">Почати генерацію →</span>
+        </a>
 
-            <div class="row">
-                <div class="field">
-                    <label for="scheme">Схема рим</label>
-                    <select id="scheme" name="scheme">
-                        <option value="ABAB">ABAB (перехресна)</option>
-                        <option value="AABB">AABB (суміжна)</option>
-                        <option value="ABBA">ABBA (охоплена)</option>
-                        <option value="AAAA">AAAA (монорима)</option>
-                    </select>
-                </div>
-                <div class="field">
-                    <label for="stanzas">Строфи</label>
-                    <input id="stanzas" name="stanzas" type="number" value="4" min="1" max="10" required>
-                </div>
-                <div class="field">
-                    <label for="lines">Рядків у строфі</label>
-                    <input id="lines" type="number" value="4" readonly
-                           title="Наразі підтримується лише 4 рядки у строфі (катрен)">
-                </div>
-            </div>
+        <a href="/validate" class="feature-card">
+            <div class="feature-icon">✓</div>
+            <h3 class="feature-title">Перевірка вірша</h3>
+            <p class="feature-desc">
+                Вставте ваш вірш і задайте очікуваний метр та схему римування —
+                система перевірить кожен рядок, покаже розташування наголосів
+                і вкаже, де саме ритм відхиляється від еталону.
+            </p>
+            <span class="feature-cta">Перевірити вірш →</span>
+        </a>
 
-            <div class="field">
-                <label for="iterations">Макс. ітерацій виправлення</label>
-                <input id="iterations" name="iterations" type="number" value="3" min="0" max="3" required>
-            </div>
+        <a href="/detect" class="feature-card">
+            <div class="feature-icon">🔍</div>
+            <h3 class="feature-title">Детекція вірша</h3>
+            <p class="feature-desc">
+                Не знаєте метр чи схему римування існуючого вірша?
+                Система автоматично визначить їх, покаже точність кожного рядка
+                та зробить посегментний аналіз строф.
+            </p>
+            <span class="feature-cta">Визначити метр і риму →</span>
+        </a>
 
-            <button type="submit" class="btn-primary" id="gen-btn">
-                <span class="btn-text">Згенерувати</span>
-                <span class="btn-loading hidden">Генеруємо…</span>
-            </button>
-        </form>
-    </section>
+        <a href="/evaluate" class="feature-card">
+            <div class="feature-icon">⚙️</div>
+            <h3 class="feature-title">Розширені конфігурації</h3>
+            <p class="feature-desc">
+                Запустіть один із 18 визначених сценаріїв через конфіги абляції A–E,
+                перегляньте покроковий трейс пайплайну, порівняйте метрики між
+                ітераціями — для дослідницьких і навчальних задач.
+            </p>
+            <span class="feature-cta">Перейти до оцінки →</span>
+        </a>
 
-    <!-- Validation form -->
-    <section class="card" id="validate">
-        <h2>Перевірити вірш</h2>
-        <form method="post" action="/validate-web">
-            <div class="field">
-                <label for="poem_text">Текст вірша</label>
-                <textarea id="poem_text" name="poem_text" rows="8" required
-                          placeholder="Вставте вірш для перевірки…"></textarea>
-            </div>
-            <div class="row">
-                <div class="field">
-                    <label for="val-meter">Метр</label>
-                    <select id="val-meter" name="meter">
-                        <option value="ямб">Ямб</option>
-                        <option value="хорей">Хорей</option>
-                        <option value="дактиль">Дактиль</option>
-                        <option value="амфібрахій">Амфібрахій</option>
-                        <option value="анапест">Анапест</option>
-                    </select>
-                </div>
-                <div class="field">
-                    <label for="val-feet">Стопи</label>
-                    <input id="val-feet" name="feet" type="number" value="4" min="1" max="8" required>
-                </div>
-                <div class="field">
-                    <label for="val-scheme">Схема рим</label>
-                    <select id="val-scheme" name="scheme">
-                        <option value="ABAB">ABAB</option>
-                        <option value="AABB">AABB</option>
-                        <option value="ABBA">ABBA</option>
-                        <option value="AAAA">AAAA</option>
-                    </select>
-                </div>
-            </div>
-            <button type="submit" class="btn-secondary">Перевірити</button>
-        </form>
-    </section>
+    </div>
+</section>
 
-
-    <!-- Evaluation link -->
-    <section class="card" id="evaluate-link">
-        <h2>Оцінка пайплайну</h2>
-        <p>Запустіть один із 18 визначених сценаріїв через конфіги абляції A–E та перегляньте покроковий трейс.</p>
-        <a href="/evaluate" class="btn-secondary">Перейти до оцінки →</a>
-    </section>
-
-</div>
+<section class="how-it-works">
+    <h2>Як це працює</h2>
+    <div class="steps">
+        <div class="step">
+            <div class="step-num">1</div>
+            <h4>Оберіть інструмент</h4>
+            <p>Генерація, перевірка, детекція або розширена конфігурація — кожен інструмент на своїй сторінці.</p>
+        </div>
+        <div class="step">
+            <div class="step-num">2</div>
+            <h4>Задайте параметри</h4>
+            <p>Метр, кількість стоп, схема римування, кількість строф — усе під контролем.</p>
+        </div>
+        <div class="step">
+            <div class="step-num">3</div>
+            <h4>Отримайте результат</h4>
+            <p>Вірш із підсвіченими наголосами, метриками точності та зворотним зв'язком щодо кожного рядка.</p>
+        </div>
+    </div>
+</section>
 {% endblock %}

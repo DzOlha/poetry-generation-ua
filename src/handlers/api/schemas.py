@@ -7,21 +7,30 @@ to/from domain objects only. Formatting structured `LineFeedback` /
 """
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
 from src.domain.detection import DetectionResult, MeterDetection, RhymeDetection
+from src.domain.evaluation import (
+    AblationConfig,
+    IterationRecord,
+    PipelineTrace,
+    StageRecord,
+)
 from src.domain.models import (
     GenerationRequest,
     GenerationResult,
     IterationSnapshot,
+    LineMeterResult,
     MeterSpec,
     PoemStructure,
     RhymeScheme,
     ValidationRequest,
     ValidationResult,
 )
+from src.domain.scenarios import EvaluationScenario
+from src.handlers.shared.line_displays import line_displays
 
 # ---------------------------------------------------------------------------
 # Nested schema components
@@ -104,6 +113,43 @@ class ValidationRequestSchema(BaseModel):
 # Response schemas — pure data, formatting lives in the router.
 # ---------------------------------------------------------------------------
 
+class LineSegmentSchema(BaseModel):
+    """A single character of a poem line tagged with its stress role.
+
+    `tag` is one of: "" (no stress role), "exp" (expected by meter),
+    "act" (actual stress detected), "both" (matches — expected == actual).
+    An SPA can render these verbatim with one CSS class per tag.
+    """
+    ch: str
+    tag: Literal["", "exp", "act", "both"]
+
+
+class LineDisplaySchema(BaseModel):
+    """Per-line render payload: text, ok-flag, char-level stress segments, notes.
+
+    `blank=True` means the source text had an empty line here (stanza break).
+    When `blank=False`, `text` is the stripped line and `segments` is the
+    full char-by-char decomposition. `length_note` and `annotation` are
+    pre-formatted human-readable explanations of the violation, if any.
+    """
+    blank: bool = False
+    text: str | None = None
+    ok: bool | None = None
+    segments: list[LineSegmentSchema] | None = None
+    length_note: str | None = None
+    annotation: str | None = None
+
+    @classmethod
+    def list_from(
+        cls,
+        poem_text: str,
+        line_results: tuple[LineMeterResult, ...],
+    ) -> list[LineDisplaySchema]:
+        """Build a list of LineDisplaySchema from raw text + meter line_results."""
+        raw = line_displays(poem_text, line_results)
+        return [cls.model_validate(d) for d in raw]
+
+
 class MeterResultSchema(BaseModel):
     ok: bool
     accuracy: float
@@ -122,6 +168,10 @@ class ValidationResultSchema(BaseModel):
     rhyme: RhymeResultSchema
     iterations: int
     feedback: list[str]
+    # Per-line annotated display — char-level stress segments + length notes.
+    # An SPA uses this to render the highlighted poem without re-implementing
+    # the vowel-indexing / stress-matching logic client-side.
+    line_displays: list[LineDisplaySchema] = Field(default_factory=list)
 
     @classmethod
     def from_strings(
@@ -129,6 +179,7 @@ class ValidationResultSchema(BaseModel):
         r: ValidationResult,
         meter_msgs: list[str],
         rhyme_msgs: list[str],
+        poem_text: str = "",
     ) -> ValidationResultSchema:
         return cls(
             is_valid=r.is_valid,
@@ -140,6 +191,9 @@ class ValidationResultSchema(BaseModel):
             ),
             iterations=r.iterations,
             feedback=meter_msgs + rhyme_msgs,
+            line_displays=LineDisplaySchema.list_from(
+                poem_text, r.meter.line_results,
+            ) if poem_text else [],
         )
 
 
@@ -150,6 +204,10 @@ class ValidationResultSchema(BaseModel):
 class DetectionRequestSchema(BaseModel):
     poem_text: str = Field(..., min_length=1)
     sample_lines: int | None = Field(default=4, ge=4, le=4)
+    # Mirror the web form — let SPAs pick which aspect(s) to detect. Both
+    # default to true, matching the existing sole-purpose JSON endpoint.
+    detect_meter: bool = Field(default=True)
+    detect_rhyme: bool = Field(default=True)
 
 
 class MeterDetectionSchema(BaseModel):
@@ -171,10 +229,25 @@ class RhymeDetectionSchema(BaseModel):
         return cls(scheme=d.scheme, accuracy=d.accuracy)
 
 
+class StanzaDetectionSchema(BaseModel):
+    """Per-stanza detection result — mirrors the web's `stanza_displays`."""
+    meter: MeterDetectionSchema | None = None
+    rhyme: RhymeDetectionSchema | None = None
+    meter_accuracy: float | None = None
+    rhyme_accuracy: float | None = None
+    lines_count: int = 0
+    line_displays: list[LineDisplaySchema] = Field(default_factory=list)
+
+
 class DetectionResultSchema(BaseModel):
     meter: MeterDetectionSchema | None
     rhyme: RhymeDetectionSchema | None
     is_detected: bool
+    poem_text: str = ""
+    validated_lines: int = 0
+    want_meter: bool = True
+    want_rhyme: bool = True
+    stanzas: list[StanzaDetectionSchema] = Field(default_factory=list)
 
     @classmethod
     def from_domain(cls, r: DetectionResult) -> DetectionResultSchema:
@@ -196,6 +269,9 @@ class IterationSnapshotSchema(BaseModel):
     rhyme_accuracy: float
     feedback: list[str]
     duration_sec: float
+    # Per-line annotated display for this iteration's poem snapshot.
+    # Empty when the snapshot can't be re-validated (e.g. domain error).
+    line_displays: list[LineDisplaySchema] = Field(default_factory=list)
 
     @classmethod
     def from_domain(cls, s: IterationSnapshot) -> IterationSnapshotSchema:
@@ -211,8 +287,13 @@ class IterationSnapshotSchema(BaseModel):
 
 class GenerationResultSchema(BaseModel):
     poem: str
+    theme: str = ""
     validation: ValidationResultSchema
     iteration_history: list[IterationSnapshotSchema] = Field(default_factory=list)
+    # Server-computed extra metrics (semantic_relevance, regeneration_success,
+    # num_lines, feedback_iterations). Keys depend on which IMetricCalculator
+    # instances are registered — SPAs should treat this as a string→number map.
+    extra_metrics: dict[str, float] = Field(default_factory=dict)
 
     @classmethod
     def from_strings(
@@ -220,13 +301,163 @@ class GenerationResultSchema(BaseModel):
         r: GenerationResult,
         meter_msgs: list[str],
         rhyme_msgs: list[str],
+        theme: str = "",
+        extra_metrics: dict[str, float] | None = None,
+        iteration_displays: list[list[LineDisplaySchema]] | None = None,
     ) -> GenerationResultSchema:
+        snapshots = [
+            IterationSnapshotSchema.from_domain(s) for s in r.iteration_history
+        ]
+        if iteration_displays is not None:
+            for snap, disp in zip(snapshots, iteration_displays, strict=False):
+                snap.line_displays = disp
         return cls(
             poem=r.poem,
+            theme=theme,
             validation=ValidationResultSchema.from_strings(
-                r.validation, meter_msgs, rhyme_msgs,
+                r.validation, meter_msgs, rhyme_msgs, poem_text=r.poem,
             ),
-            iteration_history=[
-                IterationSnapshotSchema.from_domain(s) for s in r.iteration_history
-            ],
+            iteration_history=snapshots,
+            extra_metrics=extra_metrics or {},
         )
+
+
+# ---------------------------------------------------------------------------
+# Evaluation schemas — expose scenario registry, ablation configs, and the
+# full PipelineTrace so an SPA can render the same stage-by-stage UI the
+# HTML evaluate_result.html shows.
+# ---------------------------------------------------------------------------
+
+class ScenarioSchema(BaseModel):
+    id: str
+    name: str
+    category: str
+    theme: str
+    meter: str
+    foot_count: int
+    rhyme_scheme: str
+    stanza_count: int
+    lines_per_stanza: int
+
+    @classmethod
+    def from_domain(cls, s: EvaluationScenario) -> ScenarioSchema:
+        return cls(
+            id=s.id,
+            name=s.name,
+            category=s.category.value if hasattr(s.category, "value") else str(s.category),
+            theme=s.theme,
+            meter=s.meter,
+            foot_count=s.foot_count,
+            rhyme_scheme=s.rhyme_scheme,
+            stanza_count=s.stanza_count,
+            lines_per_stanza=s.lines_per_stanza,
+        )
+
+
+class AblationConfigSchema(BaseModel):
+    label: str
+    description: str
+    enabled_stages: list[str]
+
+    @classmethod
+    def from_domain(cls, c: AblationConfig) -> AblationConfigSchema:
+        return cls(
+            label=c.label,
+            description=c.description,
+            enabled_stages=sorted(c.enabled_stages),
+        )
+
+
+class EvaluationRunRequestSchema(BaseModel):
+    scenario_id: str = Field(..., min_length=1)
+    config_label: str = Field(default="E", min_length=1)
+    max_iterations: int = Field(default=1, ge=0, le=3)
+
+
+class StageRecordSchema(BaseModel):
+    """One pipeline stage — mirrors `StageRecord` plus pretty-printed data."""
+    name: str
+    input_summary: str = ""
+    output_summary: str = ""
+    input_data: Any = None
+    output_data: Any = None
+    metrics: dict[str, Any] = Field(default_factory=dict)
+    duration_sec: float = 0.0
+    error: str | None = None
+
+    @classmethod
+    def from_domain(cls, s: StageRecord) -> StageRecordSchema:
+        return cls(
+            name=s.name,
+            input_summary=s.input_summary,
+            output_summary=s.output_summary,
+            input_data=s.input_data,
+            output_data=s.output_data,
+            metrics=dict(s.metrics),
+            duration_sec=s.duration_sec,
+            error=s.error,
+        )
+
+
+class EvaluationIterationSchema(BaseModel):
+    iteration: int
+    poem_text: str
+    meter_accuracy: float
+    rhyme_accuracy: float
+    feedback: list[str]
+    duration_sec: float
+    line_displays: list[LineDisplaySchema] = Field(default_factory=list)
+
+    @classmethod
+    def from_domain(cls, it: IterationRecord) -> EvaluationIterationSchema:
+        return cls(
+            iteration=it.iteration,
+            poem_text=it.poem_text,
+            meter_accuracy=it.meter_accuracy,
+            rhyme_accuracy=it.rhyme_accuracy,
+            feedback=list(it.feedback),
+            duration_sec=it.duration_sec,
+        )
+
+
+class PipelineTraceSchema(BaseModel):
+    scenario_id: str
+    config_label: str
+    final_poem: str
+    error: str | None = None
+    total_duration_sec: float = 0.0
+    final_metrics: dict[str, Any] = Field(default_factory=dict)
+    stages: list[StageRecordSchema] = Field(default_factory=list)
+    iterations: list[EvaluationIterationSchema] = Field(default_factory=list)
+    final_line_displays: list[LineDisplaySchema] = Field(default_factory=list)
+
+    @classmethod
+    def from_domain(
+        cls,
+        trace: PipelineTrace,
+        *,
+        final_line_displays: list[LineDisplaySchema] | None = None,
+        iteration_line_displays: list[list[LineDisplaySchema]] | None = None,
+    ) -> PipelineTraceSchema:
+        iters = [EvaluationIterationSchema.from_domain(i) for i in trace.iterations]
+        if iteration_line_displays is not None:
+            for it, disp in zip(iters, iteration_line_displays, strict=False):
+                it.line_displays = disp
+        return cls(
+            scenario_id=trace.scenario_id,
+            config_label=trace.config_label,
+            final_poem=trace.final_poem,
+            error=trace.error,
+            total_duration_sec=trace.total_duration_sec,
+            final_metrics=dict(trace.final_metrics),
+            stages=[StageRecordSchema.from_domain(s) for s in trace.stages],
+            iterations=iters,
+            final_line_displays=final_line_displays or [],
+        )
+
+
+class EvaluationRunResponseSchema(BaseModel):
+    scenario: ScenarioSchema
+    config: AblationConfigSchema
+    trace: PipelineTraceSchema
+

@@ -13,8 +13,13 @@ from src.domain.ports.detection import IRhymeDetector
 from src.domain.ports.validation import IRhymeValidator
 from src.domain.values import RhymePattern
 
-# Patterns to try (AAAA excluded: monorhyme is rare and inflates false positives).
+# Ordered most-restrictive first so ties resolve toward the stricter pattern.
+# AAAA demands every pair rhyme (6 pairs for a quatrain) while the others
+# only demand 2, so any poem that passes AAAA also passes all three others
+# with equal accuracy — putting it first means we report monorhyme as
+# monorhyme rather than silently falling through to "ABAB 100%".
 _CANDIDATE_PATTERNS: tuple[RhymePattern, ...] = (
+    RhymePattern.AAAA,
     RhymePattern.ABAB,
     RhymePattern.AABB,
     RhymePattern.ABBA,

@@ -4,21 +4,35 @@
 
 {% block content %}
 <div class="page-title">
-    <h1>Оцінка пайплайну</h1>
-    <p class="subtitle">Запустіть сценарій через один із конфігів абляції та перегляньте трейс</p>
+    <h1>Розширені конфігурації (абляції)</h1>
+    <p class="subtitle">Запустіть сценарій через один із конфігів A–E та перегляньте повний трейс пайплайну</p>
 </div>
 
 {% if error %}
 <div class="error-banner">{{ error }}</div>
 {% endif %}
 
-<div class="cards">
+{% if llm_info and not llm_info.ready %}
+<div class="error-banner">
+    <strong>Оцінка не доступна:</strong> {{ llm_info.error }}
+</div>
+{% endif %}
+
+<div class="side-layout">
     <section class="card" id="evaluate">
         <h2>Параметри оцінки</h2>
-        <form method="post" action="/evaluate">
+        {% if llm_info and llm_info.ready %}
+        <div class="info-box llm-info">
+            <strong>&#9432;</strong> Провайдер: <b>{{ llm_info.provider }}</b>{% if llm_info.model and llm_info.model != "—" %} · модель: <b>{{ llm_info.model }}</b>{% endif %}
+        </div>
+        {% endif %}
+        <form method="post" action="/evaluate" id="eval-form">
 
             <div class="field">
-                <label for="config_label">Конфіг абляції</label>
+                <label for="config_label">
+                    Конфіг абляції
+                    <span class="field-help" tabindex="0" data-tip="Варіант пайплайну — які стадії увімкнено. A — baseline (лише LLM). E — повна система з RAG, валідацією та фідбек-циклом. B, C, D — проміжні комбінації для порівняння внеску кожної стадії.">&#9432;</span>
+                </label>
                 <select id="config_label" name="config_label">
                     {% for cfg in ablation_configs %}
                     <option value="{{ cfg.label }}">{{ cfg.label }}: {{ cfg.description }}</option>
@@ -27,7 +41,10 @@
             </div>
 
             <div class="field">
-                <label for="scenario_id">Сценарій</label>
+                <label for="scenario_id">
+                    Сценарій
+                    <span class="field-help" tabindex="0" data-tip="Передзадана задача з темою, метром і схемою римування. Normal — типові випадки, Edge — граничні (рідкісні метри, довгі вірші), Corner — складні (деґенеративні конфігурації).">&#9432;</span>
+                </label>
                 <select id="scenario_id" name="scenario_id">
                     <optgroup label="Normal">
                         {% for s in scenarios_by_cat.normal %}
@@ -48,12 +65,99 @@
             </div>
 
             <div class="field">
-                <label for="max_iterations">Макс. ітерацій</label>
-                <input id="max_iterations" name="max_iterations" type="number" value="1" min="0" max="10">
+                <label for="max_iterations">
+                    Макс. ітерацій виправлення
+                    <span class="field-help" tabindex="0" data-tip="Скільки разів LLM перегенеруватиме проблемні рядки після початкового драфту, щоб виправити помилки метру / рими. 0 — без корекції.">&#9432;</span>
+                </label>
+                <input id="max_iterations" name="max_iterations" type="number" value="1" min="0" max="3">
             </div>
 
-            <button type="submit" class="btn-primary">Запустити оцінку</button>
+            <div class="info-box">
+                <strong>&#9432;</strong> 18 передзаданих сценаріїв (Normal / Edge / Corner) × 5 абляційних конфігів (A–E).
+                Результат — повний трейс із метриками на кожній стадії пайплайну.
+            </div>
+
+            <button type="submit" class="btn-primary" id="eval-btn"
+                    {% if llm_info and not llm_info.ready %}disabled aria-disabled="true"{% endif %}>
+                <span class="btn-text">Запустити оцінку</span>
+                <span class="btn-loading hidden">Запускаємо оцінку…</span>
+            </button>
+            <div class="form-hint">
+                <span class="form-hint-icon">⏱</span>
+                Процес може зайняти до 1 хвилини — пайплайн запускає LLM для початкової генерації,
+                а потім ітеративно її виправляє.
+            </div>
         </form>
     </section>
+
+    <aside class="side-visual" aria-hidden="true">
+        <div class="side-visual-header">
+            <svg class="side-visual-icon side-visual-icon--orange" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="4" y1="20" x2="4" y2="10"></line>
+                <line x1="10" y1="20" x2="10" y2="4"></line>
+                <line x1="16" y1="20" x2="16" y2="14"></line>
+                <line x1="22" y1="20" x2="22" y2="8"></line>
+            </svg>
+            <div>
+                <h3>Як виглядає результат</h3>
+                <p>Кожен запуск — це повний трейс: відібрані приклади, промпт, генерація, валідація, фідбек-цикл.</p>
+            </div>
+        </div>
+
+        <div class="side-visual-meta">
+            Сценарій: <b>N05</b> · Конфіг: <b>B</b> · <b>дактиль 3 ст. AABB</b>
+        </div>
+
+        <div class="side-visual-poem">
+            <div class="poem-line">
+                <span class="poem-line-text">Св<span class="sy sy-both">і</span>тло у ж<span class="sy sy-both">о</span>втій вітр<span class="sy sy-both">и</span>ні,</span>
+            </div>
+            <div class="poem-line">
+                <span class="poem-line-text">Т<span class="sy sy-both">я</span>гнуться в<span class="sy sy-both">у</span>лиці х<span class="sy sy-both">о</span>лодно-сині.</span>
+            </div>
+        </div>
+
+        <div class="side-visual-result">
+            <span class="validity-badge valid">✓ Вірш відповідає вимогам</span>
+            <div class="side-visual-metrics">
+                <div class="metric">
+                    <span class="metric-label">Метр</span>
+                    <span class="metric-value ok">✓ 100%</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Рима</span>
+                    <span class="metric-value ok">✓ 100%</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Семантика</span>
+                    <span class="metric-value fail">46%</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Регенерація</span>
+                    <span class="metric-value ok">+44%</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Спроб</span>
+                    <span class="metric-value">2</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="side-visual-stages">
+            <div class="side-visual-stages-title">Стадії пайплайну</div>
+            <div class="side-visual-stage"><span class="stage-dot"></span>retrieval<span class="iter-badge ok">ok</span></div>
+            <div class="side-visual-stage"><span class="stage-dot"></span>metric_examples<span class="iter-badge ok">ok</span></div>
+            <div class="side-visual-stage"><span class="stage-dot"></span>prompt_construction<span class="iter-badge ok">ok</span></div>
+            <div class="side-visual-stage"><span class="stage-dot"></span>initial_generation<span class="iter-badge ok">ok</span></div>
+            <div class="side-visual-stage"><span class="stage-dot"></span>validation<span class="iter-badge ok">ok</span></div>
+            <div class="side-visual-stage"><span class="stage-dot"></span>feedback_loop<span class="iter-badge ok">ok</span></div>
+        </div>
+
+        <div class="side-visual-legend">
+            <span><span class="sy sy-exp">А</span> очікуваний наголос</span>
+            <span><span class="sy sy-act">А</span> реальний наголос</span>
+            <span><span class="sy sy-both">А</span> збіг</span>
+        </div>
+    </aside>
 </div>
 {% endblock %}

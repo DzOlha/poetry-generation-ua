@@ -73,7 +73,14 @@ class ValidatingFeedbackIterator(IFeedbackIterator):
                         # leaked chain-of-thought). Line-by-line regeneration can
                         # only preserve that wrong count — do a full regen instead.
                         raw = self._llm.generate(state.prompt)
-                        state.poem = Poem.from_text(raw).as_text() or raw
+                        regenerated = Poem.from_text(raw).as_text()
+                        if not regenerated:
+                            # Full regen also came back as pure CoT/garbage — keep
+                            # the prior poem rather than contaminate state with
+                            # the unfiltered raw LLM output.
+                            state.poem = prev_poem
+                        else:
+                            state.poem = regenerated
                     else:
                         raw = self._llm.regenerate_lines(
                             state.poem, list(feedback_messages),

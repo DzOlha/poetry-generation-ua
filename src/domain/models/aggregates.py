@@ -20,6 +20,18 @@ _CAPS_CYR_TOKEN_RE = re.compile(r"[А-ЯІЇЄҐ]{2,}")
 # Any Cyrillic letter — a real poem line must contain at least one.
 # Fragments like ")." or "— — —" slip past every other filter but aren't poetry.
 _CYR_LETTER_RE = re.compile(r"[А-Яа-яІіЇїЄєҐґ]")
+# Leading "N:" or "N." echoed back from the numbered-regen prompt template
+# (e.g. "1: рядок", "2. рядок"). We strip these; the remainder is re-evaluated.
+_LINE_NUMBER_PREFIX_RE = re.compile(r"^\d+\s*[:.]\s*")
+# Minimum Cyrillic letters for a plausible poem line — catches scansion
+# fragments like "1: КО" (→ "КО" after strip), "жен", "шу" that otherwise
+# slip through the filter because they are short real Cyrillic tokens.
+_MIN_CYR_LETTERS = 5
+
+
+def _strip_line_number_prefix(line: str) -> str:
+    """Strip a single "N:" / "N." prefix if present — echo of the regen prompt."""
+    return _LINE_NUMBER_PREFIX_RE.sub("", line, count=1).strip()
 
 
 def _is_poem_line(line: str) -> bool:
@@ -36,6 +48,8 @@ def _is_poem_line(line: str) -> bool:
     if _PAREN_DIGIT_RE.search(line):
         return False
     if _DIGIT_ONLY_RE.match(line):
+        return False
+    if len(_CYR_LETTER_RE.findall(line)) < _MIN_CYR_LETTERS:
         return False
     return len(_CAPS_CYR_TOKEN_RE.findall(line)) < 2
 
@@ -57,7 +71,8 @@ class Poem:
     def from_text(cls, text: str) -> Poem:
         """Parse raw poem text into a Poem, dropping blank lines, whitespace, and CoT leakage."""
         raw_lines = [ln.strip() for ln in (text or "").splitlines() if ln.strip()]
-        lines = tuple(ln for ln in raw_lines if _is_poem_line(ln))
+        stripped = [_strip_line_number_prefix(ln) for ln in raw_lines]
+        lines = tuple(ln for ln in stripped if _is_poem_line(ln))
         return cls(lines=lines)
 
     @property

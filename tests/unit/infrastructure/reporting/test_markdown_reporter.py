@@ -42,7 +42,7 @@ def _trace() -> PipelineTrace:
         ),
         iterations=(
             IterationRecord(
-                iteration=0, poem_text="вірш", meter_accuracy=0.5,
+                iteration=0, poem_text="простий чистий вірш", meter_accuracy=0.5,
                 rhyme_accuracy=0.5, feedback=("fb",), duration_sec=0.01,
             ),
         ),
@@ -131,8 +131,8 @@ class TestIntermediatePoems:
         detail = MarkdownReporter().format_trace_detail(_trace())
         assert "Intermediate poems (per iteration)" in detail
         assert "[iter 0]" in detail
-        # poem_text was "вірш" — a single clean line that must appear
-        assert "| вірш" in detail
+        # poem_text was "простий чистий вірш" — a single clean line that must appear
+        assert "| простий чистий вірш" in detail
 
     def test_iteration_poem_filters_scansion(self):
         # Intermediate poems go through Poem.from_text → scansion stripped.

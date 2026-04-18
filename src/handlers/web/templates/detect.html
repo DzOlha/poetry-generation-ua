@@ -8,12 +8,15 @@
     <p class="subtitle">Вставте текст вірша — система визначить метр та схему римування</p>
 </div>
 
-<div class="cards">
+<div class="side-layout">
     <section class="card" id="detect">
         <h2>Аналіз вірша</h2>
         <form method="post" action="/detect" id="detect-form">
             <div class="field">
-                <label for="poem_text">Текст вірша</label>
+                <label for="poem_text">
+                    Текст вірша
+                    <span class="field-help" tabindex="0" data-tip="Поетичний текст українською. Рядки розділяються переносом, строфи — порожнім рядком. Підтримуються лише чотирирядкові строфи (катрени).">&#9432;</span>
+                </label>
                 <textarea id="poem_text" name="poem_text" rows="10" required
                           placeholder="Вставте вірш для аналізу..."></textarea>
             </div>
@@ -24,10 +27,12 @@
                     <label class="checkbox-label">
                         <input type="checkbox" name="detect_meter" value="1" checked>
                         Метр
+                        <span class="field-help" tabindex="0" data-tip="Система спробує визначити, який з п'яти канонічних метрів використано: ямб, хорей, дактиль, амфібрахій або анапест.">&#9432;</span>
                     </label>
                     <label class="checkbox-label">
                         <input type="checkbox" name="detect_rhyme" value="1" checked>
                         Схема римування
+                        <span class="field-help" tabindex="0" data-tip="Система знайде порядок римування у кожній строфі: ABAB (перехресна), AABB (суміжна), ABBA (охоплена) або AAAA (монорима).">&#9432;</span>
                     </label>
                 </div>
             </div>
@@ -43,6 +48,52 @@
             </button>
         </form>
     </section>
+
+    <aside class="side-visual" aria-hidden="true">
+        <div class="side-visual-header">
+            <svg class="side-visual-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="7"></circle>
+                <line x1="21" y1="21" x2="16.5" y2="16.5"></line>
+            </svg>
+            <div>
+                <h3>Як виглядає результат</h3>
+                <p>Система позначає позиції наголосів на голосних: очікувані за метром, реальні та їх збіги.</p>
+            </div>
+        </div>
+
+        <div class="side-visual-poem">
+            <div class="stanza-annotation">Строфа 1: амфібрахій, 4-стопний 100%; рима ABAB 100%</div>
+            <div class="poem-line">
+                <span class="poem-line-text">Нар<span class="sy sy-both">е</span>шті здоб<span class="sy sy-both">у</span>то жад<span class="sy sy-both">а</span>ний він<span class="sy sy-both">е</span>ць,</span>
+            </div>
+            <div class="poem-line">
+                <span class="poem-line-text">і зн<span class="sy sy-both">и</span>кли хол<span class="sy sy-both">о</span>дні тум<span class="sy sy-both">а</span>ни ос<span class="sy sy-both">і</span>нні.</span>
+            </div>
+            <div class="poem-line">
+                <span class="poem-line-text">Скінч<span class="sy sy-both">и</span>лись трив<span class="sy sy-both">о</span>ги, рад<span class="sy sy-both">і</span>є бор<span class="sy sy-both">е</span>ць,</span>
+            </div>
+            <div class="poem-line">
+                <span class="poem-line-text">і с<span class="sy sy-both">я</span>ють верш<span class="sy sy-both">и</span>ни <span class="sy sy-act">я</span>сн<span class="sy sy-exp">і</span> та нетл<span class="sy sy-both">і</span>нні.</span>
+            </div>
+        </div>
+
+        <div class="side-visual-chips">
+            <span class="chip chip-meter">
+                <span class="chip-label">Метр</span>
+                <span class="chip-value">Амфібрахій · 4 ст.</span>
+            </span>
+            <span class="chip chip-rhyme">
+                <span class="chip-label">Схема</span>
+                <span class="chip-value">ABAB</span>
+            </span>
+        </div>
+
+        <div class="side-visual-legend">
+            <span><span class="sy sy-exp">А</span> очікуваний наголос (за метром)</span>
+            <span><span class="sy sy-act">А</span> реальний наголос</span>
+            <span><span class="sy sy-both">А</span> збіг</span>
+        </div>
+    </aside>
 </div>
 
 <script>

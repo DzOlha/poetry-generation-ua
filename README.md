@@ -248,14 +248,11 @@ poetry-generation-ua/
 │   │   │   ├── routes/            # index, generation, validation, detection, evaluation
 │   │   │   ├── templates/         # Jinja2 HTML templates
 │   │   │   └── static/            # CSS/JS assets
-│   │   └── cli/                   # Click CLI adapter
-│   │       └── main.py            # generate, validate, detect, evaluate commands
+│   │   └── shared/                # Shared handler helpers (line_displays, detect_orchestrator)
 │   │
-│   ├── runners/                   # IRunner implementations for scripts/CLI
+│   ├── runners/                   # IRunner implementations for scripts
 │   │   ├── generate_runner.py     # GenerateRunner — single poem generation
-│   │   ├── validate_runner.py     # ValidateRunner — meter/rhyme validation
 │   │   ├── evaluation_runner.py   # EvaluationRunner — ablation matrix + reporting
-│   │   ├── detect_runner.py       # DetectRunner — meter/rhyme auto-detection
 │   │   ├── build_corpus_runner.py # BuildCorpusRunner — theme reference corpus from data/
 │   │   ├── build_metric_corpus_runner.py  # BuildMetricCorpusRunner — auto-detected metric corpus
 │   │   ├── build_embeddings_runner.py     # BuildEmbeddingsRunner — LaBSE embeddings

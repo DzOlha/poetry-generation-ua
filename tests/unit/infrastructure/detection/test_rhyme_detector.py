@@ -83,3 +83,41 @@ class TestBruteForceRhymeDetector:
         result = detector.detect("dummy text")
         assert result is not None
         assert result.scheme == "AABB"
+
+    def test_detects_aaaa_monorhyme(self) -> None:
+        # Regression for the AAAA gap: a true monorhyme makes every pair
+        # rhyme, so AAAA and each of ABAB/AABB/ABBA all score 100%. With
+        # AAAA listed first and `>` (strict) tie-breaking, the detector
+        # must surface AAAA rather than falling through to ABAB.
+        class _AllPassValidator(IRhymeValidator):
+            def validate(self, poem_text: str, scheme: RhymeScheme) -> RhymeResult:
+                return RhymeResult(ok=True, accuracy=1.0)
+
+        detector = BruteForceRhymeDetector(
+            rhyme_validator=_AllPassValidator(),
+            config=DetectionConfig(rhyme_min_accuracy=0.75),
+        )
+        result = detector.detect("dummy text")
+        assert result is not None
+        assert result.scheme == "AAAA"
+        assert result.accuracy == 1.0
+
+    def test_non_monorhyme_still_prefers_specific_scheme(self) -> None:
+        # Only ABAB rhymes perfectly; AAAA would score lower because its
+        # extra pairs (0-1, 0-3, 1-2, 2-3) don't rhyme in a cross-rhymed
+        # poem. The detector must prefer ABAB over AAAA's partial score.
+        class _AbabOnlyValidator(IRhymeValidator):
+            def validate(self, poem_text: str, scheme: RhymeScheme) -> RhymeResult:
+                if scheme.pattern == "ABAB":
+                    return RhymeResult(ok=True, accuracy=1.0)
+                if scheme.pattern == "AAAA":
+                    return RhymeResult(ok=False, accuracy=2 / 6)  # 2 of 6 pairs rhyme
+                return RhymeResult(ok=False, accuracy=0.0)
+
+        detector = BruteForceRhymeDetector(
+            rhyme_validator=_AbabOnlyValidator(),
+            config=DetectionConfig(rhyme_min_accuracy=0.5),
+        )
+        result = detector.detect("dummy text")
+        assert result is not None
+        assert result.scheme == "ABAB"

@@ -1,20 +1,76 @@
 """Meter/rhyme detection API route."""
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Request
 
-from src.handlers.api.dependencies import get_detection_service
-from src.handlers.api.schemas import DetectionRequestSchema, DetectionResultSchema
+from src.domain.ports.validation import IMeterValidator
+from src.handlers.api.dependencies import get_detection_service, get_poetry_service
+from src.handlers.api.schemas import (
+    DetectionRequestSchema,
+    DetectionResultSchema,
+    LineDisplaySchema,
+    MeterDetectionSchema,
+    RhymeDetectionSchema,
+    StanzaDetectionSchema,
+)
+from src.handlers.shared.detect_orchestrator import detect_poem
 from src.services.detection_service import DetectionService
+from src.services.poetry_service import PoetryService
 
 router = APIRouter(prefix="/poems", tags=["poems"])
 
 
 @router.post("/detect", response_model=DetectionResultSchema)
-def detect_poem(
-    request: DetectionRequestSchema,
+def detect_poem_endpoint(
+    request: Request,
+    body: DetectionRequestSchema,
     service: DetectionService = Depends(get_detection_service),
+    poetry: PoetryService = Depends(get_poetry_service),
 ) -> DetectionResultSchema:
-    """Auto-detect meter and rhyme scheme of a poem."""
-    result = service.detect(request.poem_text, sample_lines=request.sample_lines)
-    return DetectionResultSchema.from_domain(result)
+    """Auto-detect meter and rhyme scheme of a poem.
+
+    Response includes per-stanza `line_displays` with char-level stress
+    segments plus stanza-level accuracy — everything an SPA needs to render
+    the same highlighted UI the HTML handler produces.
+    """
+    meter_validator: IMeterValidator = request.app.state.container.meter_validator()
+    ctx = detect_poem(
+        poem_text=body.poem_text,
+        want_meter=body.detect_meter,
+        want_rhyme=body.detect_rhyme,
+        service=service,
+        poetry=poetry,
+        meter_validator=meter_validator,
+    )
+
+    if ctx.error:
+        raise HTTPException(status_code=422, detail=ctx.error)
+
+    stanza_schemas = [
+        StanzaDetectionSchema(
+            meter=MeterDetectionSchema.from_domain(s.meter) if s.meter else None,
+            rhyme=RhymeDetectionSchema.from_domain(s.rhyme) if s.rhyme else None,
+            meter_accuracy=s.meter_accuracy,
+            rhyme_accuracy=s.rhyme_accuracy,
+            lines_count=s.lines_count,
+            line_displays=[LineDisplaySchema.model_validate(d) for d in s.line_displays],
+        )
+        for s in ctx.stanzas
+    ]
+
+    return DetectionResultSchema(
+        meter=(
+            MeterDetectionSchema.from_domain(ctx.full_meter)
+            if ctx.full_meter and ctx.want_meter else None
+        ),
+        rhyme=(
+            RhymeDetectionSchema.from_domain(ctx.full_rhyme)
+            if ctx.full_rhyme and ctx.want_rhyme else None
+        ),
+        is_detected=ctx.is_detected,
+        poem_text=ctx.poem_text,
+        validated_lines=ctx.validated_lines,
+        want_meter=ctx.want_meter,
+        want_rhyme=ctx.want_rhyme,
+        stanzas=stanza_schemas,
+    )

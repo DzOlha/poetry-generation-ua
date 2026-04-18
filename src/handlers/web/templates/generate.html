@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Генерація вірша — Вірші UA{% endblock %}
+
+{% block content %}
+<div class="page-title">
+    <h1>Генерація вірша</h1>
+    <p class="subtitle">Задайте тему, метр і схему римування — система створить і відшліфує вірш</p>
+</div>
+
+{% if llm_info and not llm_info.ready %}
+<div class="error-banner">
+    <strong>Генерація не доступна:</strong> {{ llm_info.error }}
+</div>
+{% endif %}
+
+<div class="side-layout">
+    <section class="card" id="generate">
+        <h2>Параметри генерації</h2>
+        {% if llm_info and llm_info.ready %}
+        <div class="info-box llm-info">
+            <strong>&#9432;</strong> Провайдер: <b>{{ llm_info.provider }}</b>{% if llm_info.model and llm_info.model != "—" %} · модель: <b>{{ llm_info.model }}</b>{% endif %}
+        </div>
+        {% endif %}
+        <form method="post" action="/generate" id="gen-form">
+            <div class="field">
+                <label for="theme">
+                    Тема
+                    <span class="field-help" tabindex="0" data-tip="Про що буде вірш — ідея, настрій, образ (напр., весна, кохання, самотність). Система шукає семантично близькі зразки у корпусі для натхнення.">&#9432;</span>
+                </label>
+                <input id="theme" name="theme" type="text" required
+                       placeholder="напр. весна, кохання, Україна..." autocomplete="off">
+            </div>
+
+            <div class="row">
+                <div class="field">
+                    <label for="meter">
+                        Метр
+                        <span class="field-help" tabindex="0" data-tip="Ритмічний малюнок — чергування наголошених (´) і ненаголошених (u) складів у стопах. Напр., ямб: u´ u´ u´.">&#9432;</span>
+                    </label>
+                    <select id="meter" name="meter">
+                        <option value="ямб">Ямб</option>
+                        <option value="хорей">Хорей</option>
+                        <option value="дактиль">Дактиль</option>
+                        <option value="амфібрахій">Амфібрахій</option>
+                        <option value="анапест">Анапест</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="feet">
+                        Стопи
+                        <span class="field-help" tabindex="0" data-tip="Стопа — мінімальна одиниця ритму: група з 2–3 складів. Кількість стоп визначає довжину рядка: 4-стопний ямб = 8 складів.">&#9432;</span>
+                    </label>
+                    <input id="feet" name="feet" type="number" value="4" min="1" max="8" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="field">
+                    <label for="scheme">
+                        Схема рим
+                        <span class="field-help" tabindex="0" data-tip="Порядок римування рядків у строфі. ABAB — перехресна (1-3, 2-4), AABB — суміжна, ABBA — охоплена, AAAA — монорима (всі рядки римуються).">&#9432;</span>
+                    </label>
+                    <select id="scheme" name="scheme">
+                        <option value="ABAB">ABAB (перехресна)</option>
+                        <option value="AABB">AABB (суміжна)</option>
+                        <option value="ABBA">ABBA (охоплена)</option>
+                        <option value="AAAA">AAAA (монорима)</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="stanzas">
+                        Строфи
+                        <span class="field-help" tabindex="0" data-tip="Строфа — група рядків, об'єднаних римою (аналог абзацу у прозі). Наразі підтримуються лише чотирирядкові строфи (катрени).">&#9432;</span>
+                    </label>
+                    <input id="stanzas" name="stanzas" type="number" value="4" min="1" max="10" required>
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="iterations">
+                    Макс. ітерацій виправлення
+                    <span class="field-help" tabindex="0" data-tip="Скільки разів LLM перегенеруватиме проблемні рядки після початкового драфту, щоб виправити помилки метру / рими. 0 — без корекції.">&#9432;</span>
+                </label>
+                <input id="iterations" name="iterations" type="number" value="3" min="0" max="3" required>
+            </div>
+
+            <div class="info-box">
+                <strong>&#9432;</strong> За замовчуванням підтримуються лише 4-рядкові строфи (катрени).
+            </div>
+
+            <button type="submit" class="btn-primary" id="gen-btn"
+                    {% if llm_info and not llm_info.ready %}disabled aria-disabled="true"{% endif %}>
+                <span class="btn-text">Згенерувати</span>
+                <span class="btn-loading hidden">Генеруємо…</span>
+            </button>
+            <div class="form-hint">
+                <span class="form-hint-icon">⏱</span>
+                Генерація може зайняти до 1 хвилини — LLM пише початковий вірш, а потім ітеративно його виправляє.
+            </div>
+        </form>
+    </section>
+
+    <aside class="side-visual" aria-hidden="true">
+        <div class="side-visual-header">
+            <svg class="side-visual-icon side-visual-icon--purple" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2l2.39 4.84L20 8.27l-3.84 3.74.91 5.3L12 14.77l-5.07 2.54.91-5.3L4 8.27l5.61-1.43L12 2z"></path>
+            </svg>
+            <div>
+                <h3>Як виглядає результат</h3>
+                <p>Система генерує вірш і ітеративно його виправляє за фідбеком, поки метр і рима не пройдуть валідацію.</p>
+            </div>
+        </div>
+
+        <div class="side-visual-meta">
+            Тема: <b>тріумф</b> · Метр: <b>амфібрахій 4 ст.</b> · Схема: <b>ABAB</b>
+        </div>
+
+        <div class="side-visual-poem">
+            <div class="poem-line">
+                <span class="poem-line-text">Нар<span class="sy sy-both">е</span>шті здоб<span class="sy sy-both">у</span>то жад<span class="sy sy-both">а</span>ний він<span class="sy sy-both">е</span>ць,</span>
+            </div>
+            <div class="poem-line">
+                <span class="poem-line-text">і зн<span class="sy sy-both">и</span>кли хол<span class="sy sy-both">о</span>дні тум<span class="sy sy-both">а</span>ни ос<span class="sy sy-both">і</span>нні.</span>
+            </div>
+            <div class="poem-line">
+                <span class="poem-line-text">Скінч<span class="sy sy-both">и</span>лись трив<span class="sy sy-both">о</span>ги, рад<span class="sy sy-both">і</span>є бор<span class="sy sy-both">е</span>ць,</span>
+            </div>
+            <div class="poem-line">
+                <span class="poem-line-text">і с<span class="sy sy-both">я</span>ють верш<span class="sy sy-both">и</span>ни <span class="sy sy-act">я</span>сн<span class="sy sy-exp">і</span> та нетл<span class="sy sy-both">і</span>нні.</span>
+            </div>
+        </div>
+
+        <div class="side-visual-result">
+            <span class="validity-badge valid">✓ Вірш відповідає вимогам</span>
+            <div class="side-visual-metrics">
+                <div class="metric">
+                    <span class="metric-label">Метр</span>
+                    <span class="metric-value ok">✓ 100%</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Рима</span>
+                    <span class="metric-value ok">✓ 100%</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Спроб</span>
+                    <span class="metric-value">2</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="side-visual-iters">
+            <div class="side-visual-iters-title">Ітерації виправлення</div>
+            <div class="side-visual-iter">
+                <span class="iter-idx">#0</span>
+                <span class="iter-badge fail">метр 50%</span>
+                <span class="iter-badge ok">рима 100%</span>
+                <span class="side-visual-iter-arrow">→</span>
+            </div>
+            <div class="side-visual-iter">
+                <span class="iter-idx">#1</span>
+                <span class="iter-badge ok">метр 100%</span>
+                <span class="iter-badge ok">рима 100%</span>
+                <span class="side-visual-iter-check">✓</span>
+            </div>
+        </div>
+
+        <div class="side-visual-legend">
+            <span><span class="sy sy-exp">А</span> очікуваний наголос</span>
+            <span><span class="sy sy-act">А</span> реальний наголос</span>
+            <span><span class="sy sy-both">А</span> збіг</span>
+        </div>
+    </aside>
+</div>
+{% endblock %}

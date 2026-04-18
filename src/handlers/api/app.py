@@ -29,6 +29,7 @@ from src.config import AppConfig
 from src.domain.errors import DomainError
 from src.domain.ports import IHttpErrorMapper
 from src.handlers.api.routers.detection import router as detection_router
+from src.handlers.api.routers.evaluation import router as evaluation_router
 from src.handlers.api.routers.health import router as health_router
 from src.handlers.api.routers.poems import router as poems_router
 from src.handlers.web.router import router as web_router
@@ -53,6 +54,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
         app.state.http_error_mapper = container.http_error_mapper()
         app.state.scenario_registry = container.scenario_registry()
         app.state.ablation_configs = ABLATION_CONFIGS
+        app.state.llm_info = cfg.llm_info()
         app.state.evaluation_service = build_evaluation_service(
             cfg, container=container,
         )
@@ -78,6 +80,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     app.include_router(health_router)
     app.include_router(poems_router)
     app.include_router(detection_router)
+    app.include_router(evaluation_router)
     app.include_router(web_router)
 
     if _STATIC_DIR.exists():

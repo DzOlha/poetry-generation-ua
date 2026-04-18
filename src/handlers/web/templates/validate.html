@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Перевірка вірша — Вірші UA{% endblock %}
+
+{% block content %}
+<div class="page-title">
+    <h1>Перевірка вірша</h1>
+    <p class="subtitle">Вставте свій вірш і задайте очікуваний метр та схему римування</p>
+</div>
+
+<div class="side-layout">
+    <section class="card" id="validate">
+        <h2>Текст та параметри</h2>
+        <form method="post" action="/validate-web" id="val-form">
+            <div class="field">
+                <label for="poem_text">
+                    Текст вірша
+                    <span class="field-help" tabindex="0" data-tip="Поетичний текст українською. Рядки розділяються переносом, строфи — порожнім рядком. Підтримуються лише чотирирядкові строфи (катрени).">&#9432;</span>
+                </label>
+                <textarea id="poem_text" name="poem_text" rows="8" required
+                          placeholder="Вставте вірш для перевірки…"></textarea>
+            </div>
+            <div class="row">
+                <div class="field">
+                    <label for="val-meter">
+                        Метр
+                        <span class="field-help" tabindex="0" data-tip="Ритмічний малюнок — чергування наголошених (´) і ненаголошених (u) складів у стопах. Напр., ямб: u´ u´ u´.">&#9432;</span>
+                    </label>
+                    <select id="val-meter" name="meter">
+                        <option value="ямб">Ямб</option>
+                        <option value="хорей">Хорей</option>
+                        <option value="дактиль">Дактиль</option>
+                        <option value="амфібрахій">Амфібрахій</option>
+                        <option value="анапест">Анапест</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="val-feet">
+                        Стопи
+                        <span class="field-help" tabindex="0" data-tip="Стопа — мінімальна одиниця ритму: група з 2–3 складів. Кількість стоп визначає довжину рядка: 4-стопний ямб = 8 складів.">&#9432;</span>
+                    </label>
+                    <input id="val-feet" name="feet" type="number" value="4" min="1" max="8" required>
+                </div>
+                <div class="field">
+                    <label for="val-scheme">
+                        Схема рим
+                        <span class="field-help" tabindex="0" data-tip="Порядок римування рядків у строфі. ABAB — перехресна (1-3, 2-4), AABB — суміжна, ABBA — охоплена, AAAA — монорима.">&#9432;</span>
+                    </label>
+                    <select id="val-scheme" name="scheme">
+                        <option value="ABAB">ABAB</option>
+                        <option value="AABB">AABB</option>
+                        <option value="ABBA">ABBA</option>
+                        <option value="AAAA">AAAA</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn-primary" id="val-btn">
+                <span class="btn-text">Перевірити</span>
+                <span class="btn-loading hidden">Перевіряємо…</span>
+            </button>
+        </form>
+    </section>
+
+    <aside class="side-visual" aria-hidden="true">
+        <div class="side-visual-header">
+            <svg class="side-visual-icon side-visual-icon--green" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 6L9 17l-5-5"></path>
+            </svg>
+            <div>
+                <h3>Як виглядає результат</h3>
+                <p>Задайте параметри — система покаже, де ритм збігається з метром, де відхиляється, та оцінить рими.</p>
+            </div>
+        </div>
+
+        <div class="side-visual-meta">Метр: <b>амфібрахій 4 ст.</b> · Схема: <b>ABAB</b></div>
+
+        <div class="side-visual-poem">
+            <div class="poem-line">
+                <span class="poem-line-text">Нар<span class="sy sy-both">е</span>шті здоб<span class="sy sy-both">у</span>то жад<span class="sy sy-both">а</span>ний він<span class="sy sy-both">е</span>ць,</span>
+            </div>
+            <div class="poem-line">
+                <span class="poem-line-text">і зн<span class="sy sy-both">и</span>кли хол<span class="sy sy-both">о</span>дні тум<span class="sy sy-both">а</span>ни ос<span class="sy sy-both">і</span>нні.</span>
+            </div>
+            <div class="poem-line">
+                <span class="poem-line-text">Скінч<span class="sy sy-both">и</span>лись трив<span class="sy sy-both">о</span>ги, рад<span class="sy sy-both">і</span>є бор<span class="sy sy-both">е</span>ць,</span>
+            </div>
+            <div class="poem-line">
+                <span class="poem-line-text">і с<span class="sy sy-both">я</span>ють верш<span class="sy sy-both">и</span>ни <span class="sy sy-act">я</span>сн<span class="sy sy-exp">і</span> та нетл<span class="sy sy-both">і</span>нні.</span>
+            </div>
+        </div>
+
+        <div class="side-visual-result">
+            <span class="validity-badge valid">✓ Вірш відповідає вимогам</span>
+            <div class="side-visual-metrics">
+                <div class="metric">
+                    <span class="metric-label">Метр (амфібрахій 4 ст.)</span>
+                    <span class="metric-value ok">✓ 100%</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Рима (ABAB)</span>
+                    <span class="metric-value ok">✓ 100%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="side-visual-legend">
+            <span><span class="sy sy-exp">А</span> очікуваний наголос (за метром)</span>
+            <span><span class="sy sy-act">А</span> реальний наголос</span>
+            <span><span class="sy sy-both">А</span> збіг</span>
+        </div>
+    </aside>
+</div>
+{% endblock %}

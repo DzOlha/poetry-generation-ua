@@ -112,6 +112,21 @@ class LLMReliabilityConfig:
 
 
 @dataclass(frozen=True)
+class LLMInfo:
+    """Human-facing summary of the active LLM wiring.
+
+    Handlers consume this to display "which provider/model will generate
+    the poem" on forms and to block submission when the stack cannot do
+    real generation (e.g. GEMINI_API_KEY missing).
+    """
+
+    provider: str          # "gemini" / "mock" / custom registered name
+    model: str             # "gemini-2.0-flash" for real providers; "—" for mock
+    ready: bool            # True = capable of real generation
+    error: str | None = None  # user-facing message when ready=False
+
+
+@dataclass(frozen=True)
 class AppConfig:
     """Top-level runtime configuration."""
 
@@ -162,6 +177,46 @@ class AppConfig:
             )
         if not 1 <= self.port <= 65535:
             raise ConfigurationError(f"port out of range: {self.port}")
+
+    def llm_info(self) -> LLMInfo:
+        """Resolve the active LLM provider + model and surface readiness.
+
+        The factory auto-falls-back to a `MockLLMProvider` when no API key
+        is set, which silently returns canned test poems. For the UI that's
+        undesirable — users expect real generation, so we flag the auto-
+        fallback case as `ready=False` with a plain-language error. Explicit
+        `LLM_PROVIDER=mock` is treated as intentional (tests / local demos)
+        and stays `ready=True`.
+        """
+        explicit = self.llm_provider
+        if explicit == "mock":
+            return LLMInfo(provider="mock", model="—", ready=True)
+        if explicit == "gemini":
+            if not self.gemini_api_key:
+                return LLMInfo(
+                    provider="gemini",
+                    model=self.gemini_model,
+                    ready=False,
+                    error=(
+                        "Не знайдено GEMINI_API_KEY. Додайте ключ у змінну "
+                        "середовища GEMINI_API_KEY, щоб увімкнути генерацію."
+                    ),
+                )
+            return LLMInfo(provider="gemini", model=self.gemini_model, ready=True)
+        # Auto-resolve (empty llm_provider)
+        if self.gemini_api_key:
+            return LLMInfo(provider="gemini", model=self.gemini_model, ready=True)
+        return LLMInfo(
+            provider="mock",
+            model="—",
+            ready=False,
+            error=(
+                "Не знайдено GEMINI_API_KEY. Без ключа система працює "
+                "тільки у тестовому режимі (mock) і не може згенерувати "
+                "справжній вірш. Додайте ключ у змінну середовища "
+                "GEMINI_API_KEY, щоб увімкнути генерацію через Gemini."
+            ),
+        )
 
     @classmethod
     def from_env(cls) -> AppConfig:

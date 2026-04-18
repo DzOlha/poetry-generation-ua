@@ -183,3 +183,51 @@ class TestAppConfig:
         assert cfg.port == 9090
         assert cfg.gemini_temperature == 1.5
         assert cfg.debug is True
+
+
+class TestLLMInfo:
+    """llm_info() surfaces which provider/model is active and whether the
+    stack can actually do real generation, so handlers can warn users and
+    block submission when the configuration is incomplete."""
+
+    def test_explicit_gemini_with_key_is_ready(self):
+        cfg = AppConfig(
+            llm_provider="gemini",
+            gemini_api_key="sk-xxx",
+            gemini_model="gemini-2.0-flash",
+        )
+        info = cfg.llm_info()
+        assert info.provider == "gemini"
+        assert info.model == "gemini-2.0-flash"
+        assert info.ready is True
+        assert info.error is None
+
+    def test_explicit_gemini_without_key_is_not_ready(self):
+        cfg = AppConfig(llm_provider="gemini", gemini_api_key="")
+        info = cfg.llm_info()
+        assert info.provider == "gemini"
+        assert info.ready is False
+        assert info.error and "GEMINI_API_KEY" in info.error
+
+    def test_explicit_mock_always_ready(self):
+        # Tests / demos set LLM_PROVIDER=mock intentionally — stay ready so
+        # the existing test suite isn't forced to set up an API key.
+        cfg = AppConfig(llm_provider="mock")
+        info = cfg.llm_info()
+        assert info.provider == "mock"
+        assert info.ready is True
+
+    def test_auto_resolve_with_key_becomes_gemini(self):
+        cfg = AppConfig(llm_provider="", gemini_api_key="sk-xxx")
+        info = cfg.llm_info()
+        assert info.provider == "gemini"
+        assert info.ready is True
+
+    def test_auto_resolve_without_key_is_not_ready(self):
+        # Auto-fallback to mock is undesirable in the UI context — users
+        # expect real generation and should be told the key is missing.
+        cfg = AppConfig(llm_provider="", gemini_api_key="")
+        info = cfg.llm_info()
+        assert info.provider == "mock"
+        assert info.ready is False
+        assert info.error and "GEMINI_API_KEY" in info.error

@@ -85,6 +85,39 @@ class TestPoem:
         poem = Poem.from_text("Настав час УНР здобути волю.\n")
         assert poem.lines == ("Настав час УНР здобути волю.",)
 
+    def test_strips_numbered_prefix_from_real_lines(self):
+        # LLM sometimes echoes the "N:" / "N." prefix from the regeneration
+        # prompt template. The prefix should be stripped; the remainder kept.
+        poem = Poem.from_text(
+            "1: Вулиці втомлено світяться знов,\n"
+            "2. Темрява випила залишки мов.\n"
+            "3:   Натовпом сунуть чужі містяни,\n"
+            "4: Холодом дихають сірі стіни.\n"
+        )
+        assert poem.lines == (
+            "Вулиці втомлено світяться знов,",
+            "Темрява випила залишки мов.",
+            "Натовпом сунуть чужі містяни,",
+            "Холодом дихають сірі стіни.",
+        )
+
+    def test_drops_numbered_syllable_fragments(self):
+        # LLM leaks syllable-breakdown scansion as "1: КО\n2: жен\n3: шу\n4: КА"
+        # — after stripping the numeric prefix only 2-3 letter stubs remain,
+        # which must be rejected as too short for a real poem line.
+        poem = Poem.from_text(
+            "справжній перший рядок з багатьма словами\n"
+            "1: КО\n"
+            "2: жен\n"
+            "3: шу\n"
+            "4: КА\n"
+            "справжній останній рядок тут\n"
+        )
+        assert poem.lines == (
+            "справжній перший рядок з багатьма словами",
+            "справжній останній рядок тут",
+        )
+
     def test_drops_punctuation_only_fragment(self):
         # Orphan fragments like ").", "— — —", "..." slip past other filters
         # but aren't poetry — a real poem line must contain a Cyrillic letter.

@@ -114,7 +114,9 @@ class TestLineCountCalculator:
 
     def test_multiline(self):
         calc = LineCountCalculator()
-        assert calc.calculate(_context("один\nдва\nтри\n")) == 3
+        assert calc.calculate(_context(
+            "рядок перший\nрядок другий\nрядок третій\n",
+        )) == 3
 
     def test_whitespace_only(self):
         calc = LineCountCalculator()

@@ -8,7 +8,12 @@ note text.
 from __future__ import annotations
 
 from src.domain.models import LineMeterResult
-from src.handlers.web.routes.generation import _line_displays, _line_segments
+from src.handlers.shared.line_displays import (
+    line_displays as _line_displays,
+)
+from src.handlers.shared.line_displays import (
+    line_segments as _line_segments,
+)
 
 
 class TestLineSegments:
@@ -182,3 +187,34 @@ class TestLineDisplays:
         displays = _line_displays("рядочок", (result,))
         note = str(displays[0]["length_note"])
         assert "(9)" in note
+
+    def test_catalectic_length_with_stress_mismatch_reports_stresses(self) -> None:
+        # Amphibrach 3-foot expects 9 syllables (stresses at 2, 5, 8). A
+        # catalectic line has 8 syllables — acceptable length range is
+        # [max_stress=8 ; expected_len + foot_size-1 = 11]. If the line has
+        # 8 syllables but actual stresses don't land on (2, 5, 8), the note
+        # must explain stress mismatch rather than misleadingly say "1
+        # syllable shorter" — which was the bug.
+        result = self._result(
+            ok=False,
+            expected=(2, 5, 8),
+            actual=(2, 4, 6),  # wrong stress positions
+            total=8,
+        )
+        displays = _line_displays("І тисне сліпа німота", (result,))
+        note = str(displays[0]["length_note"])
+        assert "коротше" not in note
+        assert "наголоси" in note
+
+    def test_actual_too_short_still_reports_length(self) -> None:
+        # Truly short line (last stress doesn't fit) — must still report as
+        # a length problem, not a stress one.
+        result = self._result(
+            ok=False,
+            expected=(2, 5, 8),
+            actual=(2,),
+            total=4,  # 4 < max_stress_pos=8 → really short
+        )
+        displays = _line_displays("тільки два", (result,))
+        note = str(displays[0]["length_note"])
+        assert "коротше" in note and "(9)" in note

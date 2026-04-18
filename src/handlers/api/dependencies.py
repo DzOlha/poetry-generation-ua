@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from fastapi import Request
 
+from src.config import LLMInfo
 from src.domain.evaluation import AblationConfig
 from src.domain.ports import IFeedbackFormatter, IMetricCalculatorRegistry, IScenarioRegistry
 from src.services.detection_service import DetectionService
@@ -48,3 +49,8 @@ def get_detection_service(request: Request) -> DetectionService:
 def get_metric_registry(request: Request) -> IMetricCalculatorRegistry:
     """Return the container's IMetricCalculatorRegistry."""
     return request.app.state.container.metric_registry()
+
+
+def get_llm_info(request: Request) -> LLMInfo:
+    """Return the active LLM provider / model metadata and readiness flag."""
+    return request.app.state.llm_info
