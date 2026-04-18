@@ -28,7 +28,6 @@ jobs:
   # ── Job 2: Type-check ────────────────────────────────────────────────────────
   typecheck:
     name: Type-check (mypy)
-    needs: lint
     runs-on: ubuntu-latest
 
     steps:
@@ -59,7 +58,6 @@ jobs:
   # ── Job 3: Tests (unit + integration) ────────────────────────────────────────
   test:
     name: Tests
-    needs: [lint, typecheck]
     runs-on: ubuntu-latest
 
     steps:
