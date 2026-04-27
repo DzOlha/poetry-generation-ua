@@ -1,0 +1,136 @@
+{
+  "batch_id": "batch_20260426_220040",
+  "runs_csv": "results/batch_20260426_220040/runs.csv",
+  "total_runs": 144,
+  "error_runs": 24,
+  "seeds": 1,
+  "n_scenarios": 18,
+  "n_configs": 8,
+  "configs": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H"
+  ],
+  "metrics": [
+    "meter_accuracy",
+    "rhyme_accuracy",
+    "regeneration_success",
+    "semantic_relevance",
+    "num_iterations"
+  ],
+  "components": [
+    "feedback_loop",
+    "semantic_rag",
+    "metric_examples",
+    "rag_metric_combined",
+    "pure_semantic_rag",
+    "pure_metric_examples",
+    "pure_rag_metric_combined",
+    "feedback_value_full",
+    "interaction_rag_metric",
+    "interaction_rag_metric_no_feedback"
+  ],
+  "plots": {
+    "forest": "plots/forest.png",
+    "box": "plots/box_by_config.png",
+    "heatmap": "plots/heatmap.png",
+    "by_category": "plots/contribution_by_cat.png"
+  },
+  "bootstrap_iterations": 10000,
+  "ci_level": 95.0,
+  "cost": {
+    "total_input_tokens": 197844,
+    "total_output_tokens": 1110491,
+    "total_tokens": 1308335,
+    "total_cost_usd": 13.72158,
+    "avg_tokens_per_run": 10902.791666666666,
+    "avg_cost_per_run_usd": 0.11434649999999999,
+    "per_config": [
+      {
+        "config": "A",
+        "runs": 15,
+        "input_tokens": 11766,
+        "output_tokens": 107841,
+        "total_tokens": 119607,
+        "total_cost_usd": 1.3176240000000001,
+        "avg_tokens_per_run": 7973.8,
+        "avg_cost_per_run_usd": 0.0878416
+      },
+      {
+        "config": "B",
+        "runs": 15,
+        "input_tokens": 24296,
+        "output_tokens": 188555,
+        "total_tokens": 212851,
+        "total_cost_usd": 2.311252,
+        "avg_tokens_per_run": 14190.066666666668,
+        "avg_cost_per_run_usd": 0.15408346666666667
+      },
+      {
+        "config": "C",
+        "runs": 15,
+        "input_tokens": 40167,
+        "output_tokens": 196887,
+        "total_tokens": 237054,
+        "total_cost_usd": 2.442978,
+        "avg_tokens_per_run": 15803.6,
+        "avg_cost_per_run_usd": 0.16286520000000002
+      },
+      {
+        "config": "D",
+        "runs": 15,
+        "input_tokens": 18096,
+        "output_tokens": 131978,
+        "total_tokens": 150074,
+        "total_cost_usd": 1.619928,
+        "avg_tokens_per_run": 10004.933333333332,
+        "avg_cost_per_run_usd": 0.1079952
+      },
+      {
+        "config": "E",
+        "runs": 15,
+        "input_tokens": 34087,
+        "output_tokens": 156316,
+        "total_tokens": 190403,
+        "total_cost_usd": 1.943966,
+        "avg_tokens_per_run": 12693.533333333333,
+        "avg_cost_per_run_usd": 0.12959773333333333
+      },
+      {
+        "config": "F",
+        "runs": 15,
+        "input_tokens": 26444,
+        "output_tokens": 115714,
+        "total_tokens": 142158,
+        "total_cost_usd": 1.4414559999999998,
+        "avg_tokens_per_run": 9477.2,
+        "avg_cost_per_run_usd": 0.09609706666666666
+      },
+      {
+        "config": "G",
+        "runs": 15,
+        "input_tokens": 14155,
+        "output_tokens": 95752,
+        "total_tokens": 109907,
+        "total_cost_usd": 1.177334,
+        "avg_tokens_per_run": 7327.133333333333,
+        "avg_cost_per_run_usd": 0.07848893333333334
+      },
+      {
+        "config": "H",
+        "runs": 15,
+        "input_tokens": 28833,
+        "output_tokens": 117448,
+        "total_tokens": 146281,
+        "total_cost_usd": 1.467042,
+        "avg_tokens_per_run": 9752.066666666668,
+        "avg_cost_per_run_usd": 0.0978028
+      }
+    ]
+  }
+}

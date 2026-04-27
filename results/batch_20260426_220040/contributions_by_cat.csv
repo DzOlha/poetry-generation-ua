@@ -1,0 +1,151 @@
+category,component,comparison,metric,n,mean_delta,ci_low,ci_high,p_value,significant
+corner,feedback_loop,B − A,meter_accuracy,5,0.75,0.35,1.0,0.125,True
+corner,semantic_rag,C − B,meter_accuracy,5,0.05,0.0,0.15,1.0,False
+corner,metric_examples,D − B,meter_accuracy,5,0.05,0.0,0.15,1.0,False
+corner,rag_metric_combined,E − B,meter_accuracy,5,0.05,0.0,0.15,1.0,False
+corner,pure_semantic_rag,F − A,meter_accuracy,5,0.0,0.0,0.0,1.0,False
+corner,pure_metric_examples,G − A,meter_accuracy,5,0.8,0.4,1.0,0.125,True
+corner,pure_rag_metric_combined,H − A,meter_accuracy,5,0.4,0.0,0.8,0.5,False
+corner,feedback_value_full,E − H,meter_accuracy,5,0.4,0.0,0.8,0.5,False
+corner,interaction_rag_metric,E − C − D + B,meter_accuracy,5,-0.05,-0.15,0.0,1.0,False
+corner,interaction_rag_metric_no_feedback,H − F − G + A,meter_accuracy,5,-0.4,-0.8,0.0,0.5,False
+corner,feedback_loop,B − A,rhyme_accuracy,5,0.0,0.0,0.0,1.0,False
+corner,semantic_rag,C − B,rhyme_accuracy,5,0.0,0.0,0.0,1.0,False
+corner,metric_examples,D − B,rhyme_accuracy,5,0.0,0.0,0.0,1.0,False
+corner,rag_metric_combined,E − B,rhyme_accuracy,5,0.0,0.0,0.0,1.0,False
+corner,pure_semantic_rag,F − A,rhyme_accuracy,5,-0.1,-0.3,0.0,1.0,False
+corner,pure_metric_examples,G − A,rhyme_accuracy,5,-0.1,-0.3,0.0,1.0,False
+corner,pure_rag_metric_combined,H − A,rhyme_accuracy,5,0.0,0.0,0.0,1.0,False
+corner,feedback_value_full,E − H,rhyme_accuracy,5,0.0,0.0,0.0,1.0,False
+corner,interaction_rag_metric,E − C − D + B,rhyme_accuracy,5,0.0,0.0,0.0,1.0,False
+corner,interaction_rag_metric_no_feedback,H − F − G + A,rhyme_accuracy,5,0.2,0.0,0.6,1.0,False
+corner,feedback_loop,B − A,regeneration_success,5,0.75,0.35,1.0,0.125,True
+corner,semantic_rag,C − B,regeneration_success,5,0.05,-0.55,0.6,1.0,False
+corner,metric_examples,D − B,regeneration_success,5,-0.55,-0.95,-0.15,0.25,True
+corner,rag_metric_combined,E − B,regeneration_success,5,-0.35,-0.75,0.0,0.5,False
+corner,pure_semantic_rag,F − A,regeneration_success,5,0.0,0.0,0.0,1.0,False
+corner,pure_metric_examples,G − A,regeneration_success,5,0.0,0.0,0.0,1.0,False
+corner,pure_rag_metric_combined,H − A,regeneration_success,5,0.0,0.0,0.0,1.0,False
+corner,feedback_value_full,E − H,regeneration_success,5,0.4,0.0,0.8,0.5,False
+corner,interaction_rag_metric,E − C − D + B,regeneration_success,5,0.15,-0.6,1.15,1.0,False
+corner,interaction_rag_metric_no_feedback,H − F − G + A,regeneration_success,5,0.0,0.0,0.0,1.0,False
+corner,feedback_loop,B − A,semantic_relevance,5,-0.03486360000000003,-0.14853280000000002,0.056722399999999965,1.0,False
+corner,semantic_rag,C − B,semantic_relevance,5,-0.019107799999999994,-0.10290559999999997,0.06468999999999998,0.8125,False
+corner,metric_examples,D − B,semantic_relevance,5,0.05506500000000002,-0.0555858,0.23341000000000003,0.625,False
+corner,rag_metric_combined,E − B,semantic_relevance,5,0.0028937999999999963,-0.1267532,0.2072136,0.625,False
+corner,pure_semantic_rag,F − A,semantic_relevance,5,-0.006579600000000019,-0.028203600000000016,0.01504439999999998,0.8125,False
+corner,pure_metric_examples,G − A,semantic_relevance,5,-0.009260800000000003,-0.04915200000000001,0.026415600000000018,0.8125,False
+corner,pure_rag_metric_combined,H − A,semantic_relevance,5,-0.04510020000000001,-0.10607459999999999,0.0010569999999999967,0.3125,False
+corner,feedback_value_full,E − H,semantic_relevance,5,0.013130399999999976,-0.05328080000000003,0.09532039999999999,1.0,False
+corner,interaction_rag_metric,E − C − D + B,semantic_relevance,5,-0.033063400000000034,-0.10495140000000003,0.03205239999999994,0.4375,False
+corner,interaction_rag_metric_no_feedback,H − F − G + A,semantic_relevance,5,-0.029259799999999992,-0.11498220000000003,0.049489399999999996,0.4375,False
+corner,feedback_loop,B − A,num_iterations,5,0.8,0.4,1.0,0.125,True
+corner,semantic_rag,C − B,num_iterations,5,0.0,-0.6,0.6,1.0,False
+corner,metric_examples,D − B,num_iterations,5,-0.6,-1.0,-0.2,0.25,True
+corner,rag_metric_combined,E − B,num_iterations,5,-0.4,-0.8,0.0,0.5,False
+corner,pure_semantic_rag,F − A,num_iterations,5,0.0,0.0,0.0,1.0,False
+corner,pure_metric_examples,G − A,num_iterations,5,0.0,0.0,0.0,1.0,False
+corner,pure_rag_metric_combined,H − A,num_iterations,5,0.0,0.0,0.0,1.0,False
+corner,feedback_value_full,E − H,num_iterations,5,0.4,0.0,0.8,0.5,False
+corner,interaction_rag_metric,E − C − D + B,num_iterations,5,0.2,-0.6,1.2,1.0,False
+corner,interaction_rag_metric_no_feedback,H − F − G + A,num_iterations,5,0.0,0.0,0.0,1.0,False
+edge,feedback_loop,B − A,meter_accuracy,5,0.8,0.4,1.0,0.125,True
+edge,semantic_rag,C − B,meter_accuracy,5,0.2,0.0,0.6,1.0,False
+edge,metric_examples,D − B,meter_accuracy,5,0.2,0.0,0.6,1.0,False
+edge,rag_metric_combined,E − B,meter_accuracy,5,0.15,0.0,0.45,1.0,False
+edge,pure_semantic_rag,F − A,meter_accuracy,5,0.0,0.0,0.0,1.0,False
+edge,pure_metric_examples,G − A,meter_accuracy,5,0.8,0.4,1.0,0.125,True
+edge,pure_rag_metric_combined,H − A,meter_accuracy,5,0.75,0.35,1.0,0.125,True
+edge,feedback_value_full,E − H,meter_accuracy,5,0.2,-0.1,0.6,0.75,False
+edge,interaction_rag_metric,E − C − D + B,meter_accuracy,5,-0.25,-0.75,0.0,1.0,False
+edge,interaction_rag_metric_no_feedback,H − F − G + A,meter_accuracy,5,-0.05,-0.6,0.55,1.0,False
+edge,feedback_loop,B − A,rhyme_accuracy,5,0.0,0.0,0.0,1.0,False
+edge,semantic_rag,C − B,rhyme_accuracy,5,-0.1,-0.3,0.0,1.0,False
+edge,metric_examples,D − B,rhyme_accuracy,5,0.0,0.0,0.0,1.0,False
+edge,rag_metric_combined,E − B,rhyme_accuracy,5,0.0,0.0,0.0,1.0,False
+edge,pure_semantic_rag,F − A,rhyme_accuracy,5,0.0,0.0,0.0,1.0,False
+edge,pure_metric_examples,G − A,rhyme_accuracy,5,0.0,0.0,0.0,1.0,False
+edge,pure_rag_metric_combined,H − A,rhyme_accuracy,5,0.0,0.0,0.0,1.0,False
+edge,feedback_value_full,E − H,rhyme_accuracy,5,0.0,0.0,0.0,1.0,False
+edge,interaction_rag_metric,E − C − D + B,rhyme_accuracy,5,0.1,0.0,0.3,1.0,False
+edge,interaction_rag_metric_no_feedback,H − F − G + A,rhyme_accuracy,5,0.0,0.0,0.0,1.0,False
+edge,feedback_loop,B − A,regeneration_success,5,0.8,0.4,1.0,0.125,True
+edge,semantic_rag,C − B,regeneration_success,5,0.1333334,0.0,0.40000020000000003,1.0,False
+edge,metric_examples,D − B,regeneration_success,5,-0.6,-1.0,-0.2,0.25,True
+edge,rag_metric_combined,E − B,regeneration_success,5,-0.45,-1.0,0.25,0.25,False
+edge,pure_semantic_rag,F − A,regeneration_success,5,0.0,0.0,0.0,1.0,False
+edge,pure_metric_examples,G − A,regeneration_success,5,0.0,0.0,0.0,1.0,False
+edge,pure_rag_metric_combined,H − A,regeneration_success,5,0.0,0.0,0.0,1.0,False
+edge,feedback_value_full,E − H,regeneration_success,5,0.35,0.0,0.75,0.5,False
+edge,interaction_rag_metric,E − C − D + B,regeneration_success,5,0.016666599999999997,-0.5833334,0.6,1.0,False
+edge,interaction_rag_metric_no_feedback,H − F − G + A,regeneration_success,5,0.0,0.0,0.0,1.0,False
+edge,feedback_loop,B − A,semantic_relevance,5,-0.048970599999999996,-0.16459299999999993,0.048426399999999994,0.8125,False
+edge,semantic_rag,C − B,semantic_relevance,5,0.02833760000000002,-0.05806320000000002,0.12839920000000002,0.8125,False
+edge,metric_examples,D − B,semantic_relevance,5,0.019359000000000015,-0.04036019999999998,0.07907820000000002,0.8125,False
+edge,rag_metric_combined,E − B,semantic_relevance,5,0.012096000000000006,-0.05206639999999997,0.09988159999999997,0.8125,False
+edge,pure_semantic_rag,F − A,semantic_relevance,5,-0.052519399999999994,-0.16413700000000003,0.02833260000000002,0.625,False
+edge,pure_metric_examples,G − A,semantic_relevance,5,-0.037929199999999996,-0.060361799999999986,-0.014371200000000006,0.125,True
+edge,pure_rag_metric_combined,H − A,semantic_relevance,5,0.008268600000000015,-0.028596799999999978,0.05687620000000001,1.0,False
+edge,feedback_value_full,E − H,semantic_relevance,5,-0.04514320000000001,-0.0685454,-0.022958800000000012,0.0625,True
+edge,interaction_rag_metric,E − C − D + B,semantic_relevance,5,-0.035600600000000024,-0.10632140000000004,0.035577649999999676,0.4375,False
+edge,interaction_rag_metric_no_feedback,H − F − G + A,semantic_relevance,5,0.0987172,0.011468600000000018,0.18653920000000004,0.125,True
+edge,feedback_loop,B − A,num_iterations,5,1.0,1.0,1.0,0.0625,True
+edge,semantic_rag,C − B,num_iterations,5,0.0,0.0,0.0,1.0,False
+edge,metric_examples,D − B,num_iterations,5,-0.8,-1.0,-0.4,0.125,True
+edge,rag_metric_combined,E − B,num_iterations,5,-0.6,-1.0,-0.2,0.25,True
+edge,pure_semantic_rag,F − A,num_iterations,5,0.0,0.0,0.0,1.0,False
+edge,pure_metric_examples,G − A,num_iterations,5,0.0,0.0,0.0,1.0,False
+edge,pure_rag_metric_combined,H − A,num_iterations,5,0.0,0.0,0.0,1.0,False
+edge,feedback_value_full,E − H,num_iterations,5,0.4,0.0,0.8,0.5,False
+edge,interaction_rag_metric,E − C − D + B,num_iterations,5,0.2,-0.4,0.8,1.0,False
+edge,interaction_rag_metric_no_feedback,H − F − G + A,num_iterations,5,0.0,0.0,0.0,1.0,False
+normal,feedback_loop,B − A,meter_accuracy,5,0.4,0.0,0.8,0.5,False
+normal,semantic_rag,C − B,meter_accuracy,5,0.0,0.0,0.0,1.0,False
+normal,metric_examples,D − B,meter_accuracy,5,0.0,0.0,0.0,1.0,False
+normal,rag_metric_combined,E − B,meter_accuracy,5,0.0,0.0,0.0,1.0,False
+normal,pure_semantic_rag,F − A,meter_accuracy,5,0.1,-0.2,0.55,1.0,False
+normal,pure_metric_examples,G − A,meter_accuracy,5,0.4,0.0,0.8,0.5,False
+normal,pure_rag_metric_combined,H − A,meter_accuracy,5,0.4,0.0,0.8,0.5,False
+normal,feedback_value_full,E − H,meter_accuracy,5,0.0,0.0,0.0,1.0,False
+normal,interaction_rag_metric,E − C − D + B,meter_accuracy,5,0.0,0.0,0.0,1.0,False
+normal,interaction_rag_metric_no_feedback,H − F − G + A,meter_accuracy,5,-0.1,-0.55,0.2,1.0,False
+normal,feedback_loop,B − A,rhyme_accuracy,5,0.15,0.0,0.35,0.5,False
+normal,semantic_rag,C − B,rhyme_accuracy,5,0.0,0.0,0.0,1.0,False
+normal,metric_examples,D − B,rhyme_accuracy,5,0.0,0.0,0.0,1.0,False
+normal,rag_metric_combined,E − B,rhyme_accuracy,5,0.0,0.0,0.0,1.0,False
+normal,pure_semantic_rag,F − A,rhyme_accuracy,5,0.1,0.0,0.3,1.0,False
+normal,pure_metric_examples,G − A,rhyme_accuracy,5,0.0,0.0,0.0,1.0,False
+normal,pure_rag_metric_combined,H − A,rhyme_accuracy,5,0.1,-0.1,0.35,0.75,False
+normal,feedback_value_full,E − H,rhyme_accuracy,5,0.05,0.0,0.15,1.0,False
+normal,interaction_rag_metric,E − C − D + B,rhyme_accuracy,5,0.0,0.0,0.0,1.0,False
+normal,interaction_rag_metric_no_feedback,H − F − G + A,rhyme_accuracy,5,0.0,-0.15,0.15,1.0,False
+normal,feedback_loop,B − A,regeneration_success,5,0.6,0.2,1.0,0.25,True
+normal,semantic_rag,C − B,regeneration_success,5,0.0,-0.8,0.8,1.0,False
+normal,metric_examples,D − B,regeneration_success,5,-0.2,-0.6,0.0,1.0,False
+normal,rag_metric_combined,E − B,regeneration_success,5,-0.4,-1.0,0.4,0.625,False
+normal,pure_semantic_rag,F − A,regeneration_success,5,0.0,0.0,0.0,1.0,False
+normal,pure_metric_examples,G − A,regeneration_success,5,0.0,0.0,0.0,1.0,False
+normal,pure_rag_metric_combined,H − A,regeneration_success,5,0.0,0.0,0.0,1.0,False
+normal,feedback_value_full,E − H,regeneration_success,5,0.2,0.0,0.6,1.0,False
+normal,interaction_rag_metric,E − C − D + B,regeneration_success,5,-0.2,-0.8,0.4,1.0,False
+normal,interaction_rag_metric_no_feedback,H − F − G + A,regeneration_success,5,0.0,0.0,0.0,1.0,False
+normal,feedback_loop,B − A,semantic_relevance,5,0.025426800000000017,-0.05077939999999999,0.12835480000000002,1.0,False
+normal,semantic_rag,C − B,semantic_relevance,5,0.039931199999999986,-0.06423080000000002,0.1049218,0.625,False
+normal,metric_examples,D − B,semantic_relevance,5,0.027659800000000002,-0.10561040000000002,0.1113258,0.625,False
+normal,rag_metric_combined,E − B,semantic_relevance,5,0.024308600000000014,-0.0653798,0.07190120000000003,0.625,False
+normal,pure_semantic_rag,F − A,semantic_relevance,5,0.063115,0.011602999999999985,0.125006,0.3125,True
+normal,pure_metric_examples,G − A,semantic_relevance,5,0.024588599999999995,-0.017548000000000008,0.0953376,0.8125,False
+normal,pure_rag_metric_combined,H − A,semantic_relevance,5,0.053386800000000026,0.0019714000000000233,0.10684180000000003,0.1875,True
+normal,feedback_value_full,E − H,semantic_relevance,5,-0.0036513999999999935,-0.04556579999999999,0.025572799999999996,0.8125,False
+normal,interaction_rag_metric,E − C − D + B,semantic_relevance,5,-0.04328239999999998,-0.14213939999999997,0.10446140000000001,0.625,False
+normal,interaction_rag_metric_no_feedback,H − F − G + A,semantic_relevance,5,-0.03431679999999997,-0.09134999999999999,0.03078480000000001,0.4375,False
+normal,feedback_loop,B − A,num_iterations,5,0.6,0.2,1.0,0.25,True
+normal,semantic_rag,C − B,num_iterations,5,0.0,-0.8,0.8,1.0,False
+normal,metric_examples,D − B,num_iterations,5,-0.2,-0.6,0.0,1.0,False
+normal,rag_metric_combined,E − B,num_iterations,5,-0.4,-1.0,0.4,0.625,False
+normal,pure_semantic_rag,F − A,num_iterations,5,0.0,0.0,0.0,1.0,False
+normal,pure_metric_examples,G − A,num_iterations,5,0.0,0.0,0.0,1.0,False
+normal,pure_rag_metric_combined,H − A,num_iterations,5,0.0,0.0,0.0,1.0,False
+normal,feedback_value_full,E − H,num_iterations,5,0.2,0.0,0.6,1.0,False
+normal,interaction_rag_metric,E − C − D + B,num_iterations,5,-0.2,-0.8,0.4,1.0,False
+normal,interaction_rag_metric_no_feedback,H − F − G + A,num_iterations,5,0.0,0.0,0.0,1.0,False

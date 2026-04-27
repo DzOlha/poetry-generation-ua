@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this software in academic work, please cite it as below."
+title: "Ukrainian Poetry Generator: Hybrid LLM + Rule-Based System for Formal Control of Meter and Rhyme"
+abstract: >
+  Hybrid system for automated generation of Ukrainian classical poetry that
+  separates semantic generation (LLM) from formal validation (rule-based
+  meter + rhyme algorithms). Includes IPA-based phonetic rhyme similarity,
+  syllabotonic meter validation with classical prosodic tolerances, semantic
+  RAG, metric-rhyme few-shot retrieval, an iterative feedback loop, and a
+  full ablation harness for measuring each component's contribution.
+authors:
+  - family-names: Dziuhal
+    given-names: Olha
+    email: olhadziuhal@gmail.com
+repository-code: "https://github.com/DzOlha/poetry-generation-ua"
+license: PolyForm-Noncommercial-1.0.0
+keywords:
+  - Ukrainian poetry
+  - large language models
+  - rule-based linguistic validation
+  - syllabotonic metrics
+  - phonetic rhyme similarity
+  - retrieval-augmented generation
+  - ablation study
+year: 2026
+type: software

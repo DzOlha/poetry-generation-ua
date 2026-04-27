@@ -6,7 +6,7 @@ authors = ["Olha <olhadziuhal@gmail.com>"]
 packages = [{ include = "src" }]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.13"
 sentence-transformers = ">=2.2"
 ukrainian-word-stress = ">=1.0"
 google-genai = ">=0.3"
@@ -22,6 +22,11 @@ pytest-cov = "^5.0"
 pytest-xdist = "^3.6"
 ruff = "^0.6"
 mypy = "^1.11"
+# Ablation-analysis dependencies (used by scripts/analyze_contributions.py);
+# kept in dev group because web runtime reads pre-computed CSV with stdlib csv.
+pandas = "^2.0"
+scipy = "^1.11"
+matplotlib = "^3.8"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
@@ -97,7 +102,7 @@ ignore = [
 "src/runners/build_embeddings_runner.py" = ["B905"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.13"
 strict_optional = true
 warn_unused_ignores = true
 warn_redundant_casts = true
@@ -125,6 +130,10 @@ module = [
     "google.*",
     "uvicorn",
     "uvicorn.*",
+    "matplotlib",
+    "matplotlib.*",
+    "scipy",
+    "scipy.*",
 ]
 ignore_missing_imports = true
 

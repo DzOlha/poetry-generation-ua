@@ -1,0 +1,2918 @@
+{
+  "summary": [
+    {
+      "scenario_id": "C01",
+      "scenario_name": "Мінімальна тема (хорей, 6 стоп, ABAB)",
+      "config": "A",
+      "meter": "хорей",
+      "foot_count": 6,
+      "rhyme_scheme": "ABAB",
+      "meter_accuracy": 0.0,
+      "rhyme_accuracy": 1.0,
+      "iterations": 0,
+      "lines": 8,
+      "duration_sec": 65.6623,
+      "input_tokens": 776,
+      "output_tokens": 6418,
+      "total_tokens": 7194,
+      "estimated_cost_usd": 0.078568,
+      "error": null
+    },
+    {
+      "scenario_id": "C01",
+      "scenario_name": "Мінімальна тема (хорей, 6 стоп, ABAB)",
+      "config": "B",
+      "meter": "хорей",
+      "foot_count": 6,
+      "rhyme_scheme": "ABAB",
+      "meter_accuracy": 1.0,
+      "rhyme_accuracy": 1.0,
+      "iterations": 1,
+      "lines": 8,
+      "duration_sec": 313.7476,
+      "input_tokens": 2417,
+      "output_tokens": 24340,
+      "total_tokens": 26757,
+      "estimated_cost_usd": 0.296914,
+      "error": null
+    },
+    {
+      "scenario_id": "C01",
+      "scenario_name": "Мінімальна тема (хорей, 6 стоп, ABAB)",
+      "config": "C",
+      "meter": "хорей",
+      "foot_count": 6,
+      "rhyme_scheme": "ABAB",
+      "meter_accuracy": 1.0,
+      "rhyme_accuracy": 1.0,
+      "iterations": 1,
+      "lines": 8,
+      "duration_sec": 156.4415,
+      "input_tokens": 3472,
+      "output_tokens": 19181,
+      "total_tokens": 22653,
+      "estimated_cost_usd": 0.237116,
+      "error": null
+    },
+    {
+      "scenario_id": "C01",
+      "scenario_name": "Мінімальна тема (хорей, 6 стоп, ABAB)",
+      "config": "D",
+      "meter": "хорей",
+      "foot_count": 6,
+      "rhyme_scheme": "ABAB",
+      "meter_accuracy": 1.0,
+      "rhyme_accuracy": 1.0,
+      "iterations": 0,
+      "lines": 8,
+      "duration_sec": 122.178,
+      "input_tokens": 921,
+      "output_tokens": 15400,
+      "total_tokens": 16321,
+      "estimated_cost_usd": 0.186642,
+      "error": null
+    },
+    {
+      "scenario_id": "C01",
+      "scenario_name": "Мінімальна тема (хорей, 6 стоп, ABAB)",
+      "config": "E",
+      "meter": "хорей",
+      "foot_count": 6,
+      "rhyme_scheme": "ABAB",
+      "meter_accuracy": 1.0,
+      "rhyme_accuracy": 1.0,
+      "iterations": 1,
+      "lines": 8,
+      "duration_sec": 181.7237,
+      "input_tokens": 2984,
+      "output_tokens": 22521,
+      "total_tokens": 25505,
+      "estimated_cost_usd": 0.27622,
+      "error": null
+    },
+    {
+      "scenario_id": "C01",
+      "scenario_name": "Мінімальна тема (хорей, 6 стоп, ABAB)",
+      "config": "F",
+      "meter": "хорей",
+      "foot_count": 6,
+      "rhyme_scheme": "ABAB",
+      "meter_accuracy": 0.0,
+      "rhyme_accuracy": 1.0,
+      "iterations": 0,
+      "lines": 8,
+      "duration_sec": 207.2709,
+      "input_tokens": 1889,
+      "output_tokens": 9823,
+      "total_tokens": 11712,
+      "estimated_cost_usd": 0.121654,
+      "error": null
+    },
+    {
+      "scenario_id": "C01",
+      "scenario_name": "Мінімальна тема (хорей, 6 стоп, ABAB)",
+      "config": "G",
+      "meter": "хорей",
+      "foot_count": 6,
+      "rhyme_scheme": "ABAB",
+      "meter_accuracy": 1.0,
+      "rhyme_accuracy": 1.0,
+      "iterations": 0,
+      "lines": 8,
+      "duration_sec": 350.8933,
+      "input_tokens": 921,
+      "output_tokens": 13534,
+      "total_tokens": 14455,
+      "estimated_cost_usd": 0.16425,
+      "error": null
+    },
+    {
+      "scenario_id": "C01",
+      "scenario_name": "Мінімальна тема (хорей, 6 стоп, ABAB)",
+      "config": "H",
+      "meter": "хорей",
+      "foot_count": 6,
+      "rhyme_scheme": "ABAB",
+      "meter_accuracy": 1.0,
+      "rhyme_accuracy": 0.5,
+      "iterations": 0,
+      "lines": 7,
+      "duration_sec": 107.51,
+      "input_tokens": 2034,
+      "output_tokens": 13200,
+      "total_tokens": 15234,
+      "estimated_cost_usd": 0.162468,
+      "error": null
+    }
+  ],
+  "traces": [
+    {
+      "scenario_id": "C01",
+      "config": "A",
+      "stages": [
+        {
+          "stage": "retrieval",
+          "input": "SKIPPED (config.retrieval disabled)",
+          "output": "—",
+          "metrics": {
+            "num_retrieved": 0
+          },
+          "duration_sec": 0.0
+        },
+        {
+          "stage": "metric_examples",
+          "input": "SKIPPED (config.metric_examples disabled)",
+          "output": "—",
+          "metrics": {
+            "num_examples": 0
+          },
+          "duration_sec": 0.0
+        },
+        {
+          "stage": "prompt_construction",
+          "input": "theme='тиша', meter=хорей, scheme=ABAB",
+          "output": "prompt length=1446 chars",
+          "metrics": {
+            "prompt_length": 1446,
+            "num_metric_examples": 0
+          },
+          "duration_sec": 0.0,
+          "output_data": "Use the following poetic excerpts as thematic inspiration (do not copy):\n\n\nTheme: тиша\nMeter: хорей\nRhyme scheme: ABAB\nStructure: 2 stanzas of 4 lines each (8 lines total)\nGenerate a Ukrainian poem with exactly 8 lines.\n\nOUTPUT ENVELOPE (mandatory):\nWrap your FINAL poem between the literal tags <POEM> and </POEM>.\nYou may reason freely BEFORE <POEM>. Everything between <POEM> and </POEM> must be ONLY clean Ukrainian poem lines in normal orthography — one line per verse line, exactly 8 lines, no blank separators other than one newline between lines. Emit </POEM> immediately after the last poem line; write nothing after it.\n\nSTRICT FORMAT RULES FOR THE CONTENT BETWEEN <POEM>...</POEM> — violating any is a failure:\n- The first token after <POEM> MUST be a Cyrillic letter. No punctuation, parenthesis, digit, or Latin letter may precede it.\n- Every output line MUST contain Ukrainian words; lines that are only punctuation, digits, or scansion are forbidden.\n- NO ALL-CAPS words marking stress (forbidden: 'І-ДУТЬ', 'СЛАВ-ний', 'БІЙ').\n- NO syllable hyphenation inside words (forbidden: 'За-гу-бив-ся', 'ле-тить').\n- NO syllable numbering in parentheses (forbidden: 'Слу(1) жи(2) ли(3)', 'А (1) ни (2)').\n- NO scansion marks ('u u -', '( - )', '(U)', '->').\n- NO bare number sequences like '1 2 3 4 5 6 7 8'.\n- NO English words, commentary, analysis, drafts, alternatives, markdown, bullets, line numbers, or explanations between the tags."
+        },
+        {
+          "stage": "initial_generation",
+          "input": "prompt (1446 chars)",
+          "output": "8 lines generated",
+          "metrics": {
+            "num_lines": 8
+          },
+          "duration_sec": 52.7988,
+          "output_data": "Тиша в хату знову входить,\nСяють зорі, люди сплять.\nСрібний місяць в небі ходить,\nЛине ночі благодать.\nЗамер вітер біля ганку,\nСпить у саді білий цвіт.\nТіні ждуть нового ранку,\nСпокій повнить дивний світ.\n"
+        },
+        {
+          "stage": "validation",
+          "input": "poem (8 lines)",
+          "output": "meter_acc=0.00%, rhyme_acc=100.00%, violations=8",
+          "metrics": {
+            "meter_accuracy": 0.0,
+            "rhyme_accuracy": 1.0,
+            "violation_count": 8
+          },
+          "duration_sec": 1.6327,
+          "output_data": {
+            "meter_results": [
+              {
+                "line": 1,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [],
+                "total_syllables": 8
+              },
+              {
+                "line": 2,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [],
+                "total_syllables": 7
+              },
+              {
+                "line": 3,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [],
+                "total_syllables": 8
+              },
+              {
+                "line": 4,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  7
+                ],
+                "error_positions": [
+                  5
+                ],
+                "total_syllables": 7
+              },
+              {
+                "line": 5,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  2,
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [
+                  1,
+                  2
+                ],
+                "total_syllables": 8
+              },
+              {
+                "line": 6,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [],
+                "total_syllables": 7
+              },
+              {
+                "line": 7,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [],
+                "total_syllables": 8
+              },
+              {
+                "line": 8,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [],
+                "total_syllables": 7
+              }
+            ],
+            "rhyme_results": [
+              {
+                "line_a": 1,
+                "line_b": 3,
+                "word_a": "входить",
+                "word_b": "ходить",
+                "rhyme_part_a": "odɪt",
+                "rhyme_part_b": "odɪt",
+                "score": 1.0,
+                "ok": true
+              },
+              {
+                "line_a": 2,
+                "line_b": 4,
+                "word_a": "сплять",
+                "word_b": "благодать",
+                "rhyme_part_a": "at",
+                "rhyme_part_b": "at",
+                "score": 1.0,
+                "ok": true
+              },
+              {
+                "line_a": 5,
+                "line_b": 7,
+                "word_a": "ганку",
+                "word_b": "ранку",
+                "rhyme_part_a": "anku",
+                "rhyme_part_b": "anku",
+                "score": 1.0,
+                "ok": true
+              },
+              {
+                "line_a": 6,
+                "line_b": 8,
+                "word_a": "цвіт",
+                "word_b": "світ",
+                "rhyme_part_a": "it",
+                "rhyme_part_b": "it",
+                "score": 1.0,
+                "ok": true
+              }
+            ],
+            "feedback": [
+              "Line 1 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+              "Line 2 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+              "Line 3 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+              "Line 4 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+              "Line 5 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 2, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+              "Line 6 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+              "Line 7 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+              "Line 8 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning."
+            ]
+          }
+        },
+        {
+          "stage": "feedback_loop",
+          "input": "SKIPPED",
+          "output": "—",
+          "metrics": {},
+          "duration_sec": 0.0
+        }
+      ],
+      "iterations": [
+        {
+          "iteration": 0,
+          "poem_text": "Тиша в хату знову входить,\nСяють зорі, люди сплять.\nСрібний місяць в небі ходить,\nЛине ночі благодать.\nЗамер вітер біля ганку,\nСпить у саді білий цвіт.\nТіні ждуть нового ранку,\nСпокій повнить дивний світ.\n",
+          "meter_accuracy": 0.0,
+          "rhyme_accuracy": 1.0,
+          "feedback": [
+            "Line 1 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+            "Line 2 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+            "Line 3 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+            "Line 4 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+            "Line 5 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 2, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+            "Line 6 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+            "Line 7 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+            "Line 8 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning."
+          ],
+          "duration_sec": 1.6327,
+          "raw_llm_response": "<POEM>\nТиша в хату знову входить,\nСяють зорі, люди сплять.\nСрібний місяць в небі ходить,\nЛине ночі благодать.\nЗамер вітер біля ганку,\nСпить у саді білий цвіт.\nТіні ждуть нового ранку,\nСпокій повнить дивний світ.\n</POEM>\n",
+          "sanitized_llm_response": "Тиша в хату знову входить,\nСяють зорі, люди сплять.\nСрібний місяць в небі ходить,\nЛине ночі благодать.\nЗамер вітер біля ганку,\nСпить у саді білий цвіт.\nТіні ждуть нового ранку,\nСпокій повнить дивний світ.\n",
+          "input_tokens": 776,
+          "output_tokens": 6418
+        }
+      ],
+      "final_poem": "Тиша в хату знову входить,\nСяють зорі, люди сплять.\nСрібний місяць в небі ходить,\nЛине ночі благодать.\nЗамер вітер біля ганку,\nСпить у саді білий цвіт.\nТіні ждуть нового ранку,\nСпокій повнить дивний світ.\n",
+      "final_metrics": {
+        "meter_accuracy": 0.0,
+        "rhyme_accuracy": 1.0,
+        "regeneration_success": 0.0,
+        "semantic_relevance": 0.334,
+        "num_lines": 8.0,
+        "meter_improvement": 0.0,
+        "rhyme_improvement": 0.0,
+        "feedback_iterations": 0.0,
+        "input_tokens": 776.0,
+        "output_tokens": 6418.0,
+        "total_tokens": 7194.0,
+        "estimated_cost_usd": 0.0786
+      },
+      "total_duration_sec": 65.6623
+    },
+    {
+      "scenario_id": "C01",
+      "config": "B",
+      "stages": [
+        {
+          "stage": "retrieval",
+          "input": "SKIPPED (config.retrieval disabled)",
+          "output": "—",
+          "metrics": {
+            "num_retrieved": 0
+          },
+          "duration_sec": 0.0
+        },
+        {
+          "stage": "metric_examples",
+          "input": "SKIPPED (config.metric_examples disabled)",
+          "output": "—",
+          "metrics": {
+            "num_examples": 0
+          },
+          "duration_sec": 0.0
+        },
+        {
+          "stage": "prompt_construction",
+          "input": "theme='тиша', meter=хорей, scheme=ABAB",
+          "output": "prompt length=1446 chars",
+          "metrics": {
+            "prompt_length": 1446,
+            "num_metric_examples": 0
+          },
+          "duration_sec": 0.0001,
+          "output_data": "Use the following poetic excerpts as thematic inspiration (do not copy):\n\n\nTheme: тиша\nMeter: хорей\nRhyme scheme: ABAB\nStructure: 2 stanzas of 4 lines each (8 lines total)\nGenerate a Ukrainian poem with exactly 8 lines.\n\nOUTPUT ENVELOPE (mandatory):\nWrap your FINAL poem between the literal tags <POEM> and </POEM>.\nYou may reason freely BEFORE <POEM>. Everything between <POEM> and </POEM> must be ONLY clean Ukrainian poem lines in normal orthography — one line per verse line, exactly 8 lines, no blank separators other than one newline between lines. Emit </POEM> immediately after the last poem line; write nothing after it.\n\nSTRICT FORMAT RULES FOR THE CONTENT BETWEEN <POEM>...</POEM> — violating any is a failure:\n- The first token after <POEM> MUST be a Cyrillic letter. No punctuation, parenthesis, digit, or Latin letter may precede it.\n- Every output line MUST contain Ukrainian words; lines that are only punctuation, digits, or scansion are forbidden.\n- NO ALL-CAPS words marking stress (forbidden: 'І-ДУТЬ', 'СЛАВ-ний', 'БІЙ').\n- NO syllable hyphenation inside words (forbidden: 'За-гу-бив-ся', 'ле-тить').\n- NO syllable numbering in parentheses (forbidden: 'Слу(1) жи(2) ли(3)', 'А (1) ни (2)').\n- NO scansion marks ('u u -', '( - )', '(U)', '->').\n- NO bare number sequences like '1 2 3 4 5 6 7 8'.\n- NO English words, commentary, analysis, drafts, alternatives, markdown, bullets, line numbers, or explanations between the tags."
+        },
+        {
+          "stage": "initial_generation",
+          "input": "prompt (1446 chars)",
+          "output": "8 lines generated",
+          "metrics": {
+            "num_lines": 8
+          },
+          "duration_sec": 69.4748,
+          "output_data": "Тихо гаснуть далі сині,\nЗорі світять з вишини.\nСплять дерева у долині,\nБачать дивні світлі сни.\nНіжне сяйво з неба ллється,\nТиша ходить по землі.\nТільки річка плавно в'ється,\nТане в загадковій млі.\n"
+        },
+        {
+          "stage": "validation",
+          "input": "poem (8 lines)",
+          "output": "meter_acc=0.00%, rhyme_acc=50.00%, violations=10",
+          "metrics": {
+            "meter_accuracy": 0.0,
+            "rhyme_accuracy": 0.5,
+            "violation_count": 10
+          },
+          "duration_sec": 1.8719,
+          "output_data": {
+            "meter_results": [
+              {
+                "line": 1,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [],
+                "total_syllables": 8
+              },
+              {
+                "line": 2,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  4,
+                  6
+                ],
+                "error_positions": [
+                  3,
+                  4,
+                  5,
+                  6,
+                  7
+                ],
+                "total_syllables": 7
+              },
+              {
+                "line": 3,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  7
+                ],
+                "error_positions": [],
+                "total_syllables": 8
+              },
+              {
+                "line": 4,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [],
+                "total_syllables": 7
+              },
+              {
+                "line": 5,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [],
+                "total_syllables": 8
+              },
+              {
+                "line": 6,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  6
+                ],
+                "error_positions": [
+                  6,
+                  7
+                ],
+                "total_syllables": 7
+              },
+              {
+                "line": 7,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [],
+                "total_syllables": 8
+              },
+              {
+                "line": 8,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  5,
+                  7
+                ],
+                "error_positions": [
+                  3
+                ],
+                "total_syllables": 7
+              }
+            ],
+            "rhyme_results": [
+              {
+                "line_a": 1,
+                "line_b": 3,
+                "word_a": "сині",
+                "word_b": "долині",
+                "rhyme_part_a": "ɪni",
+                "rhyme_part_b": "ɪni",
+                "score": 1.0,
+                "ok": true
+              },
+              {
+                "line_a": 2,
+                "line_b": 4,
+                "word_a": "вишини",
+                "word_b": "сни",
+                "rhyme_part_a": "ɪnɪ",
+                "rhyme_part_b": "ɪ",
+                "score": 0.3333,
+                "ok": false
+              },
+              {
+                "line_a": 5,
+                "line_b": 7,
+                "word_a": "ллється",
+                "word_b": "в'ється",
+                "rhyme_part_a": "etsja",
+                "rhyme_part_b": "etsja",
+                "score": 1.0,
+                "ok": true
+              },
+              {
+                "line_a": 6,
+                "line_b": 8,
+                "word_a": "землі",
+                "word_b": "млі",
+                "rhyme_part_a": "emli",
+                "rhyme_part_b": "i",
+                "score": 0.0,
+                "ok": false
+              }
+            ],
+            "feedback": [
+              "Line 1 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+              "Line 2 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 4, 6.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+              "Line 3 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+              "Line 4 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+              "Line 5 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+              "Line 6 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 6.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+              "Line 7 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+              "Line 8 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 5, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+              "Lines 2 and 4 should rhyme (scheme ABAB).\nExpected rhyme with ending 'ɪnɪ'.\nCurrent ending 'ɪ' does not match (score: 0.33).\nClausula: line 2 is feminine, line 4 is masculine.\nRhyme type detected: inexact.\nRewrite line 4 keeping the meaning and meter.",
+              "Lines 6 and 8 should rhyme (scheme ABAB).\nExpected rhyme with ending 'emli'.\nCurrent ending 'i' does not match (score: 0.00).\nClausula: line 6 is feminine, line 8 is masculine.\nRewrite line 8 keeping the meaning and meter."
+            ]
+          }
+        },
+        {
+          "stage": "feedback_loop",
+          "input": "max_iterations=1",
+          "output": "2 iterations, final meter=100.00% rhyme=100.00%",
+          "metrics": {
+            "total_iterations": 2,
+            "final_meter_accuracy": 1.0,
+            "final_rhyme_accuracy": 1.0
+          },
+          "duration_sec": 0.0
+        }
+      ],
+      "iterations": [
+        {
+          "iteration": 0,
+          "poem_text": "Тихо гаснуть далі сині,\nЗорі світять з вишини.\nСплять дерева у долині,\nБачать дивні світлі сни.\nНіжне сяйво з неба ллється,\nТиша ходить по землі.\nТільки річка плавно в'ється,\nТане в загадковій млі.\n",
+          "meter_accuracy": 0.0,
+          "rhyme_accuracy": 0.5,
+          "feedback": [
+            "Line 1 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+            "Line 2 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 4, 6.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+            "Line 3 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+            "Line 4 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+            "Line 5 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+            "Line 6 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 6.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+            "Line 7 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+            "Line 8 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 5, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+            "Lines 2 and 4 should rhyme (scheme ABAB).\nExpected rhyme with ending 'ɪnɪ'.\nCurrent ending 'ɪ' does not match (score: 0.33).\nClausula: line 2 is feminine, line 4 is masculine.\nRhyme type detected: inexact.\nRewrite line 4 keeping the meaning and meter.",
+            "Lines 6 and 8 should rhyme (scheme ABAB).\nExpected rhyme with ending 'emli'.\nCurrent ending 'i' does not match (score: 0.00).\nClausula: line 6 is feminine, line 8 is masculine.\nRewrite line 8 keeping the meaning and meter."
+          ],
+          "duration_sec": 1.8719,
+          "raw_llm_response": "<POEM>Тихо гаснуть далі сині,\nЗорі світять з вишини.\nСплять дерева у долині,\nБачать дивні світлі сни.\nНіжне сяйво з неба ллється,\nТиша ходить по землі.\nТільки річка плавно в'ється,\nТане в загадковій млі.</POEM>\n",
+          "sanitized_llm_response": "Тихо гаснуть далі сині,\nЗорі світять з вишини.\nСплять дерева у долині,\nБачать дивні світлі сни.\nНіжне сяйво з неба ллється,\nТиша ходить по землі.\nТільки річка плавно в'ється,\nТане в загадковій млі.\n",
+          "input_tokens": 776,
+          "output_tokens": 8480
+        },
+        {
+          "iteration": 1,
+          "poem_text": "Тихо гаснуть вільні далі ніжно-сині,\nЗорі ясно світять, наче ті човни.\nСплять дерева мирно в сонній цій долині,\nБачать дивні тіні, бачать світлі сни.\nНіжне сяйво з неба щедро всюди ллється,\nТиша ходить вільно в тихій цій землі.\nТільки річка плавно в тихім руслі в'ється,\nТане світ вечірній в темній цій імлі.\n",
+          "meter_accuracy": 1.0,
+          "rhyme_accuracy": 1.0,
+          "feedback": [],
+          "duration_sec": 241.7252,
+          "raw_llm_response": "<POEM>\nТихо гаснуть вільні далі ніжно-сині,\nЗорі ясно світять, наче ті човни.\nСплять дерева мирно в сонній цій долині,\nБачать дивні тіні, бачать світлі сни.\nНіжне сяйво з неба щедро всюди ллється,\nТиша ходить вільно в тихій цій землі.\nТільки річка плавно в тихім руслі в'ється,\nТане світ вечірній в темній цій імлі.\n</POEM>\n",
+          "sanitized_llm_response": "Тихо гаснуть вільні далі ніжно-сині,\nЗорі ясно світять, наче ті човни.\nСплять дерева мирно в сонній цій долині,\nБачать дивні тіні, бачать світлі сни.\nНіжне сяйво з неба щедро всюди ллється,\nТиша ходить вільно в тихій цій землі.\nТільки річка плавно в тихім руслі в'ється,\nТане світ вечірній в темній цій імлі.\n",
+          "input_tokens": 1641,
+          "output_tokens": 15860
+        }
+      ],
+      "final_poem": "Тихо гаснуть вільні далі ніжно-сині,\nЗорі ясно світять, наче ті човни.\nСплять дерева мирно в сонній цій долині,\nБачать дивні тіні, бачать світлі сни.\nНіжне сяйво з неба щедро всюди ллється,\nТиша ходить вільно в тихій цій землі.\nТільки річка плавно в тихім руслі в'ється,\nТане світ вечірній в темній цій імлі.\n",
+      "final_metrics": {
+        "meter_accuracy": 1.0,
+        "rhyme_accuracy": 1.0,
+        "regeneration_success": 1.0,
+        "semantic_relevance": 0.3489,
+        "num_lines": 8.0,
+        "meter_improvement": 1.0,
+        "rhyme_improvement": 0.5,
+        "feedback_iterations": 1.0,
+        "input_tokens": 2417.0,
+        "output_tokens": 24340.0,
+        "total_tokens": 26757.0,
+        "estimated_cost_usd": 0.2969
+      },
+      "total_duration_sec": 313.7476
+    },
+    {
+      "scenario_id": "C01",
+      "config": "C",
+      "stages": [
+        {
+          "stage": "retrieval",
+          "input": "theme='тиша', corpus_size=153",
+          "output": "retrieved 5 poems, top_sim=0.3646",
+          "metrics": {
+            "num_retrieved": 5,
+            "top_similarity": 0.36460202458209684
+          },
+          "duration_sec": 0.143,
+          "input_data": {
+            "theme": "тиша",
+            "corpus_size": 153
+          },
+          "output_data": [
+            {
+              "similarity": 0.3646,
+              "text": "(уривок)\nяк я люблю оці години праці,\nколи усе навколо затиха\nпід владою чаруючої ночі,\nа тільки я одна неподоланна\nврочистую одправу починаю\nперед моїм незримим олтарем.\nлетять хвилини – я не прислухаюсь.\nось північ вдарила – найкращий праці час, –\nтак дзвінко вдарила, що стрепенулась тиша\nі швидше у руках забігало перо.\nгодини йдуть – куди вони спішаться?\nмені осіння ніч короткою здається,\nбезсоння довге не страшне мені,\nвоно мені не грозить, як бувало,\nнепевною і чорною рукою,\nа вабить лагідно, як мрія молода.\nі любо так, і серце щастям б’ється,\nдумки цвітуть, мов золоті квітки.\nі хтось немов схиляється до мене,\nі промовляє чарівні слова,\nі полум'ям займається від слів тих,\nі блискавицею освічує думки."
+            },
+            {
+              "similarity": 0.3435,
+              "text": "довго спали вітри у ярах на припоні,\nдовго тиша гнітюча полями повзла,\nі стояли дерева німі на осонні,\nзнемагала в пилюці вечірня імла.\nі на трави не бризнули роси, мов перли,\nяк рум’янець густий раннє небо залив.\nі здавалось — життя задрімало, завмерло,\nзаблукало в безмежжі неміряних нив.\nі здавалось — нема ні початку, ні краю\nцій нудоті німій і нудній німоті…\nнайстрашніше, мабуть, тільки тиша карає,\nколи поруч з тобою повзе по житті."
+            },
+            {
+              "similarity": 0.34,
+              "text": "як ми можемо жити, сміятись і дихать?\nяк могли ми чекати — не битись, а спать\nв ніч, коли у в’язниці спокійно і тихо\nви збиралися вмерти — у шість двадцять п’ять.\nі коли приволікся заплаканий ранок,\nвас покликала смерть у похмурій імлі —\nа тепер наші душі і топчуть, і ранять\nваші кроки останні по зимній землі.\nа тепер в кожній серці пожежу пригаслу\nрозпалили ви знову — спаливши життя.\nі, мов гимн урочистий, мов визвольне гасло,\nє для нас двох імен нерозривне злиття.\nнад могилою вашою тиша і спокій,\nта по рідному краю — зловіщі вогні.\nі піти по слідах ваших скошених кроків\nрвучко тягнуться сотні окрилених ніг."
+            },
+            {
+              "similarity": 0.3365,
+              "text": "коли приходиш ніжний і шумкий,\nі дзвоном слів перетинаєш спокій,\nмені здається — весняних потоків\nпливуть бурхливі і ясні струмки.\nтоді вдаряють спінені думки\nу таємничість непочатих років,\nкуди пірве твої юнацькі кроки\nдалекий шлях — тривожний і стрімкий.\nтак радісно тримать твої долоні\nу цій кімнаті, де в низькім поклоні\nсхилились айстри на овальний стіл,\nта все ж життя — це обрії далекі,\nце літаків непогамовний клекіт,\nі у руках скажений скоростріл."
+            },
+            {
+              "similarity": 0.3227,
+              "text": "усе — лише не це! не ці спокійні дні,\nде всі слова у барвах однакових,\nдумки, мов нероздмухані вогні,\nбажання — в запорошених оковах.\nякогось вітру, сміху чи злоби!\nщоб рвались душі крізь іржаві ґрати,\nщоб крикнув хтось: ненавидь і люби —\nі варто буде жити чи вмирати!\nне бійся днів, заплутаних вузлом,\nночей безсонних, очманілих ранків.\nхай ріже час лице — добром і злом!\nхай палять серце — найдрібнійші ранки!\nти в тінь не йди. тривай в пекучий грі.\nв сліпуче сяйво не лякайсь дивиться —\nлише по спеці гряне жданий грім\nіз хмар сковзне — багнетом — блискавиця."
+            }
+          ]
+        },
+        {
+          "stage": "metric_examples",
+          "input": "SKIPPED (config.metric_examples disabled)",
+          "output": "—",
+          "metrics": {
+            "num_examples": 0
+          },
+          "duration_sec": 0.0
+        },
+        {
+          "stage": "prompt_construction",
+          "input": "theme='тиша', meter=хорей, scheme=ABAB",
+          "output": "prompt length=4237 chars",
+          "metrics": {
+            "prompt_length": 4237,
+            "num_metric_examples": 0
+          },
+          "duration_sec": 0.0001,
+          "output_data": "Use the following poetic excerpts as thematic inspiration (do not copy):\n(уривок)\nяк я люблю оці години праці,\nколи усе навколо затиха\nпід владою чаруючої ночі,\nа тільки я одна неподоланна\nврочистую одправу починаю\nперед моїм незримим олтарем.\nлетять хвилини – я не прислухаюсь.\nось північ вдарила – найкращий праці час, –\nтак дзвінко вдарила, що стрепенулась тиша\nі швидше у руках забігало перо.\nгодини йдуть – куди вони спішаться?\nмені осіння ніч короткою здається,\nбезсоння довге не страшне мені,\nвоно мені не грозить, як бувало,\nнепевною і чорною рукою,\nа вабить лагідно, як мрія молода.\nі любо так, і серце щастям б’ється,\nдумки цвітуть, мов золоті квітки.\nі хтось немов схиляється до мене,\nі промовляє чарівні слова,\nі полум'ям займається від слів тих,\nі блискавицею освічує думки.\nдовго спали вітри у ярах на припоні,\nдовго тиша гнітюча полями повзла,\nі стояли дерева німі на осонні,\nзнемагала в пилюці вечірня імла.\nі на трави не бризнули роси, мов перли,\nяк рум’янець густий раннє небо залив.\nі здавалось — життя задрімало, завмерло,\nзаблукало в безмежжі неміряних нив.\nі здавалось — нема ні початку, ні краю\nцій нудоті німій і нудній німоті…\nнайстрашніше, мабуть, тільки тиша карає,\nколи поруч з тобою повзе по житті.\nяк ми можемо жити, сміятись і дихать?\nяк могли ми чекати — не битись, а спать\nв ніч, коли у в’язниці спокійно і тихо\nви збиралися вмерти — у шість двадцять п’ять.\nі коли приволікся заплаканий ранок,\nвас покликала смерть у похмурій імлі —\nа тепер наші душі і топчуть, і ранять\nваші кроки останні по зимній землі.\nа тепер в кожній серці пожежу пригаслу\nрозпалили ви знову — спаливши життя.\nі, мов гимн урочистий, мов визвольне гасло,\nє для нас двох імен нерозривне злиття.\nнад могилою вашою тиша і спокій,\nта по рідному краю — зловіщі вогні.\nі піти по слідах ваших скошених кроків\nрвучко тягнуться сотні окрилених ніг.\nколи приходиш ніжний і шумкий,\nі дзвоном слів перетинаєш спокій,\nмені здається — весняних потоків\nпливуть бурхливі і ясні струмки.\nтоді вдаряють спінені думки\nу таємничість непочатих років,\nкуди пірве твої юнацькі кроки\nдалекий шлях — тривожний і стрімкий.\nтак радісно тримать твої долоні\nу цій кімнаті, де в низькім поклоні\nсхилились айстри на овальний стіл,\nта все ж життя — це обрії далекі,\nце літаків непогамовний клекіт,\nі у руках скажений скоростріл.\nусе — лише не це! не ці спокійні дні,\nде всі слова у барвах однакових,\nдумки, мов нероздмухані вогні,\nбажання — в запорошених оковах.\nякогось вітру, сміху чи злоби!\nщоб рвались душі крізь іржаві ґрати,\nщоб крикнув хтось: ненавидь і люби —\nі варто буде жити чи вмирати!\nне бійся днів, заплутаних вузлом,\nночей безсонних, очманілих ранків.\nхай ріже час лице — добром і злом!\nхай палять серце — найдрібнійші ранки!\nти в тінь не йди. тривай в пекучий грі.\nв сліпуче сяйво не лякайсь дивиться —\nлише по спеці гряне жданий грім\nіз хмар сковзне — багнетом — блискавиця.\n\nTheme: тиша\nMeter: хорей\nRhyme scheme: ABAB\nStructure: 2 stanzas of 4 lines each (8 lines total)\nGenerate a Ukrainian poem with exactly 8 lines.\n\nOUTPUT ENVELOPE (mandatory):\nWrap your FINAL poem between the literal tags <POEM> and </POEM>.\nYou may reason freely BEFORE <POEM>. Everything between <POEM> and </POEM> must be ONLY clean Ukrainian poem lines in normal orthography — one line per verse line, exactly 8 lines, no blank separators other than one newline between lines. Emit </POEM> immediately after the last poem line; write nothing after it.\n\nSTRICT FORMAT RULES FOR THE CONTENT BETWEEN <POEM>...</POEM> — violating any is a failure:\n- The first token after <POEM> MUST be a Cyrillic letter. No punctuation, parenthesis, digit, or Latin letter may precede it.\n- Every output line MUST contain Ukrainian words; lines that are only punctuation, digits, or scansion are forbidden.\n- NO ALL-CAPS words marking stress (forbidden: 'І-ДУТЬ', 'СЛАВ-ний', 'БІЙ').\n- NO syllable hyphenation inside words (forbidden: 'За-гу-бив-ся', 'ле-тить').\n- NO syllable numbering in parentheses (forbidden: 'Слу(1) жи(2) ли(3)', 'А (1) ни (2)').\n- NO scansion marks ('u u -', '( - )', '(U)', '->').\n- NO bare number sequences like '1 2 3 4 5 6 7 8'.\n- NO English words, commentary, analysis, drafts, alternatives, markdown, bullets, line numbers, or explanations between the tags."
+        },
+        {
+          "stage": "initial_generation",
+          "input": "prompt (4237 chars)",
+          "output": "8 lines generated",
+          "metrics": {
+            "num_lines": 8
+          },
+          "duration_sec": 74.3307,
+          "output_data": "Мертва тиша в кожній хаті,\nВітер спить і ліс мовчить.\nСни приходять нам прокляті,\nТільки час кудись летить.\nХоче серце тільки грому,\nЩоб розбити чорний лід.\nГеть прогнати біль і втому,\nЩоб збудити мертвий світ.\n"
+        },
+        {
+          "stage": "validation",
+          "input": "poem (8 lines)",
+          "output": "meter_acc=0.00%, rhyme_acc=75.00%, violations=9",
+          "metrics": {
+            "meter_accuracy": 0.0,
+            "rhyme_accuracy": 0.75,
+            "violation_count": 9
+          },
+          "duration_sec": 1.5505,
+          "output_data": {
+            "meter_results": [
+              {
+                "line": 1,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [],
+                "total_syllables": 8
+              },
+              {
+                "line": 2,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [],
+                "total_syllables": 7
+              },
+              {
+                "line": 3,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  6
+                ],
+                "error_positions": [
+                  6,
+                  7
+                ],
+                "total_syllables": 8
+              },
+              {
+                "line": 4,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [],
+                "total_syllables": 7
+              },
+              {
+                "line": 5,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [],
+                "total_syllables": 8
+              },
+              {
+                "line": 6,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [],
+                "total_syllables": 7
+              },
+              {
+                "line": 7,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [],
+                "total_syllables": 8
+              },
+              {
+                "line": 8,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [],
+                "total_syllables": 7
+              }
+            ],
+            "rhyme_results": [
+              {
+                "line_a": 1,
+                "line_b": 3,
+                "word_a": "хаті",
+                "word_b": "прокляті",
+                "rhyme_part_a": "ati",
+                "rhyme_part_b": "ati",
+                "score": 1.0,
+                "ok": true
+              },
+              {
+                "line_a": 2,
+                "line_b": 4,
+                "word_a": "мовчить",
+                "word_b": "летить",
+                "rhyme_part_a": "ɪt",
+                "rhyme_part_b": "ɪt",
+                "score": 1.0,
+                "ok": true
+              },
+              {
+                "line_a": 5,
+                "line_b": 7,
+                "word_a": "грому",
+                "word_b": "втому",
+                "rhyme_part_a": "omu",
+                "rhyme_part_b": "omu",
+                "score": 1.0,
+                "ok": true
+              },
+              {
+                "line_a": 6,
+                "line_b": 8,
+                "word_a": "лід",
+                "word_b": "світ",
+                "rhyme_part_a": "id",
+                "rhyme_part_b": "it",
+                "score": 0.5,
+                "ok": false
+              }
+            ],
+            "feedback": [
+              "Line 1 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+              "Line 2 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+              "Line 3 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 6.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+              "Line 4 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+              "Line 5 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+              "Line 6 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 3, 5, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+              "Line 7 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+              "Line 8 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 3, 5, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+              "Lines 6 and 8 should rhyme (scheme ABAB).\nExpected rhyme with ending 'id'.\nCurrent ending 'it' does not match (score: 0.50).\nClausula: line 6 is masculine, line 8 is masculine.\nRhyme type detected: assonance.\nRewrite line 8 keeping the meaning and meter."
+            ]
+          }
+        },
+        {
+          "stage": "feedback_loop",
+          "input": "max_iterations=1",
+          "output": "2 iterations, final meter=100.00% rhyme=100.00%",
+          "metrics": {
+            "total_iterations": 2,
+            "final_meter_accuracy": 1.0,
+            "final_rhyme_accuracy": 1.0
+          },
+          "duration_sec": 0.0
+        }
+      ],
+      "iterations": [
+        {
+          "iteration": 0,
+          "poem_text": "Мертва тиша в кожній хаті,\nВітер спить і ліс мовчить.\nСни приходять нам прокляті,\nТільки час кудись летить.\nХоче серце тільки грому,\nЩоб розбити чорний лід.\nГеть прогнати біль і втому,\nЩоб збудити мертвий світ.\n",
+          "meter_accuracy": 0.0,
+          "rhyme_accuracy": 0.75,
+          "feedback": [
+            "Line 1 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+            "Line 2 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+            "Line 3 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 6.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+            "Line 4 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+            "Line 5 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+            "Line 6 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 3, 5, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+            "Line 7 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+            "Line 8 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 3, 5, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+            "Lines 6 and 8 should rhyme (scheme ABAB).\nExpected rhyme with ending 'id'.\nCurrent ending 'it' does not match (score: 0.50).\nClausula: line 6 is masculine, line 8 is masculine.\nRhyme type detected: assonance.\nRewrite line 8 keeping the meaning and meter."
+          ],
+          "duration_sec": 1.5505,
+          "raw_llm_response": "<POEM>\nМертва тиша в кожній хаті,\nВітер спить і ліс мовчить.\nСни приходять нам прокляті,\nТільки час кудись летить.\nХоче серце тільки грому,\nЩоб розбити чорний лід.\nГеть прогнати біль і втому,\nЩоб збудити мертвий світ.\n</POEM>\n",
+          "sanitized_llm_response": "Мертва тиша в кожній хаті,\nВітер спить і ліс мовчить.\nСни приходять нам прокляті,\nТільки час кудись летить.\nХоче серце тільки грому,\nЩоб розбити чорний лід.\nГеть прогнати біль і втому,\nЩоб збудити мертвий світ.\n",
+          "input_tokens": 1889,
+          "output_tokens": 9211
+        },
+        {
+          "iteration": 1,
+          "poem_text": "Мертва тиша повнить морок в кожній хаті,\nВітер спить, і темний ліс давно мовчить.\nСни приходять, сни лякають нас прокляті,\nТільки час невпинно в безвість десь летить.\nХоче серце чути гуркіт злого грому,\nЩоб розбити цей холодний чорний лід.\nГеть прогнати з серця біль і тяжку втому,\nЩоб збудити світ, лишити світлий слід.\n",
+          "meter_accuracy": 1.0,
+          "rhyme_accuracy": 1.0,
+          "feedback": [],
+          "duration_sec": 79.7808,
+          "raw_llm_response": "The poem has been rewritten to strictly follow the requested trochaic hexameter (хорей, 6-foot) by lengthening the feminine lines to 12 syllables and masculine lines to 11 syllables. The alternating rhyme scheme (ABAB CDCD) is preserved, and line 8 has been rewritten to perfectly rhyme with line 6 (\"лід\" - \"слід\").\n\n<POEM>\nМертва тиша повнить морок в кожній хаті,\nВітер спить, і темний ліс давно мовчить.\nСни приходять, сни лякають нас прокляті,\nТільки час невпинно в безвість десь летить.\nХоче серце чути гуркіт злого грому,\nЩоб розбити цей холодний чорний лід.\nГеть прогнати з серця біль і тяжку втому,\nЩоб збудити світ, лишити світлий слід.\n</POEM>\n",
+          "sanitized_llm_response": "Мертва тиша повнить морок в кожній хаті,\nВітер спить, і темний ліс давно мовчить.\nСни приходять, сни лякають нас прокляті,\nТільки час невпинно в безвість десь летить.\nХоче серце чути гуркіт злого грому,\nЩоб розбити цей холодний чорний лід.\nГеть прогнати з серця біль і тяжку втому,\nЩоб збудити світ, лишити світлий слід.\n",
+          "input_tokens": 1583,
+          "output_tokens": 9970
+        }
+      ],
+      "final_poem": "Мертва тиша повнить морок в кожній хаті,\nВітер спить, і темний ліс давно мовчить.\nСни приходять, сни лякають нас прокляті,\nТільки час невпинно в безвість десь летить.\nХоче серце чути гуркіт злого грому,\nЩоб розбити цей холодний чорний лід.\nГеть прогнати з серця біль і тяжку втому,\nЩоб збудити світ, лишити світлий слід.\n",
+      "final_metrics": {
+        "meter_accuracy": 1.0,
+        "rhyme_accuracy": 1.0,
+        "regeneration_success": 1.0,
+        "semantic_relevance": 0.3413,
+        "num_lines": 8.0,
+        "meter_improvement": 1.0,
+        "rhyme_improvement": 0.25,
+        "feedback_iterations": 1.0,
+        "input_tokens": 3472.0,
+        "output_tokens": 19181.0,
+        "total_tokens": 22653.0,
+        "estimated_cost_usd": 0.2371
+      },
+      "total_duration_sec": 156.4415
+    },
+    {
+      "scenario_id": "C01",
+      "config": "D",
+      "stages": [
+        {
+          "stage": "retrieval",
+          "input": "SKIPPED (config.retrieval disabled)",
+          "output": "—",
+          "metrics": {
+            "num_retrieved": 0
+          },
+          "duration_sec": 0.0
+        },
+        {
+          "stage": "metric_examples",
+          "input": "meter=хорей, feet=6, scheme=ABAB",
+          "output": "found 2 metric examples",
+          "metrics": {
+            "num_examples": 2
+          },
+          "duration_sec": 0.0054,
+          "output_data": [
+            {
+              "id": "хорей_6_ABAB_user_c01_01",
+              "meter": "хорей",
+              "feet": 6,
+              "scheme": "ABAB",
+              "verified": true,
+              "text": "Тиша міцно спить на темнім дні долини,\nТемна ніч поволі вже до нас іде.\nСвіт давно забув усі сліди людини,\nТінь на землю тихий сон тепер кладе."
+            },
+            {
+              "id": "хорей_6_ABAB_user_c01_02",
+              "meter": "хорей",
+              "feet": 6,
+              "scheme": "ABAB",
+              "verified": true,
+              "text": "Мертва тиша поруч з нами тихо ходить,\nГасне тихо, гасне ясний, світлий день.\nСум тривожний знов до болю серце зводить,\nРазом змовкли луни наших всіх пісень."
+            }
+          ]
+        },
+        {
+          "stage": "prompt_construction",
+          "input": "theme='тиша', meter=хорей, scheme=ABAB",
+          "output": "prompt length=1908 chars",
+          "metrics": {
+            "prompt_length": 1908,
+            "num_metric_examples": 2
+          },
+          "duration_sec": 0.0001,
+          "output_data": "Use the following poetic excerpts as thematic inspiration (do not copy):\n\n\nUse these verified examples as METER and RHYME reference (they demonstrate хорей meter with ABAB rhyme scheme — follow this rhythm and rhyme pattern exactly):\nТиша міцно спить на темнім дні долини,\nТемна ніч поволі вже до нас іде.\nСвіт давно забув усі сліди людини,\nТінь на землю тихий сон тепер кладе.\n\nМертва тиша поруч з нами тихо ходить,\nГасне тихо, гасне ясний, світлий день.\nСум тривожний знов до болю серце зводить,\nРазом змовкли луни наших всіх пісень.\n\nTheme: тиша\nMeter: хорей\nRhyme scheme: ABAB\nStructure: 2 stanzas of 4 lines each (8 lines total)\nGenerate a Ukrainian poem with exactly 8 lines.\n\nOUTPUT ENVELOPE (mandatory):\nWrap your FINAL poem between the literal tags <POEM> and </POEM>.\nYou may reason freely BEFORE <POEM>. Everything between <POEM> and </POEM> must be ONLY clean Ukrainian poem lines in normal orthography — one line per verse line, exactly 8 lines, no blank separators other than one newline between lines. Emit </POEM> immediately after the last poem line; write nothing after it.\n\nSTRICT FORMAT RULES FOR THE CONTENT BETWEEN <POEM>...</POEM> — violating any is a failure:\n- The first token after <POEM> MUST be a Cyrillic letter. No punctuation, parenthesis, digit, or Latin letter may precede it.\n- Every output line MUST contain Ukrainian words; lines that are only punctuation, digits, or scansion are forbidden.\n- NO ALL-CAPS words marking stress (forbidden: 'І-ДУТЬ', 'СЛАВ-ний', 'БІЙ').\n- NO syllable hyphenation inside words (forbidden: 'За-гу-бив-ся', 'ле-тить').\n- NO syllable numbering in parentheses (forbidden: 'Слу(1) жи(2) ли(3)', 'А (1) ни (2)').\n- NO scansion marks ('u u -', '( - )', '(U)', '->').\n- NO bare number sequences like '1 2 3 4 5 6 7 8'.\n- NO English words, commentary, analysis, drafts, alternatives, markdown, bullets, line numbers, or explanations between the tags."
+        },
+        {
+          "stage": "initial_generation",
+          "input": "prompt (1908 chars)",
+          "output": "8 lines generated",
+          "metrics": {
+            "num_lines": 8
+          },
+          "duration_sec": 119.5573,
+          "output_data": "Тиша гордо бродить, хилить пишні віти,\nСонце впало, згасла світла, ясна мить.\nМісяць ясно світить, пестить темні квіти,\nСпокій дивний сходить, кожна пташка спить.\nТемна ніч на землю стелить чорні шати,\nРазом зникли звуки, тиша тихо йде.\nТіні всюди бродять, кличуть міцно спати,\nКазка ночі срібні чари скрізь пряде.\n"
+        },
+        {
+          "stage": "validation",
+          "input": "poem (8 lines)",
+          "output": "meter_acc=100.00%, rhyme_acc=100.00%, violations=0",
+          "metrics": {
+            "meter_accuracy": 1.0,
+            "rhyme_accuracy": 1.0,
+            "violation_count": 0
+          },
+          "duration_sec": 1.9201,
+          "output_data": {
+            "meter_results": [
+              {
+                "line": 1,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 12
+              },
+              {
+                "line": 2,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 11
+              },
+              {
+                "line": 3,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  6,
+                  7,
+                  9,
+                  11
+                ],
+                "error_positions": [
+                  5,
+                  6
+                ],
+                "total_syllables": 12
+              },
+              {
+                "line": 4,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 11
+              },
+              {
+                "line": 5,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 12
+              },
+              {
+                "line": 6,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 11
+              },
+              {
+                "line": 7,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 12
+              },
+              {
+                "line": 8,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 11
+              }
+            ],
+            "rhyme_results": [
+              {
+                "line_a": 1,
+                "line_b": 3,
+                "word_a": "віти",
+                "word_b": "квіти",
+                "rhyme_part_a": "itɪ",
+                "rhyme_part_b": "itɪ",
+                "score": 1.0,
+                "ok": true
+              },
+              {
+                "line_a": 2,
+                "line_b": 4,
+                "word_a": "мить",
+                "word_b": "спить",
+                "rhyme_part_a": "ɪt",
+                "rhyme_part_b": "ɪt",
+                "score": 1.0,
+                "ok": true
+              },
+              {
+                "line_a": 5,
+                "line_b": 7,
+                "word_a": "шати",
+                "word_b": "спати",
+                "rhyme_part_a": "atɪ",
+                "rhyme_part_b": "atɪ",
+                "score": 1.0,
+                "ok": true
+              },
+              {
+                "line_a": 6,
+                "line_b": 8,
+                "word_a": "йде",
+                "word_b": "пряде",
+                "rhyme_part_a": "e",
+                "rhyme_part_b": "e",
+                "score": 1.0,
+                "ok": true
+              }
+            ],
+            "feedback": []
+          }
+        },
+        {
+          "stage": "feedback_loop",
+          "input": "max_iterations=1",
+          "output": "1 iterations, final meter=100.00% rhyme=100.00%",
+          "metrics": {
+            "total_iterations": 1,
+            "final_meter_accuracy": 1.0,
+            "final_rhyme_accuracy": 1.0
+          },
+          "duration_sec": 0.0
+        }
+      ],
+      "iterations": [
+        {
+          "iteration": 0,
+          "poem_text": "Тиша гордо бродить, хилить пишні віти,\nСонце впало, згасла світла, ясна мить.\nМісяць ясно світить, пестить темні квіти,\nСпокій дивний сходить, кожна пташка спить.\nТемна ніч на землю стелить чорні шати,\nРазом зникли звуки, тиша тихо йде.\nТіні всюди бродять, кличуть міцно спати,\nКазка ночі срібні чари скрізь пряде.\n",
+          "meter_accuracy": 1.0,
+          "rhyme_accuracy": 1.0,
+          "feedback": [],
+          "duration_sec": 1.9201,
+          "raw_llm_response": "<POEM>\nТиша гордо бродить, хилить пишні віти,\nСонце впало, згасла світла, ясна мить.\nМісяць ясно світить, пестить темні квіти,\nСпокій дивний сходить, кожна пташка спить.\nТемна ніч на землю стелить чорні шати,\nРазом зникли звуки, тиша тихо йде.\nТіні всюди бродять, кличуть міцно спати,\nКазка ночі срібні чари скрізь пряде.\n</POEM>\n",
+          "sanitized_llm_response": "Тиша гордо бродить, хилить пишні віти,\nСонце впало, згасла світла, ясна мить.\nМісяць ясно світить, пестить темні квіти,\nСпокій дивний сходить, кожна пташка спить.\nТемна ніч на землю стелить чорні шати,\nРазом зникли звуки, тиша тихо йде.\nТіні всюди бродять, кличуть міцно спати,\nКазка ночі срібні чари скрізь пряде.\n",
+          "input_tokens": 921,
+          "output_tokens": 15400
+        }
+      ],
+      "final_poem": "Тиша гордо бродить, хилить пишні віти,\nСонце впало, згасла світла, ясна мить.\nМісяць ясно світить, пестить темні квіти,\nСпокій дивний сходить, кожна пташка спить.\nТемна ніч на землю стелить чорні шати,\nРазом зникли звуки, тиша тихо йде.\nТіні всюди бродять, кличуть міцно спати,\nКазка ночі срібні чари скрізь пряде.\n",
+      "final_metrics": {
+        "meter_accuracy": 1.0,
+        "rhyme_accuracy": 1.0,
+        "regeneration_success": 0.0,
+        "semantic_relevance": 0.3586,
+        "num_lines": 8.0,
+        "meter_improvement": 0.0,
+        "rhyme_improvement": 0.0,
+        "feedback_iterations": 0.0,
+        "input_tokens": 921.0,
+        "output_tokens": 15400.0,
+        "total_tokens": 16321.0,
+        "estimated_cost_usd": 0.1866
+      },
+      "total_duration_sec": 122.178
+    },
+    {
+      "scenario_id": "C01",
+      "config": "E",
+      "stages": [
+        {
+          "stage": "retrieval",
+          "input": "theme='тиша', corpus_size=153",
+          "output": "retrieved 5 poems, top_sim=0.3646",
+          "metrics": {
+            "num_retrieved": 5,
+            "top_similarity": 0.36460202458209684
+          },
+          "duration_sec": 0.1192,
+          "input_data": {
+            "theme": "тиша",
+            "corpus_size": 153
+          },
+          "output_data": [
+            {
+              "similarity": 0.3646,
+              "text": "(уривок)\nяк я люблю оці години праці,\nколи усе навколо затиха\nпід владою чаруючої ночі,\nа тільки я одна неподоланна\nврочистую одправу починаю\nперед моїм незримим олтарем.\nлетять хвилини – я не прислухаюсь.\nось північ вдарила – найкращий праці час, –\nтак дзвінко вдарила, що стрепенулась тиша\nі швидше у руках забігало перо.\nгодини йдуть – куди вони спішаться?\nмені осіння ніч короткою здається,\nбезсоння довге не страшне мені,\nвоно мені не грозить, як бувало,\nнепевною і чорною рукою,\nа вабить лагідно, як мрія молода.\nі любо так, і серце щастям б’ється,\nдумки цвітуть, мов золоті квітки.\nі хтось немов схиляється до мене,\nі промовляє чарівні слова,\nі полум'ям займається від слів тих,\nі блискавицею освічує думки."
+            },
+            {
+              "similarity": 0.3435,
+              "text": "довго спали вітри у ярах на припоні,\nдовго тиша гнітюча полями повзла,\nі стояли дерева німі на осонні,\nзнемагала в пилюці вечірня імла.\nі на трави не бризнули роси, мов перли,\nяк рум’янець густий раннє небо залив.\nі здавалось — життя задрімало, завмерло,\nзаблукало в безмежжі неміряних нив.\nі здавалось — нема ні початку, ні краю\nцій нудоті німій і нудній німоті…\nнайстрашніше, мабуть, тільки тиша карає,\nколи поруч з тобою повзе по житті."
+            },
+            {
+              "similarity": 0.34,
+              "text": "як ми можемо жити, сміятись і дихать?\nяк могли ми чекати — не битись, а спать\nв ніч, коли у в’язниці спокійно і тихо\nви збиралися вмерти — у шість двадцять п’ять.\nі коли приволікся заплаканий ранок,\nвас покликала смерть у похмурій імлі —\nа тепер наші душі і топчуть, і ранять\nваші кроки останні по зимній землі.\nа тепер в кожній серці пожежу пригаслу\nрозпалили ви знову — спаливши життя.\nі, мов гимн урочистий, мов визвольне гасло,\nє для нас двох імен нерозривне злиття.\nнад могилою вашою тиша і спокій,\nта по рідному краю — зловіщі вогні.\nі піти по слідах ваших скошених кроків\nрвучко тягнуться сотні окрилених ніг."
+            },
+            {
+              "similarity": 0.3365,
+              "text": "коли приходиш ніжний і шумкий,\nі дзвоном слів перетинаєш спокій,\nмені здається — весняних потоків\nпливуть бурхливі і ясні струмки.\nтоді вдаряють спінені думки\nу таємничість непочатих років,\nкуди пірве твої юнацькі кроки\nдалекий шлях — тривожний і стрімкий.\nтак радісно тримать твої долоні\nу цій кімнаті, де в низькім поклоні\nсхилились айстри на овальний стіл,\nта все ж життя — це обрії далекі,\nце літаків непогамовний клекіт,\nі у руках скажений скоростріл."
+            },
+            {
+              "similarity": 0.3227,
+              "text": "усе — лише не це! не ці спокійні дні,\nде всі слова у барвах однакових,\nдумки, мов нероздмухані вогні,\nбажання — в запорошених оковах.\nякогось вітру, сміху чи злоби!\nщоб рвались душі крізь іржаві ґрати,\nщоб крикнув хтось: ненавидь і люби —\nі варто буде жити чи вмирати!\nне бійся днів, заплутаних вузлом,\nночей безсонних, очманілих ранків.\nхай ріже час лице — добром і злом!\nхай палять серце — найдрібнійші ранки!\nти в тінь не йди. тривай в пекучий грі.\nв сліпуче сяйво не лякайсь дивиться —\nлише по спеці гряне жданий грім\nіз хмар сковзне — багнетом — блискавиця."
+            }
+          ]
+        },
+        {
+          "stage": "metric_examples",
+          "input": "meter=хорей, feet=6, scheme=ABAB",
+          "output": "found 2 metric examples",
+          "metrics": {
+            "num_examples": 2
+          },
+          "duration_sec": 0.0002,
+          "output_data": [
+            {
+              "id": "хорей_6_ABAB_user_c01_01",
+              "meter": "хорей",
+              "feet": 6,
+              "scheme": "ABAB",
+              "verified": true,
+              "text": "Тиша міцно спить на темнім дні долини,\nТемна ніч поволі вже до нас іде.\nСвіт давно забув усі сліди людини,\nТінь на землю тихий сон тепер кладе."
+            },
+            {
+              "id": "хорей_6_ABAB_user_c01_02",
+              "meter": "хорей",
+              "feet": 6,
+              "scheme": "ABAB",
+              "verified": true,
+              "text": "Мертва тиша поруч з нами тихо ходить,\nГасне тихо, гасне ясний, світлий день.\nСум тривожний знов до болю серце зводить,\nРазом змовкли луни наших всіх пісень."
+            }
+          ]
+        },
+        {
+          "stage": "prompt_construction",
+          "input": "theme='тиша', meter=хорей, scheme=ABAB",
+          "output": "prompt length=4699 chars",
+          "metrics": {
+            "prompt_length": 4699,
+            "num_metric_examples": 2
+          },
+          "duration_sec": 0.0001,
+          "output_data": "Use the following poetic excerpts as thematic inspiration (do not copy):\n(уривок)\nяк я люблю оці години праці,\nколи усе навколо затиха\nпід владою чаруючої ночі,\nа тільки я одна неподоланна\nврочистую одправу починаю\nперед моїм незримим олтарем.\nлетять хвилини – я не прислухаюсь.\nось північ вдарила – найкращий праці час, –\nтак дзвінко вдарила, що стрепенулась тиша\nі швидше у руках забігало перо.\nгодини йдуть – куди вони спішаться?\nмені осіння ніч короткою здається,\nбезсоння довге не страшне мені,\nвоно мені не грозить, як бувало,\nнепевною і чорною рукою,\nа вабить лагідно, як мрія молода.\nі любо так, і серце щастям б’ється,\nдумки цвітуть, мов золоті квітки.\nі хтось немов схиляється до мене,\nі промовляє чарівні слова,\nі полум'ям займається від слів тих,\nі блискавицею освічує думки.\nдовго спали вітри у ярах на припоні,\nдовго тиша гнітюча полями повзла,\nі стояли дерева німі на осонні,\nзнемагала в пилюці вечірня імла.\nі на трави не бризнули роси, мов перли,\nяк рум’янець густий раннє небо залив.\nі здавалось — життя задрімало, завмерло,\nзаблукало в безмежжі неміряних нив.\nі здавалось — нема ні початку, ні краю\nцій нудоті німій і нудній німоті…\nнайстрашніше, мабуть, тільки тиша карає,\nколи поруч з тобою повзе по житті.\nяк ми можемо жити, сміятись і дихать?\nяк могли ми чекати — не битись, а спать\nв ніч, коли у в’язниці спокійно і тихо\nви збиралися вмерти — у шість двадцять п’ять.\nі коли приволікся заплаканий ранок,\nвас покликала смерть у похмурій імлі —\nа тепер наші душі і топчуть, і ранять\nваші кроки останні по зимній землі.\nа тепер в кожній серці пожежу пригаслу\nрозпалили ви знову — спаливши життя.\nі, мов гимн урочистий, мов визвольне гасло,\nє для нас двох імен нерозривне злиття.\nнад могилою вашою тиша і спокій,\nта по рідному краю — зловіщі вогні.\nі піти по слідах ваших скошених кроків\nрвучко тягнуться сотні окрилених ніг.\nколи приходиш ніжний і шумкий,\nі дзвоном слів перетинаєш спокій,\nмені здається — весняних потоків\nпливуть бурхливі і ясні струмки.\nтоді вдаряють спінені думки\nу таємничість непочатих років,\nкуди пірве твої юнацькі кроки\nдалекий шлях — тривожний і стрімкий.\nтак радісно тримать твої долоні\nу цій кімнаті, де в низькім поклоні\nсхилились айстри на овальний стіл,\nта все ж життя — це обрії далекі,\nце літаків непогамовний клекіт,\nі у руках скажений скоростріл.\nусе — лише не це! не ці спокійні дні,\nде всі слова у барвах однакових,\nдумки, мов нероздмухані вогні,\nбажання — в запорошених оковах.\nякогось вітру, сміху чи злоби!\nщоб рвались душі крізь іржаві ґрати,\nщоб крикнув хтось: ненавидь і люби —\nі варто буде жити чи вмирати!\nне бійся днів, заплутаних вузлом,\nночей безсонних, очманілих ранків.\nхай ріже час лице — добром і злом!\nхай палять серце — найдрібнійші ранки!\nти в тінь не йди. тривай в пекучий грі.\nв сліпуче сяйво не лякайсь дивиться —\nлише по спеці гряне жданий грім\nіз хмар сковзне — багнетом — блискавиця.\n\nUse these verified examples as METER and RHYME reference (they demonstrate хорей meter with ABAB rhyme scheme — follow this rhythm and rhyme pattern exactly):\nТиша міцно спить на темнім дні долини,\nТемна ніч поволі вже до нас іде.\nСвіт давно забув усі сліди людини,\nТінь на землю тихий сон тепер кладе.\n\nМертва тиша поруч з нами тихо ходить,\nГасне тихо, гасне ясний, світлий день.\nСум тривожний знов до болю серце зводить,\nРазом змовкли луни наших всіх пісень.\n\nTheme: тиша\nMeter: хорей\nRhyme scheme: ABAB\nStructure: 2 stanzas of 4 lines each (8 lines total)\nGenerate a Ukrainian poem with exactly 8 lines.\n\nOUTPUT ENVELOPE (mandatory):\nWrap your FINAL poem between the literal tags <POEM> and </POEM>.\nYou may reason freely BEFORE <POEM>. Everything between <POEM> and </POEM> must be ONLY clean Ukrainian poem lines in normal orthography — one line per verse line, exactly 8 lines, no blank separators other than one newline between lines. Emit </POEM> immediately after the last poem line; write nothing after it.\n\nSTRICT FORMAT RULES FOR THE CONTENT BETWEEN <POEM>...</POEM> — violating any is a failure:\n- The first token after <POEM> MUST be a Cyrillic letter. No punctuation, parenthesis, digit, or Latin letter may precede it.\n- Every output line MUST contain Ukrainian words; lines that are only punctuation, digits, or scansion are forbidden.\n- NO ALL-CAPS words marking stress (forbidden: 'І-ДУТЬ', 'СЛАВ-ний', 'БІЙ').\n- NO syllable hyphenation inside words (forbidden: 'За-гу-бив-ся', 'ле-тить').\n- NO syllable numbering in parentheses (forbidden: 'Слу(1) жи(2) ли(3)', 'А (1) ни (2)').\n- NO scansion marks ('u u -', '( - )', '(U)', '->').\n- NO bare number sequences like '1 2 3 4 5 6 7 8'.\n- NO English words, commentary, analysis, drafts, alternatives, markdown, bullets, line numbers, or explanations between the tags."
+        },
+        {
+          "stage": "initial_generation",
+          "input": "prompt (4699 chars)",
+          "output": "8 lines generated",
+          "metrics": {
+            "num_lines": 8
+          },
+          "duration_sec": 91.9102,
+          "output_data": "Дивна тиша ходить через темні шати,\nСумно вітер плаче, тінь додолу йде.\nВже давно поснули люди біля хати,\nСпокій тихий нашу стежку тут знайде.\nТільки думки б'ються птахом в цій тривозі,\nХочуть рватись в небо світле до вогню.\nЧас зупинить кроки на моїй дорозі,\nСміло я відкрию серце цьому дню.\n"
+        },
+        {
+          "stage": "validation",
+          "input": "poem (8 lines)",
+          "output": "meter_acc=100.00%, rhyme_acc=75.00%, violations=1",
+          "metrics": {
+            "meter_accuracy": 1.0,
+            "rhyme_accuracy": 0.75,
+            "violation_count": 1
+          },
+          "duration_sec": 1.6095,
+          "output_data": {
+            "meter_results": [
+              {
+                "line": 1,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 12
+              },
+              {
+                "line": 2,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 11
+              },
+              {
+                "line": 3,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 12
+              },
+              {
+                "line": 4,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  10
+                ],
+                "error_positions": [
+                  10,
+                  11
+                ],
+                "total_syllables": 11
+              },
+              {
+                "line": 5,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  4,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "error_positions": [
+                  3,
+                  4
+                ],
+                "total_syllables": 12
+              },
+              {
+                "line": 6,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 11
+              },
+              {
+                "line": 7,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  9,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 12
+              },
+              {
+                "line": 8,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  5,
+                  7,
+                  10,
+                  11
+                ],
+                "error_positions": [
+                  9,
+                  10
+                ],
+                "total_syllables": 11
+              }
+            ],
+            "rhyme_results": [
+              {
+                "line_a": 1,
+                "line_b": 3,
+                "word_a": "шати",
+                "word_b": "хати",
+                "rhyme_part_a": "atɪ",
+                "rhyme_part_b": "atɪ",
+                "score": 1.0,
+                "ok": true
+              },
+              {
+                "line_a": 2,
+                "line_b": 4,
+                "word_a": "йде",
+                "word_b": "знайде",
+                "rhyme_part_a": "e",
+                "rhyme_part_b": "ajde",
+                "score": 0.0,
+                "ok": false
+              },
+              {
+                "line_a": 5,
+                "line_b": 7,
+                "word_a": "тривозі",
+                "word_b": "дорозі",
+                "rhyme_part_a": "ozi",
+                "rhyme_part_b": "ozi",
+                "score": 1.0,
+                "ok": true
+              },
+              {
+                "line_a": 6,
+                "line_b": 8,
+                "word_a": "вогню",
+                "word_b": "дню",
+                "rhyme_part_a": "u",
+                "rhyme_part_b": "u",
+                "score": 1.0,
+                "ok": true
+              }
+            ],
+            "feedback": [
+              "Lines 2 and 4 should rhyme (scheme ABAB).\nExpected rhyme with ending 'e'.\nCurrent ending 'ajde' does not match (score: 0.00).\nClausula: line 2 is masculine, line 4 is feminine.\nRewrite line 4 keeping the meaning and meter."
+            ]
+          }
+        },
+        {
+          "stage": "feedback_loop",
+          "input": "max_iterations=1",
+          "output": "2 iterations, final meter=100.00% rhyme=100.00%",
+          "metrics": {
+            "total_iterations": 2,
+            "final_meter_accuracy": 1.0,
+            "final_rhyme_accuracy": 1.0
+          },
+          "duration_sec": 0.0
+        }
+      ],
+      "iterations": [
+        {
+          "iteration": 0,
+          "poem_text": "Дивна тиша ходить через темні шати,\nСумно вітер плаче, тінь додолу йде.\nВже давно поснули люди біля хати,\nСпокій тихий нашу стежку тут знайде.\nТільки думки б'ються птахом в цій тривозі,\nХочуть рватись в небо світле до вогню.\nЧас зупинить кроки на моїй дорозі,\nСміло я відкрию серце цьому дню.\n",
+          "meter_accuracy": 1.0,
+          "rhyme_accuracy": 0.75,
+          "feedback": [
+            "Lines 2 and 4 should rhyme (scheme ABAB).\nExpected rhyme with ending 'e'.\nCurrent ending 'ajde' does not match (score: 0.00).\nClausula: line 2 is masculine, line 4 is feminine.\nRewrite line 4 keeping the meaning and meter."
+          ],
+          "duration_sec": 1.6095,
+          "raw_llm_response": "<POEM>\nДивна тиша ходить через темні шати,\nСумно вітер плаче, тінь додолу йде.\nВже давно поснули люди біля хати,\nСпокій тихий нашу стежку тут знайде.\n\nТільки думки б'ються птахом в цій тривозі,\nХочуть рватись в небо світле до вогню.\nЧас зупинить кроки на моїй дорозі,\nСміло я відкрию серце цьому дню.\n</POEM>\n",
+          "sanitized_llm_response": "Дивна тиша ходить через темні шати,\nСумно вітер плаче, тінь додолу йде.\nВже давно поснули люди біля хати,\nСпокій тихий нашу стежку тут знайде.\n\nТільки думки б'ються птахом в цій тривозі,\nХочуть рватись в небо світле до вогню.\nЧас зупинить кроки на моїй дорозі,\nСміло я відкрию серце цьому дню.\n",
+          "input_tokens": 2034,
+          "output_tokens": 12813
+        },
+        {
+          "iteration": 1,
+          "poem_text": "Дивна тиша ходить через темні шати,\nСумно вітер плаче, тінь додолу йде.\nВже давно поснули люди біля хати,\nСпокій тихий нашу стежку прокладе.\nТільки думки б'ються птахом в цій тривозі,\nХочуть рватись в небо світле до вогню.\nЧас зупинить кроки на моїй дорозі,\nСміло я відкрию серце цьому дню.\n",
+          "meter_accuracy": 1.0,
+          "rhyme_accuracy": 1.0,
+          "feedback": [],
+          "duration_sec": 87.3857,
+          "raw_llm_response": "<POEM>\nДивна тиша ходить через темні шати,\nСумно вітер плаче, тінь додолу йде.\nВже давно поснули люди біля хати,\nСпокій тихий нашу стежку прокладе.\nТільки думки б'ються птахом в цій тривозі,\nХочуть рватись в небо світле до вогню.\nЧас зупинить кроки на моїй дорозі,\nСміло я відкрию серце цьому дню.\n</POEM>\n",
+          "sanitized_llm_response": "Дивна тиша ходить через темні шати,\nСумно вітер плаче, тінь додолу йде.\nВже давно поснули люди біля хати,\nСпокій тихий нашу стежку прокладе.\nТільки думки б'ються птахом в цій тривозі,\nХочуть рватись в небо світле до вогню.\nЧас зупинить кроки на моїй дорозі,\nСміло я відкрию серце цьому дню.\n",
+          "input_tokens": 950,
+          "output_tokens": 9708
+        }
+      ],
+      "final_poem": "Дивна тиша ходить через темні шати,\nСумно вітер плаче, тінь додолу йде.\nВже давно поснули люди біля хати,\nСпокій тихий нашу стежку прокладе.\nТільки думки б'ються птахом в цій тривозі,\nХочуть рватись в небо світле до вогню.\nЧас зупинить кроки на моїй дорозі,\nСміло я відкрию серце цьому дню.\n",
+      "final_metrics": {
+        "meter_accuracy": 1.0,
+        "rhyme_accuracy": 1.0,
+        "regeneration_success": 1.0,
+        "semantic_relevance": 0.3457,
+        "num_lines": 8.0,
+        "meter_improvement": 0.0,
+        "rhyme_improvement": 0.25,
+        "feedback_iterations": 1.0,
+        "input_tokens": 2984.0,
+        "output_tokens": 22521.0,
+        "total_tokens": 25505.0,
+        "estimated_cost_usd": 0.2762
+      },
+      "total_duration_sec": 181.7237
+    },
+    {
+      "scenario_id": "C01",
+      "config": "F",
+      "stages": [
+        {
+          "stage": "retrieval",
+          "input": "theme='тиша', corpus_size=153",
+          "output": "retrieved 5 poems, top_sim=0.3646",
+          "metrics": {
+            "num_retrieved": 5,
+            "top_similarity": 0.36460202458209684
+          },
+          "duration_sec": 0.1086,
+          "input_data": {
+            "theme": "тиша",
+            "corpus_size": 153
+          },
+          "output_data": [
+            {
+              "similarity": 0.3646,
+              "text": "(уривок)\nяк я люблю оці години праці,\nколи усе навколо затиха\nпід владою чаруючої ночі,\nа тільки я одна неподоланна\nврочистую одправу починаю\nперед моїм незримим олтарем.\nлетять хвилини – я не прислухаюсь.\nось північ вдарила – найкращий праці час, –\nтак дзвінко вдарила, що стрепенулась тиша\nі швидше у руках забігало перо.\nгодини йдуть – куди вони спішаться?\nмені осіння ніч короткою здається,\nбезсоння довге не страшне мені,\nвоно мені не грозить, як бувало,\nнепевною і чорною рукою,\nа вабить лагідно, як мрія молода.\nі любо так, і серце щастям б’ється,\nдумки цвітуть, мов золоті квітки.\nі хтось немов схиляється до мене,\nі промовляє чарівні слова,\nі полум'ям займається від слів тих,\nі блискавицею освічує думки."
+            },
+            {
+              "similarity": 0.3435,
+              "text": "довго спали вітри у ярах на припоні,\nдовго тиша гнітюча полями повзла,\nі стояли дерева німі на осонні,\nзнемагала в пилюці вечірня імла.\nі на трави не бризнули роси, мов перли,\nяк рум’янець густий раннє небо залив.\nі здавалось — життя задрімало, завмерло,\nзаблукало в безмежжі неміряних нив.\nі здавалось — нема ні початку, ні краю\nцій нудоті німій і нудній німоті…\nнайстрашніше, мабуть, тільки тиша карає,\nколи поруч з тобою повзе по житті."
+            },
+            {
+              "similarity": 0.34,
+              "text": "як ми можемо жити, сміятись і дихать?\nяк могли ми чекати — не битись, а спать\nв ніч, коли у в’язниці спокійно і тихо\nви збиралися вмерти — у шість двадцять п’ять.\nі коли приволікся заплаканий ранок,\nвас покликала смерть у похмурій імлі —\nа тепер наші душі і топчуть, і ранять\nваші кроки останні по зимній землі.\nа тепер в кожній серці пожежу пригаслу\nрозпалили ви знову — спаливши життя.\nі, мов гимн урочистий, мов визвольне гасло,\nє для нас двох імен нерозривне злиття.\nнад могилою вашою тиша і спокій,\nта по рідному краю — зловіщі вогні.\nі піти по слідах ваших скошених кроків\nрвучко тягнуться сотні окрилених ніг."
+            },
+            {
+              "similarity": 0.3365,
+              "text": "коли приходиш ніжний і шумкий,\nі дзвоном слів перетинаєш спокій,\nмені здається — весняних потоків\nпливуть бурхливі і ясні струмки.\nтоді вдаряють спінені думки\nу таємничість непочатих років,\nкуди пірве твої юнацькі кроки\nдалекий шлях — тривожний і стрімкий.\nтак радісно тримать твої долоні\nу цій кімнаті, де в низькім поклоні\nсхилились айстри на овальний стіл,\nта все ж життя — це обрії далекі,\nце літаків непогамовний клекіт,\nі у руках скажений скоростріл."
+            },
+            {
+              "similarity": 0.3227,
+              "text": "усе — лише не це! не ці спокійні дні,\nде всі слова у барвах однакових,\nдумки, мов нероздмухані вогні,\nбажання — в запорошених оковах.\nякогось вітру, сміху чи злоби!\nщоб рвались душі крізь іржаві ґрати,\nщоб крикнув хтось: ненавидь і люби —\nі варто буде жити чи вмирати!\nне бійся днів, заплутаних вузлом,\nночей безсонних, очманілих ранків.\nхай ріже час лице — добром і злом!\nхай палять серце — найдрібнійші ранки!\nти в тінь не йди. тривай в пекучий грі.\nв сліпуче сяйво не лякайсь дивиться —\nлише по спеці гряне жданий грім\nіз хмар сковзне — багнетом — блискавиця."
+            }
+          ]
+        },
+        {
+          "stage": "metric_examples",
+          "input": "SKIPPED (config.metric_examples disabled)",
+          "output": "—",
+          "metrics": {
+            "num_examples": 0
+          },
+          "duration_sec": 0.0
+        },
+        {
+          "stage": "prompt_construction",
+          "input": "theme='тиша', meter=хорей, scheme=ABAB",
+          "output": "prompt length=4237 chars",
+          "metrics": {
+            "prompt_length": 4237,
+            "num_metric_examples": 0
+          },
+          "duration_sec": 0.0001,
+          "output_data": "Use the following poetic excerpts as thematic inspiration (do not copy):\n(уривок)\nяк я люблю оці години праці,\nколи усе навколо затиха\nпід владою чаруючої ночі,\nа тільки я одна неподоланна\nврочистую одправу починаю\nперед моїм незримим олтарем.\nлетять хвилини – я не прислухаюсь.\nось північ вдарила – найкращий праці час, –\nтак дзвінко вдарила, що стрепенулась тиша\nі швидше у руках забігало перо.\nгодини йдуть – куди вони спішаться?\nмені осіння ніч короткою здається,\nбезсоння довге не страшне мені,\nвоно мені не грозить, як бувало,\nнепевною і чорною рукою,\nа вабить лагідно, як мрія молода.\nі любо так, і серце щастям б’ється,\nдумки цвітуть, мов золоті квітки.\nі хтось немов схиляється до мене,\nі промовляє чарівні слова,\nі полум'ям займається від слів тих,\nі блискавицею освічує думки.\nдовго спали вітри у ярах на припоні,\nдовго тиша гнітюча полями повзла,\nі стояли дерева німі на осонні,\nзнемагала в пилюці вечірня імла.\nі на трави не бризнули роси, мов перли,\nяк рум’янець густий раннє небо залив.\nі здавалось — життя задрімало, завмерло,\nзаблукало в безмежжі неміряних нив.\nі здавалось — нема ні початку, ні краю\nцій нудоті німій і нудній німоті…\nнайстрашніше, мабуть, тільки тиша карає,\nколи поруч з тобою повзе по житті.\nяк ми можемо жити, сміятись і дихать?\nяк могли ми чекати — не битись, а спать\nв ніч, коли у в’язниці спокійно і тихо\nви збиралися вмерти — у шість двадцять п’ять.\nі коли приволікся заплаканий ранок,\nвас покликала смерть у похмурій імлі —\nа тепер наші душі і топчуть, і ранять\nваші кроки останні по зимній землі.\nа тепер в кожній серці пожежу пригаслу\nрозпалили ви знову — спаливши життя.\nі, мов гимн урочистий, мов визвольне гасло,\nє для нас двох імен нерозривне злиття.\nнад могилою вашою тиша і спокій,\nта по рідному краю — зловіщі вогні.\nі піти по слідах ваших скошених кроків\nрвучко тягнуться сотні окрилених ніг.\nколи приходиш ніжний і шумкий,\nі дзвоном слів перетинаєш спокій,\nмені здається — весняних потоків\nпливуть бурхливі і ясні струмки.\nтоді вдаряють спінені думки\nу таємничість непочатих років,\nкуди пірве твої юнацькі кроки\nдалекий шлях — тривожний і стрімкий.\nтак радісно тримать твої долоні\nу цій кімнаті, де в низькім поклоні\nсхилились айстри на овальний стіл,\nта все ж життя — це обрії далекі,\nце літаків непогамовний клекіт,\nі у руках скажений скоростріл.\nусе — лише не це! не ці спокійні дні,\nде всі слова у барвах однакових,\nдумки, мов нероздмухані вогні,\nбажання — в запорошених оковах.\nякогось вітру, сміху чи злоби!\nщоб рвались душі крізь іржаві ґрати,\nщоб крикнув хтось: ненавидь і люби —\nі варто буде жити чи вмирати!\nне бійся днів, заплутаних вузлом,\nночей безсонних, очманілих ранків.\nхай ріже час лице — добром і злом!\nхай палять серце — найдрібнійші ранки!\nти в тінь не йди. тривай в пекучий грі.\nв сліпуче сяйво не лякайсь дивиться —\nлише по спеці гряне жданий грім\nіз хмар сковзне — багнетом — блискавиця.\n\nTheme: тиша\nMeter: хорей\nRhyme scheme: ABAB\nStructure: 2 stanzas of 4 lines each (8 lines total)\nGenerate a Ukrainian poem with exactly 8 lines.\n\nOUTPUT ENVELOPE (mandatory):\nWrap your FINAL poem between the literal tags <POEM> and </POEM>.\nYou may reason freely BEFORE <POEM>. Everything between <POEM> and </POEM> must be ONLY clean Ukrainian poem lines in normal orthography — one line per verse line, exactly 8 lines, no blank separators other than one newline between lines. Emit </POEM> immediately after the last poem line; write nothing after it.\n\nSTRICT FORMAT RULES FOR THE CONTENT BETWEEN <POEM>...</POEM> — violating any is a failure:\n- The first token after <POEM> MUST be a Cyrillic letter. No punctuation, parenthesis, digit, or Latin letter may precede it.\n- Every output line MUST contain Ukrainian words; lines that are only punctuation, digits, or scansion are forbidden.\n- NO ALL-CAPS words marking stress (forbidden: 'І-ДУТЬ', 'СЛАВ-ний', 'БІЙ').\n- NO syllable hyphenation inside words (forbidden: 'За-гу-бив-ся', 'ле-тить').\n- NO syllable numbering in parentheses (forbidden: 'Слу(1) жи(2) ли(3)', 'А (1) ни (2)').\n- NO scansion marks ('u u -', '( - )', '(U)', '->').\n- NO bare number sequences like '1 2 3 4 5 6 7 8'.\n- NO English words, commentary, analysis, drafts, alternatives, markdown, bullets, line numbers, or explanations between the tags."
+        },
+        {
+          "stage": "initial_generation",
+          "input": "prompt (4237 chars)",
+          "output": "8 lines generated",
+          "metrics": {
+            "num_lines": 8
+          },
+          "duration_sec": 204.3096,
+          "output_data": "Всюди спокій, гаснуть зорі,\nТиша впала на лани.\nСплять простори неозорі,\nЖдуть приходу таїни.\nЗавмирають зайві звуки,\nСвіт у темряві погас.\nНіч бере мене на руки,\nТихо плине вічний час.\n"
+        },
+        {
+          "stage": "validation",
+          "input": "poem (8 lines)",
+          "output": "meter_acc=0.00%, rhyme_acc=100.00%, violations=8",
+          "metrics": {
+            "meter_accuracy": 0.0,
+            "rhyme_accuracy": 1.0,
+            "violation_count": 8
+          },
+          "duration_sec": 2.0908,
+          "output_data": {
+            "meter_results": [
+              {
+                "line": 1,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [],
+                "total_syllables": 8
+              },
+              {
+                "line": 2,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  6
+                ],
+                "error_positions": [
+                  6,
+                  7
+                ],
+                "total_syllables": 7
+              },
+              {
+                "line": 3,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  2,
+                  7
+                ],
+                "error_positions": [
+                  2,
+                  3,
+                  5
+                ],
+                "total_syllables": 8
+              },
+              {
+                "line": 4,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5
+                ],
+                "error_positions": [
+                  7
+                ],
+                "total_syllables": 7
+              },
+              {
+                "line": 5,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [
+                  1
+                ],
+                "total_syllables": 8
+              },
+              {
+                "line": 6,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  7
+                ],
+                "error_positions": [
+                  5
+                ],
+                "total_syllables": 7
+              },
+              {
+                "line": 7,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [],
+                "total_syllables": 8
+              },
+              {
+                "line": 8,
+                "ok": false,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7
+                ],
+                "error_positions": [],
+                "total_syllables": 7
+              }
+            ],
+            "rhyme_results": [
+              {
+                "line_a": 1,
+                "line_b": 3,
+                "word_a": "зорі",
+                "word_b": "неозорі",
+                "rhyme_part_a": "ori",
+                "rhyme_part_b": "ori",
+                "score": 1.0,
+                "ok": true
+              },
+              {
+                "line_a": 2,
+                "line_b": 4,
+                "word_a": "лани",
+                "word_b": "таїни",
+                "rhyme_part_a": "anɪ",
+                "rhyme_part_b": "inɪ",
+                "score": 0.6667,
+                "ok": true
+              },
+              {
+                "line_a": 5,
+                "line_b": 7,
+                "word_a": "звуки",
+                "word_b": "руки",
+                "rhyme_part_a": "ukɪ",
+                "rhyme_part_b": "ukɪ",
+                "score": 1.0,
+                "ok": true
+              },
+              {
+                "line_a": 6,
+                "line_b": 8,
+                "word_a": "погас",
+                "word_b": "час",
+                "rhyme_part_a": "as",
+                "rhyme_part_b": "as",
+                "score": 1.0,
+                "ok": true
+              }
+            ],
+            "feedback": [
+              "Line 1 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+              "Line 2 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 6.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+              "Line 3 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 2, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+              "Line 4 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+              "Line 5 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+              "Line 6 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+              "Line 7 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+              "Line 8 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning."
+            ]
+          }
+        },
+        {
+          "stage": "feedback_loop",
+          "input": "SKIPPED",
+          "output": "—",
+          "metrics": {},
+          "duration_sec": 0.0
+        }
+      ],
+      "iterations": [
+        {
+          "iteration": 0,
+          "poem_text": "Всюди спокій, гаснуть зорі,\nТиша впала на лани.\nСплять простори неозорі,\nЖдуть приходу таїни.\nЗавмирають зайві звуки,\nСвіт у темряві погас.\nНіч бере мене на руки,\nТихо плине вічний час.\n",
+          "meter_accuracy": 0.0,
+          "rhyme_accuracy": 1.0,
+          "feedback": [
+            "Line 1 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+            "Line 2 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 6.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+            "Line 3 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 2, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+            "Line 4 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+            "Line 5 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+            "Line 6 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning.",
+            "Line 7 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 8 syllables but should have ~12 (lengthen by 4).\nRewrite only this line, keep the meaning.",
+            "Line 8 violates хорей meter.\nExpected stress on syllables: 1, 3, 5, 7, 9, 11.\nActual stress on syllables: 1, 3, 5, 7.\nLine has 7 syllables but should have ~12 (lengthen by 5).\nRewrite only this line, keep the meaning."
+          ],
+          "duration_sec": 2.0908,
+          "raw_llm_response": "<POEM>\nВсюди спокій, гаснуть зорі,\nТиша впала на лани.\nСплять простори неозорі,\nЖдуть приходу таїни.\n\nЗавмирають зайві звуки,\nСвіт у темряві погас.\nНіч бере мене на руки,\nТихо плине вічний час.\n</POEM>\n",
+          "sanitized_llm_response": "Всюди спокій, гаснуть зорі,\nТиша впала на лани.\nСплять простори неозорі,\nЖдуть приходу таїни.\n\nЗавмирають зайві звуки,\nСвіт у темряві погас.\nНіч бере мене на руки,\nТихо плине вічний час.\n",
+          "input_tokens": 1889,
+          "output_tokens": 9823
+        }
+      ],
+      "final_poem": "Всюди спокій, гаснуть зорі,\nТиша впала на лани.\nСплять простори неозорі,\nЖдуть приходу таїни.\nЗавмирають зайві звуки,\nСвіт у темряві погас.\nНіч бере мене на руки,\nТихо плине вічний час.\n",
+      "final_metrics": {
+        "meter_accuracy": 0.0,
+        "rhyme_accuracy": 1.0,
+        "regeneration_success": 0.0,
+        "semantic_relevance": 0.4211,
+        "num_lines": 8.0,
+        "meter_improvement": 0.0,
+        "rhyme_improvement": 0.0,
+        "feedback_iterations": 0.0,
+        "input_tokens": 1889.0,
+        "output_tokens": 9823.0,
+        "total_tokens": 11712.0,
+        "estimated_cost_usd": 0.1217
+      },
+      "total_duration_sec": 207.2709
+    },
+    {
+      "scenario_id": "C01",
+      "config": "G",
+      "stages": [
+        {
+          "stage": "retrieval",
+          "input": "SKIPPED (config.retrieval disabled)",
+          "output": "—",
+          "metrics": {
+            "num_retrieved": 0
+          },
+          "duration_sec": 0.0
+        },
+        {
+          "stage": "metric_examples",
+          "input": "meter=хорей, feet=6, scheme=ABAB",
+          "output": "found 2 metric examples",
+          "metrics": {
+            "num_examples": 2
+          },
+          "duration_sec": 0.0006,
+          "output_data": [
+            {
+              "id": "хорей_6_ABAB_user_c01_01",
+              "meter": "хорей",
+              "feet": 6,
+              "scheme": "ABAB",
+              "verified": true,
+              "text": "Тиша міцно спить на темнім дні долини,\nТемна ніч поволі вже до нас іде.\nСвіт давно забув усі сліди людини,\nТінь на землю тихий сон тепер кладе."
+            },
+            {
+              "id": "хорей_6_ABAB_user_c01_02",
+              "meter": "хорей",
+              "feet": 6,
+              "scheme": "ABAB",
+              "verified": true,
+              "text": "Мертва тиша поруч з нами тихо ходить,\nГасне тихо, гасне ясний, світлий день.\nСум тривожний знов до болю серце зводить,\nРазом змовкли луни наших всіх пісень."
+            }
+          ]
+        },
+        {
+          "stage": "prompt_construction",
+          "input": "theme='тиша', meter=хорей, scheme=ABAB",
+          "output": "prompt length=1908 chars",
+          "metrics": {
+            "prompt_length": 1908,
+            "num_metric_examples": 2
+          },
+          "duration_sec": 0.0001,
+          "output_data": "Use the following poetic excerpts as thematic inspiration (do not copy):\n\n\nUse these verified examples as METER and RHYME reference (they demonstrate хорей meter with ABAB rhyme scheme — follow this rhythm and rhyme pattern exactly):\nТиша міцно спить на темнім дні долини,\nТемна ніч поволі вже до нас іде.\nСвіт давно забув усі сліди людини,\nТінь на землю тихий сон тепер кладе.\n\nМертва тиша поруч з нами тихо ходить,\nГасне тихо, гасне ясний, світлий день.\nСум тривожний знов до болю серце зводить,\nРазом змовкли луни наших всіх пісень.\n\nTheme: тиша\nMeter: хорей\nRhyme scheme: ABAB\nStructure: 2 stanzas of 4 lines each (8 lines total)\nGenerate a Ukrainian poem with exactly 8 lines.\n\nOUTPUT ENVELOPE (mandatory):\nWrap your FINAL poem between the literal tags <POEM> and </POEM>.\nYou may reason freely BEFORE <POEM>. Everything between <POEM> and </POEM> must be ONLY clean Ukrainian poem lines in normal orthography — one line per verse line, exactly 8 lines, no blank separators other than one newline between lines. Emit </POEM> immediately after the last poem line; write nothing after it.\n\nSTRICT FORMAT RULES FOR THE CONTENT BETWEEN <POEM>...</POEM> — violating any is a failure:\n- The first token after <POEM> MUST be a Cyrillic letter. No punctuation, parenthesis, digit, or Latin letter may precede it.\n- Every output line MUST contain Ukrainian words; lines that are only punctuation, digits, or scansion are forbidden.\n- NO ALL-CAPS words marking stress (forbidden: 'І-ДУТЬ', 'СЛАВ-ний', 'БІЙ').\n- NO syllable hyphenation inside words (forbidden: 'За-гу-бив-ся', 'ле-тить').\n- NO syllable numbering in parentheses (forbidden: 'Слу(1) жи(2) ли(3)', 'А (1) ни (2)').\n- NO scansion marks ('u u -', '( - )', '(U)', '->').\n- NO bare number sequences like '1 2 3 4 5 6 7 8'.\n- NO English words, commentary, analysis, drafts, alternatives, markdown, bullets, line numbers, or explanations between the tags."
+        },
+        {
+          "stage": "initial_generation",
+          "input": "prompt (1908 chars)",
+          "output": "8 lines generated",
+          "metrics": {
+            "num_lines": 8
+          },
+          "duration_sec": 348.681,
+          "output_data": "Тінь ховає всі забуті вже стежини,\nСум іде до мене в мій порожній дім.\nВітер спить, не хоче гнути вже ялини,\nТиша ходить в полі темнім та німім.\nСніг лягає на похилі голі віти,\nТиша владно кличе всіх у свій полон.\nЗнову сплять у полі всі маленькі діти,\nВсюди править тільки мир і тихий сон.\n"
+        },
+        {
+          "stage": "validation",
+          "input": "poem (8 lines)",
+          "output": "meter_acc=100.00%, rhyme_acc=100.00%, violations=0",
+          "metrics": {
+            "meter_accuracy": 1.0,
+            "rhyme_accuracy": 1.0,
+            "violation_count": 0
+          },
+          "duration_sec": 1.6157,
+          "output_data": {
+            "meter_results": [
+              {
+                "line": 1,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 12
+              },
+              {
+                "line": 2,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  6,
+                  9,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 11
+              },
+              {
+                "line": 3,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 12
+              },
+              {
+                "line": 4,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  6,
+                  7,
+                  11
+                ],
+                "error_positions": [
+                  5,
+                  6
+                ],
+                "total_syllables": 11
+              },
+              {
+                "line": 5,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  7,
+                  9,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 12
+              },
+              {
+                "line": 6,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 11
+              },
+              {
+                "line": 7,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  6,
+                  7,
+                  9,
+                  11
+                ],
+                "error_positions": [
+                  5,
+                  6
+                ],
+                "total_syllables": 12
+              },
+              {
+                "line": 8,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 11
+              }
+            ],
+            "rhyme_results": [
+              {
+                "line_a": 1,
+                "line_b": 3,
+                "word_a": "стежини",
+                "word_b": "ялини",
+                "rhyme_part_a": "ɪnɪ",
+                "rhyme_part_b": "ɪnɪ",
+                "score": 1.0,
+                "ok": true
+              },
+              {
+                "line_a": 2,
+                "line_b": 4,
+                "word_a": "дім",
+                "word_b": "німім",
+                "rhyme_part_a": "im",
+                "rhyme_part_b": "im",
+                "score": 1.0,
+                "ok": true
+              },
+              {
+                "line_a": 5,
+                "line_b": 7,
+                "word_a": "віти",
+                "word_b": "діти",
+                "rhyme_part_a": "itɪ",
+                "rhyme_part_b": "itɪ",
+                "score": 1.0,
+                "ok": true
+              },
+              {
+                "line_a": 6,
+                "line_b": 8,
+                "word_a": "полон",
+                "word_b": "сон",
+                "rhyme_part_a": "on",
+                "rhyme_part_b": "on",
+                "score": 1.0,
+                "ok": true
+              }
+            ],
+            "feedback": []
+          }
+        },
+        {
+          "stage": "feedback_loop",
+          "input": "SKIPPED",
+          "output": "—",
+          "metrics": {},
+          "duration_sec": 0.0
+        }
+      ],
+      "iterations": [
+        {
+          "iteration": 0,
+          "poem_text": "Тінь ховає всі забуті вже стежини,\nСум іде до мене в мій порожній дім.\nВітер спить, не хоче гнути вже ялини,\nТиша ходить в полі темнім та німім.\nСніг лягає на похилі голі віти,\nТиша владно кличе всіх у свій полон.\nЗнову сплять у полі всі маленькі діти,\nВсюди править тільки мир і тихий сон.\n",
+          "meter_accuracy": 1.0,
+          "rhyme_accuracy": 1.0,
+          "feedback": [],
+          "duration_sec": 1.6157,
+          "raw_llm_response": "<POEM>\nТінь ховає всі забуті вже стежини,\nСум іде до мене в мій порожній дім.\nВітер спить, не хоче гнути вже ялини,\nТиша ходить в полі темнім та німім.\n\nСніг лягає на похилі голі віти,\nТиша владно кличе всіх у свій полон.\nЗнову сплять у полі всі маленькі діти,\nВсюди править тільки мир і тихий сон.\n</POEM>\n",
+          "sanitized_llm_response": "Тінь ховає всі забуті вже стежини,\nСум іде до мене в мій порожній дім.\nВітер спить, не хоче гнути вже ялини,\nТиша ходить в полі темнім та німім.\n\nСніг лягає на похилі голі віти,\nТиша владно кличе всіх у свій полон.\nЗнову сплять у полі всі маленькі діти,\nВсюди править тільки мир і тихий сон.\n",
+          "input_tokens": 921,
+          "output_tokens": 13534
+        }
+      ],
+      "final_poem": "Тінь ховає всі забуті вже стежини,\nСум іде до мене в мій порожній дім.\nВітер спить, не хоче гнути вже ялини,\nТиша ходить в полі темнім та німім.\nСніг лягає на похилі голі віти,\nТиша владно кличе всіх у свій полон.\nЗнову сплять у полі всі маленькі діти,\nВсюди править тільки мир і тихий сон.\n",
+      "final_metrics": {
+        "meter_accuracy": 1.0,
+        "rhyme_accuracy": 1.0,
+        "regeneration_success": 0.0,
+        "semantic_relevance": 0.3745,
+        "num_lines": 8.0,
+        "meter_improvement": 0.0,
+        "rhyme_improvement": 0.0,
+        "feedback_iterations": 0.0,
+        "input_tokens": 921.0,
+        "output_tokens": 13534.0,
+        "total_tokens": 14455.0,
+        "estimated_cost_usd": 0.1643
+      },
+      "total_duration_sec": 350.8933
+    },
+    {
+      "scenario_id": "C01",
+      "config": "H",
+      "stages": [
+        {
+          "stage": "retrieval",
+          "input": "theme='тиша', corpus_size=153",
+          "output": "retrieved 5 poems, top_sim=0.3646",
+          "metrics": {
+            "num_retrieved": 5,
+            "top_similarity": 0.36460202458209684
+          },
+          "duration_sec": 0.1289,
+          "input_data": {
+            "theme": "тиша",
+            "corpus_size": 153
+          },
+          "output_data": [
+            {
+              "similarity": 0.3646,
+              "text": "(уривок)\nяк я люблю оці години праці,\nколи усе навколо затиха\nпід владою чаруючої ночі,\nа тільки я одна неподоланна\nврочистую одправу починаю\nперед моїм незримим олтарем.\nлетять хвилини – я не прислухаюсь.\nось північ вдарила – найкращий праці час, –\nтак дзвінко вдарила, що стрепенулась тиша\nі швидше у руках забігало перо.\nгодини йдуть – куди вони спішаться?\nмені осіння ніч короткою здається,\nбезсоння довге не страшне мені,\nвоно мені не грозить, як бувало,\nнепевною і чорною рукою,\nа вабить лагідно, як мрія молода.\nі любо так, і серце щастям б’ється,\nдумки цвітуть, мов золоті квітки.\nі хтось немов схиляється до мене,\nі промовляє чарівні слова,\nі полум'ям займається від слів тих,\nі блискавицею освічує думки."
+            },
+            {
+              "similarity": 0.3435,
+              "text": "довго спали вітри у ярах на припоні,\nдовго тиша гнітюча полями повзла,\nі стояли дерева німі на осонні,\nзнемагала в пилюці вечірня імла.\nі на трави не бризнули роси, мов перли,\nяк рум’янець густий раннє небо залив.\nі здавалось — життя задрімало, завмерло,\nзаблукало в безмежжі неміряних нив.\nі здавалось — нема ні початку, ні краю\nцій нудоті німій і нудній німоті…\nнайстрашніше, мабуть, тільки тиша карає,\nколи поруч з тобою повзе по житті."
+            },
+            {
+              "similarity": 0.34,
+              "text": "як ми можемо жити, сміятись і дихать?\nяк могли ми чекати — не битись, а спать\nв ніч, коли у в’язниці спокійно і тихо\nви збиралися вмерти — у шість двадцять п’ять.\nі коли приволікся заплаканий ранок,\nвас покликала смерть у похмурій імлі —\nа тепер наші душі і топчуть, і ранять\nваші кроки останні по зимній землі.\nа тепер в кожній серці пожежу пригаслу\nрозпалили ви знову — спаливши життя.\nі, мов гимн урочистий, мов визвольне гасло,\nє для нас двох імен нерозривне злиття.\nнад могилою вашою тиша і спокій,\nта по рідному краю — зловіщі вогні.\nі піти по слідах ваших скошених кроків\nрвучко тягнуться сотні окрилених ніг."
+            },
+            {
+              "similarity": 0.3365,
+              "text": "коли приходиш ніжний і шумкий,\nі дзвоном слів перетинаєш спокій,\nмені здається — весняних потоків\nпливуть бурхливі і ясні струмки.\nтоді вдаряють спінені думки\nу таємничість непочатих років,\nкуди пірве твої юнацькі кроки\nдалекий шлях — тривожний і стрімкий.\nтак радісно тримать твої долоні\nу цій кімнаті, де в низькім поклоні\nсхилились айстри на овальний стіл,\nта все ж життя — це обрії далекі,\nце літаків непогамовний клекіт,\nі у руках скажений скоростріл."
+            },
+            {
+              "similarity": 0.3227,
+              "text": "усе — лише не це! не ці спокійні дні,\nде всі слова у барвах однакових,\nдумки, мов нероздмухані вогні,\nбажання — в запорошених оковах.\nякогось вітру, сміху чи злоби!\nщоб рвались душі крізь іржаві ґрати,\nщоб крикнув хтось: ненавидь і люби —\nі варто буде жити чи вмирати!\nне бійся днів, заплутаних вузлом,\nночей безсонних, очманілих ранків.\nхай ріже час лице — добром і злом!\nхай палять серце — найдрібнійші ранки!\nти в тінь не йди. тривай в пекучий грі.\nв сліпуче сяйво не лякайсь дивиться —\nлише по спеці гряне жданий грім\nіз хмар сковзне — багнетом — блискавиця."
+            }
+          ]
+        },
+        {
+          "stage": "metric_examples",
+          "input": "meter=хорей, feet=6, scheme=ABAB",
+          "output": "found 2 metric examples",
+          "metrics": {
+            "num_examples": 2
+          },
+          "duration_sec": 0.0002,
+          "output_data": [
+            {
+              "id": "хорей_6_ABAB_user_c01_01",
+              "meter": "хорей",
+              "feet": 6,
+              "scheme": "ABAB",
+              "verified": true,
+              "text": "Тиша міцно спить на темнім дні долини,\nТемна ніч поволі вже до нас іде.\nСвіт давно забув усі сліди людини,\nТінь на землю тихий сон тепер кладе."
+            },
+            {
+              "id": "хорей_6_ABAB_user_c01_02",
+              "meter": "хорей",
+              "feet": 6,
+              "scheme": "ABAB",
+              "verified": true,
+              "text": "Мертва тиша поруч з нами тихо ходить,\nГасне тихо, гасне ясний, світлий день.\nСум тривожний знов до болю серце зводить,\nРазом змовкли луни наших всіх пісень."
+            }
+          ]
+        },
+        {
+          "stage": "prompt_construction",
+          "input": "theme='тиша', meter=хорей, scheme=ABAB",
+          "output": "prompt length=4699 chars",
+          "metrics": {
+            "prompt_length": 4699,
+            "num_metric_examples": 2
+          },
+          "duration_sec": 0.0001,
+          "output_data": "Use the following poetic excerpts as thematic inspiration (do not copy):\n(уривок)\nяк я люблю оці години праці,\nколи усе навколо затиха\nпід владою чаруючої ночі,\nа тільки я одна неподоланна\nврочистую одправу починаю\nперед моїм незримим олтарем.\nлетять хвилини – я не прислухаюсь.\nось північ вдарила – найкращий праці час, –\nтак дзвінко вдарила, що стрепенулась тиша\nі швидше у руках забігало перо.\nгодини йдуть – куди вони спішаться?\nмені осіння ніч короткою здається,\nбезсоння довге не страшне мені,\nвоно мені не грозить, як бувало,\nнепевною і чорною рукою,\nа вабить лагідно, як мрія молода.\nі любо так, і серце щастям б’ється,\nдумки цвітуть, мов золоті квітки.\nі хтось немов схиляється до мене,\nі промовляє чарівні слова,\nі полум'ям займається від слів тих,\nі блискавицею освічує думки.\nдовго спали вітри у ярах на припоні,\nдовго тиша гнітюча полями повзла,\nі стояли дерева німі на осонні,\nзнемагала в пилюці вечірня імла.\nі на трави не бризнули роси, мов перли,\nяк рум’янець густий раннє небо залив.\nі здавалось — життя задрімало, завмерло,\nзаблукало в безмежжі неміряних нив.\nі здавалось — нема ні початку, ні краю\nцій нудоті німій і нудній німоті…\nнайстрашніше, мабуть, тільки тиша карає,\nколи поруч з тобою повзе по житті.\nяк ми можемо жити, сміятись і дихать?\nяк могли ми чекати — не битись, а спать\nв ніч, коли у в’язниці спокійно і тихо\nви збиралися вмерти — у шість двадцять п’ять.\nі коли приволікся заплаканий ранок,\nвас покликала смерть у похмурій імлі —\nа тепер наші душі і топчуть, і ранять\nваші кроки останні по зимній землі.\nа тепер в кожній серці пожежу пригаслу\nрозпалили ви знову — спаливши життя.\nі, мов гимн урочистий, мов визвольне гасло,\nє для нас двох імен нерозривне злиття.\nнад могилою вашою тиша і спокій,\nта по рідному краю — зловіщі вогні.\nі піти по слідах ваших скошених кроків\nрвучко тягнуться сотні окрилених ніг.\nколи приходиш ніжний і шумкий,\nі дзвоном слів перетинаєш спокій,\nмені здається — весняних потоків\nпливуть бурхливі і ясні струмки.\nтоді вдаряють спінені думки\nу таємничість непочатих років,\nкуди пірве твої юнацькі кроки\nдалекий шлях — тривожний і стрімкий.\nтак радісно тримать твої долоні\nу цій кімнаті, де в низькім поклоні\nсхилились айстри на овальний стіл,\nта все ж життя — це обрії далекі,\nце літаків непогамовний клекіт,\nі у руках скажений скоростріл.\nусе — лише не це! не ці спокійні дні,\nде всі слова у барвах однакових,\nдумки, мов нероздмухані вогні,\nбажання — в запорошених оковах.\nякогось вітру, сміху чи злоби!\nщоб рвались душі крізь іржаві ґрати,\nщоб крикнув хтось: ненавидь і люби —\nі варто буде жити чи вмирати!\nне бійся днів, заплутаних вузлом,\nночей безсонних, очманілих ранків.\nхай ріже час лице — добром і злом!\nхай палять серце — найдрібнійші ранки!\nти в тінь не йди. тривай в пекучий грі.\nв сліпуче сяйво не лякайсь дивиться —\nлише по спеці гряне жданий грім\nіз хмар сковзне — багнетом — блискавиця.\n\nUse these verified examples as METER and RHYME reference (they demonstrate хорей meter with ABAB rhyme scheme — follow this rhythm and rhyme pattern exactly):\nТиша міцно спить на темнім дні долини,\nТемна ніч поволі вже до нас іде.\nСвіт давно забув усі сліди людини,\nТінь на землю тихий сон тепер кладе.\n\nМертва тиша поруч з нами тихо ходить,\nГасне тихо, гасне ясний, світлий день.\nСум тривожний знов до болю серце зводить,\nРазом змовкли луни наших всіх пісень.\n\nTheme: тиша\nMeter: хорей\nRhyme scheme: ABAB\nStructure: 2 stanzas of 4 lines each (8 lines total)\nGenerate a Ukrainian poem with exactly 8 lines.\n\nOUTPUT ENVELOPE (mandatory):\nWrap your FINAL poem between the literal tags <POEM> and </POEM>.\nYou may reason freely BEFORE <POEM>. Everything between <POEM> and </POEM> must be ONLY clean Ukrainian poem lines in normal orthography — one line per verse line, exactly 8 lines, no blank separators other than one newline between lines. Emit </POEM> immediately after the last poem line; write nothing after it.\n\nSTRICT FORMAT RULES FOR THE CONTENT BETWEEN <POEM>...</POEM> — violating any is a failure:\n- The first token after <POEM> MUST be a Cyrillic letter. No punctuation, parenthesis, digit, or Latin letter may precede it.\n- Every output line MUST contain Ukrainian words; lines that are only punctuation, digits, or scansion are forbidden.\n- NO ALL-CAPS words marking stress (forbidden: 'І-ДУТЬ', 'СЛАВ-ний', 'БІЙ').\n- NO syllable hyphenation inside words (forbidden: 'За-гу-бив-ся', 'ле-тить').\n- NO syllable numbering in parentheses (forbidden: 'Слу(1) жи(2) ли(3)', 'А (1) ни (2)').\n- NO scansion marks ('u u -', '( - )', '(U)', '->').\n- NO bare number sequences like '1 2 3 4 5 6 7 8'.\n- NO English words, commentary, analysis, drafts, alternatives, markdown, bullets, line numbers, or explanations between the tags."
+        },
+        {
+          "stage": "initial_generation",
+          "input": "prompt (4699 chars)",
+          "output": "7 lines generated",
+          "metrics": {
+            "num_lines": 7
+          },
+          "duration_sec": 105.4231,
+          "output_data": "Тиша вже лягає на німі простори,\nТихо вкрила землю темна, дивна ніч.\nВже заснули сині та високі гори,\n\nТиша серце крає сумом і журбою,\nСвіт поринув у глибокий, темний сон.\nНіч німа звисає чорною стіною,\nБере душу в свій глухий, німий полон.\n"
+        },
+        {
+          "stage": "validation",
+          "input": "poem (7 lines)",
+          "output": "meter_acc=100.00%, rhyme_acc=50.00%, violations=1",
+          "metrics": {
+            "meter_accuracy": 1.0,
+            "rhyme_accuracy": 0.5,
+            "violation_count": 1
+          },
+          "duration_sec": 1.3786,
+          "output_data": {
+            "meter_results": [
+              {
+                "line": 1,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  5,
+                  9,
+                  10
+                ],
+                "error_positions": [
+                  10,
+                  11
+                ],
+                "total_syllables": 12
+              },
+              {
+                "line": 2,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 11
+              },
+              {
+                "line": 3,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  3,
+                  5,
+                  9,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 12
+              },
+              {
+                "line": 4,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 12
+              },
+              {
+                "line": 5,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  7,
+                  9,
+                  11
+                ],
+                "error_positions": [],
+                "total_syllables": 11
+              },
+              {
+                "line": 6,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  11
+                ],
+                "error_positions": [
+                  9
+                ],
+                "total_syllables": 12
+              },
+              {
+                "line": 7,
+                "ok": true,
+                "expected_stress": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  9,
+                  11
+                ],
+                "actual_stress": [
+                  2,
+                  3,
+                  7,
+                  9,
+                  11
+                ],
+                "error_positions": [
+                  1,
+                  2
+                ],
+                "total_syllables": 11
+              }
+            ],
+            "rhyme_results": [
+              {
+                "line_a": 1,
+                "line_b": 3,
+                "word_a": "простори",
+                "word_b": "гори",
+                "rhyme_part_a": "orɪ",
+                "rhyme_part_b": "orɪ",
+                "score": 1.0,
+                "ok": true
+              },
+              {
+                "line_a": 2,
+                "line_b": 4,
+                "word_a": "ніч",
+                "word_b": "журбою",
+                "rhyme_part_a": "itʃ",
+                "rhyme_part_b": "oju",
+                "score": 0.0,
+                "ok": false
+              }
+            ],
+            "feedback": [
+              "Lines 2 and 4 should rhyme (scheme ABAB).\nExpected rhyme with ending 'itʃ'.\nCurrent ending 'oju' does not match (score: 0.00).\nClausula: line 2 is masculine, line 4 is feminine.\nRewrite line 4 keeping the meaning and meter."
+            ]
+          }
+        },
+        {
+          "stage": "feedback_loop",
+          "input": "SKIPPED",
+          "output": "—",
+          "metrics": {},
+          "duration_sec": 0.0
+        }
+      ],
+      "iterations": [
+        {
+          "iteration": 0,
+          "poem_text": "Тиша вже лягає на німі простори,\nТихо вкрила землю темна, дивна ніч.\nВже заснули сині та високі гори,\n\nТиша серце крає сумом і журбою,\nСвіт поринув у глибокий, темний сон.\nНіч німа звисає чорною стіною,\nБере душу в свій глухий, німий полон.\n",
+          "meter_accuracy": 1.0,
+          "rhyme_accuracy": 0.5,
+          "feedback": [
+            "Lines 2 and 4 should rhyme (scheme ABAB).\nExpected rhyme with ending 'itʃ'.\nCurrent ending 'oju' does not match (score: 0.00).\nClausula: line 2 is masculine, line 4 is feminine.\nRewrite line 4 keeping the meaning and meter."
+          ],
+          "duration_sec": 1.3786,
+          "raw_llm_response": "<POEM>\nТиша вже лягає на німі простори,\nТихо вкрила землю темна, дивна ніч.\nВже заснули сині та високі гори,\nТільки тиша з нами стане віч-на-віч.\n\nТиша серце крає сумом і журбою,\nСвіт поринув у глибокий, темний сон.\nНіч німа звисає чорною стіною,\nБере душу в свій глухий, німий полон.\n</POEM>\n",
+          "sanitized_llm_response": "Тиша вже лягає на німі простори,\nТихо вкрила землю темна, дивна ніч.\nВже заснули сині та високі гори,\n\nТиша серце крає сумом і журбою,\nСвіт поринув у глибокий, темний сон.\nНіч німа звисає чорною стіною,\nБере душу в свій глухий, німий полон.\n",
+          "input_tokens": 2034,
+          "output_tokens": 13200
+        }
+      ],
+      "final_poem": "Тиша вже лягає на німі простори,\nТихо вкрила землю темна, дивна ніч.\nВже заснули сині та високі гори,\n\nТиша серце крає сумом і журбою,\nСвіт поринув у глибокий, темний сон.\nНіч німа звисає чорною стіною,\nБере душу в свій глухий, німий полон.\n",
+      "final_metrics": {
+        "meter_accuracy": 1.0,
+        "rhyme_accuracy": 0.5,
+        "regeneration_success": 0.0,
+        "semantic_relevance": 0.3043,
+        "num_lines": 7.0,
+        "meter_improvement": 0.0,
+        "rhyme_improvement": 0.0,
+        "feedback_iterations": 0.0,
+        "input_tokens": 2034.0,
+        "output_tokens": 13200.0,
+        "total_tokens": 15234.0,
+        "estimated_cost_usd": 0.1625
+      },
+      "total_duration_sec": 107.51
+    }
+  ]
+}

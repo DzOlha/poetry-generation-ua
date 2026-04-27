@@ -1,655 +1,328 @@
-# Automated Generation of Ukrainian Poetry
+<p align="right">
+  <strong>🇬🇧 English</strong> · <a href="./README.ua.md">🇺🇦 Українська</a>
+</p>
 
-*with Formal Control of Meter and Rhyme*
+# Ukrainian Poetry Generator
 
----
+> Generate, validate, and analyse Ukrainian classical poetry — with an LLM handling the words and rule-based linguistics enforcing the meter and rhyme.
 
-## Overview
+[![tests](https://img.shields.io/badge/tests-1131%20passing-brightgreen)]() [![coverage](https://img.shields.io/badge/coverage-91%25-brightgreen)]() [![python](https://img.shields.io/badge/python-3.13-blue)]() [![docker](https://img.shields.io/badge/runs%20in-Docker-2496ED)]()
 
-This project implements a **hybrid system for automated generation of Ukrainian poetry** with explicit control over poetic meter and rhyme schemes.
+```text
+Theme: «весна у лісі, пробудження природи»
+Meter: ямб, 4 стопи · Rhyme: ABAB · Stanzas: 1
 
-Modern large language models (LLMs) are capable of producing fluent and creative text, but they cannot reliably satisfy strict formal constraints, such as **syllable count, stress placement, meter, or rhyme** — especially in morphologically rich languages like Ukrainian.
+→ Весна прийшла у ліс зелений,
+  Де тінь і світло гомонить.
+  Мов сни, пливуть думки натхненні,
+  І серце в тиші стукотить.
 
-This work addresses that limitation by **separating semantic generation from formal validation**, combining:
+✓ meter 100% · ✓ rhyme 100% · 2 LLM attempts · \$0.02
+```
 
-* **Neural models** for semantic relevance
-* **LLM** for text generation
-* **Rule-based linguistic modules** for formal verification of meter and rhyme
-
-The system is designed as a **fully containerized, reproducible, and modular research prototype**, suitable for experimental evaluation and further extension.
-
----
-
-## Research Goal
-
-**Primary goal:**
-
-Design and implement an automated system that generates Ukrainian poetry while explicitly controlling poetic meter and rhyme using **interpretable linguistic rules**, and experimentally evaluate the impact of such control compared to unconstrained LLM generation.
+A web tool, JSON API, and research harness in one — built as a clean-architecture, fully reproducible Python project, designed as an MSc / research-grade prototype.
 
 ---
 
-## Key Design Principles
+## Why this exists
 
-1. **Separation of responsibilities**
+Large language models write fluent Ukrainian but **routinely miss the formal constraints** of classical poetry: wrong stress placement, off-by-one syllable count, suffix-only «pseudo-rhymes». They cannot self-correct because they have no internal model of meter or rhyme.
 
-   * Semantics → neural models
-   * Text generation → LLM
-   * Formal structure → rule-based linguistic analysis
+This project **separates concerns**: the LLM generates the words; **rule-based linguistic modules** validate **meter** by comparing the actual stress pattern (resolved via a Ukrainian stress dictionary) against the expected foot template, and validate **rhyme** by transcribing line endings into IPA and computing phonetic similarity (Levenshtein on the rhyme part from the stressed vowel onward). When validation fails, structured feedback is fed back to the LLM for targeted regeneration.
 
-2. **Interpretability**
-
-   * All meter and rhyme decisions are **deterministic and explainable**
-
-3. **Reproducibility**
-
-   * Entire system runs inside Docker containers
-   * No local dependencies are required
-
-4. **Minimal use of deep learning**
-
-   * Neural models are used only for **semantic similarity**
-   * Formal poetic structure is **explicitly modeled**, not learned
+The pipeline is **transparent and measurable**: every stage emits a trace, every metric is named, and an ablation harness quantifies what each component (semantic RAG, metric-rhyme few-shot examples, feedback loop) actually contributes.
 
 ---
 
-## High-Level System Architecture
+## System requirements
+
+Everything runs inside Docker, so you don't need Python / Stanza / sentence-transformers locally — Docker takes care of dependencies. But your host machine still needs the headroom for the containers.
+
+### Software prerequisites
+
+- **Docker** 20+ — Docker Desktop on macOS / Windows; native engine on Linux
+- **Docker Compose** v2 (bundled with Docker Desktop)
+- **GNU Make** (pre-installed on macOS / Linux; `choco install make` on Windows)
+- **Git** — to clone the repo
+- **(Windows)** WSL2 **or** Hyper-V enabled — Docker Desktop needs one of the two backends; native Windows containers are not supported. WSL2 is the modern default; Hyper-V works as a fallback (e.g. on Windows 10 Pro without WSL2)
+
+### Hardware (recommended for full system)
+
+| Resource | Minimum (mock LLM only) | Recommended (with LaBSE + real LLM) |
+|----------|--------------------------|----------------------------------------|
+| **CPU** | any 64-bit, 2+ cores | 4+ cores |
+| **RAM (free)** | 4 GB | **8 GB** (LaBSE inference uses ~2-3 GB during runtime) |
+| **Disk (free)** | 5 GB | **15 GB** (Docker images ~5 GB + LaBSE ~1.8 GB + Stanza ~500 MB + cache + corpus headroom) |
+| **GPU** | not required | not required (CPU is fine for low-volume LaBSE inference; Gemini runs server-side) |
+| **Network** | for initial Docker pulls only | + outbound HTTPS to Google for every Gemini call |
+| **OS** | macOS 11+ / Linux (kernel 4.x+) / Windows 10/11 + WSL2 or Hyper-V | same |
+
+> **First-time setup** downloads LaBSE (~1.8 GB) and Stanza (~500 MB) into a Docker volume. Plan ~5-15 minutes on a typical home connection. After that, models are cached and subsequent runs start instantly.
+
+---
+
+## Try it in 60 seconds
+
+<details>
+<summary><strong>Option A — full system with real Gemini (recommended)</strong></summary>
+
+```bash
+git clone https://github.com/DzOlha/poetry-generation-ua.git
+cd poetry-generation-ua
+cp .env.example .env
+# edit .env and put your Gemini API key into GEMINI_API_KEY
+make serve
+```
+
+Open http://localhost:8000.
+
+**Getting a Gemini API key (one-time, 5 minutes):**
+
+1. Go to **<https://aistudio.google.com/apikey>** → sign in with Google.
+2. Click **«Create API key»** → copy the key.
+3. The default model used by this project is **`gemini-3.1-pro-preview`** — it gives the best results for Ukrainian poetry, but it's a **paid** model. To use it you need to enable billing:
+   - Go to **<https://aistudio.google.com/billing>**.
+   - Click **«Set up billing»** → link a payment method (credit card).
+   - That means real money on your card: to upgrade from the free tier to paid Tier 1 (where `gemini-3.1-pro-preview` lives), Google requires a first payment — in practice around **\$30** (a one-off charge that activates billing). The **\$300 Google Cloud free trial credit** offered to new Cloud accounts **does not apply to the Gemini API** — it only covers other Cloud services (Compute Engine, BigQuery, etc.). So plan to actually pay for every Gemini call out of pocket.
+4. Paste the key into `.env`:
+   ```
+   GEMINI_API_KEY=your_key_here
+   GEMINI_MODEL=gemini-3.1-pro-preview
+   ```
+5. Approximate pricing (verify on **<https://ai.google.dev/pricing>** — it changes):
+   - **gemini-3.1-pro-preview** (default): \$2 / 1M input tokens, \$12 / 1M output tokens. A typical 1-stanza poem with 1 feedback iteration costs **~\$0.04**.
+   - **gemini-2.5-pro**: \$1.25 / 1M input, \$10 / 1M output. Slightly cheaper, slightly worse quality.
+   - **gemini-2.5-flash** (free tier available): **Significantly worse quality** for strict poetic structure — only use it for smoke-testing the pipeline, not for real generation. Set `GEMINI_MODEL=gemini-2.5-flash` to use.
+6. **If you change `GEMINI_MODEL`, also update the price env vars** so the displayed cost (`~\$0.04` next to each generated poem, ablation totals, etc.) reflects reality — the calculator just multiplies token counts by these numbers, it doesn't know which model you picked:
+   ```
+   GEMINI_INPUT_PRICE_PER_M=2.0       # default matches gemini-3.1-pro-preview
+   GEMINI_OUTPUT_PRICE_PER_M=12.0
+   ```
+   Reference values per 1M tokens (input / output): `gemini-3.1-pro-preview` 2.00 / 12.00 · `gemini-2.5-pro` 1.25 / 10.00 · `gemini-2.0-flash` 0.10 / 0.40. For other / newer models check **<https://ai.google.dev/pricing>**.
+
+</details>
+
+<details>
+<summary><strong>Option B — explore without paying anything</strong></summary>
+
+```bash
+git clone https://github.com/DzOlha/poetry-generation-ua.git
+cd poetry-generation-ua
+make serve   # no .env needed
+```
+
+Open http://localhost:8000. Generation is disabled (form blocked with notice), but **validation, detection, and analytics work fully** — useful for exploring the architecture and the rule-based linguistic modules.
+
+</details>
+
+---
+
+## What the web UI exposes
+
+Open http://localhost:8000 — you'll see **four tools**, each on its own page:
+
+| Page | What it does | Needs API key? |
+|------|---------------|-----------------|
+| 🪶 **Generation** | "Give me a poem on theme X with meter Y and rhyme scheme Z" | yes |
+| ✓ **Validation** | "Check this poem against meter Y and scheme Z; show me where it breaks" | no |
+| 🔍 **Detection** | "What meter and rhyme scheme does this poem use?" | no |
+| ⚙️ **Advanced configurations** | Run preset scenarios through ablation configs A–H, full pipeline trace | yes |
+| 📊 **Quality analytics** | Research dashboard with paired-Δ contributions, CIs, plots | no (reads pre-computed reports) |
+
+---
+
+## How it works (one diagram)
 
 ```
-User Input (theme, meter, rhyme scheme, foot count)
+User: theme + meter + rhyme + stanza count
                 ↓
-Semantic Theme Retrieval (LaBSE)      Metric Examples Retrieval (rule-based)
-   finds thematically similar poems       finds verified verse with exact meter/rhyme
-                ↓                                         ↓
-                └─────────── RAG Prompt Construction ─────┘
-                                      ↓
-                             LLM Text Generation
-                                      ↓
-                    Rule-based Meter & Rhyme Validation
-                                      ↓
-                    Optional Feedback-Driven Regeneration
-                                      ↓
-                                 Final Poem
+   ┌────────────────────────────┐  ┌────────────────────────────┐
+   │  Semantic RAG  (LaBSE)     │  │  Metric examples retrieval │
+   │  thematically-similar      │  │  verified verses with the  │
+   │  poems from corpus         │  │  exact meter+rhyme pattern │
+   └─────────────┬──────────────┘  └──────────────┬─────────────┘
+                 └──────── RAG prompt ─────────────┘
+                                ↓
+                       LLM generation (Gemini)
+                                ↓
+              ┌──────────────────────────────────────┐
+              │  Rule-based validation               │
+              │  • Meter:  actual stress pattern     │
+              │            vs expected foot template │
+              │  • Rhyme:  IPA transcription of line │
+              │            endings + Levenshtein on  │
+              │            the rhyme part            │
+              └─────────────┬────────────────────────┘
+                            ↓
+                    fail? → structured feedback
+                            ↓
+                    LLM regeneration (up to 3×)
+                            ↓
+                       final poem + metrics
 ```
+
+LLMs handle **content**; rule-based modules handle **form**. Validation is deterministic and explainable: for every "broken" verdict, the system can name the exact reason — the numbered syllable positions that should be stressed vs the ones that actually are (e.g. *expected: 2, 4, 6, 8 / actual: 1, 4, 6, 8*); the IPA suffix of the rhyme partner vs the IPA suffix of the offending line; and the numeric rhyme-similarity score that fell below the threshold (e.g. *score: 0.42*).
 
 ---
 
-## System Components
+## Tech stack
 
-### 1. Poetry Corpora
-
-* **Theme reference corpus** (`uk_theme_reference_corpus.json`) — curated corpus of Ukrainian poems with LaBSE embeddings for semantic retrieval by theme
-* **Metric-rhyme reference corpus** (`uk_metric-rhyme_reference_corpus.json`) — manually verified examples with exact meter, foot count, and rhyme scheme for rhythm/rhyme reference in prompts
-* **Auto-detected metric corpus** (`uk_auto_metric_corpus.json`) — automatically classified poems via brute-force meter/rhyme detection (built from `data/`)
-* Used for: semantic retrieval, metric examples retrieval, LLM prompting, experimental evaluation
-* Treated as **static linguistic resources**, not training data
-
-### 2. Semantic Theme Retrieval Module
-
-* Uses pretrained multilingual sentence embedding (LaBSE, 768-dim)
-* Converts textual theme description into vector representation
-* Retrieves semantically similar poems from the corpus (cosine similarity)
-* Purpose: improve thematic consistency without fine-tuning the LLM
-
-### 3. Metric Examples Retrieval Module
-
-* Rule-based lookup in `corpus/uk_metric-rhyme_reference_corpus.json`
-* Finds verified example quatrains with exact meter, foot count, and rhyme scheme
-* Covers all 5 meters × multiple foot counts × multiple rhyme schemes
-* Verified examples (classical Ukrainian poets) are prioritized
-* Purpose: give the LLM a rhythm and rhyme template to follow
-
-### 4. LLM-based Generator
-
-* Generates poetic text based on:
-
-  * user-defined theme
-  * semantically retrieved thematic examples
-  * metrically correct verse examples as rhythm/rhyme reference
-  * structural constraints (number of stanzas, lines per stanza)
-* **Does not validate meter or rhyme**; produces candidate text
-
-### 5. Meter Validation Module (Rule-Based)
-
-* Deterministic module:
-
-  * splits text into lines and words
-  * performs syllabification using `ukrainian-word-stress` + Stanza NLP
-  * assigns stress positions per word
-  * compares stress pattern against metrical template (iamb, trochee, dactyl, amphibrach, anapest)
-  * tolerates pyrrhic substitutions (unstressed at strong position) for function words and monosyllabic words
-  * tolerates spondee substitutions (stressed at weak position) for monosyllabic words
-  * accepts feminine (+1), dactylic (+2), and catalectic (−1 to −3) line endings
-* Output: **pass/fail** + syllable-level mismatch positions
-
-### 6. Rhyme Validation Module (Rule-Based)
-
-* Analyzes line endings:
-
-  * extracts phonetic endings
-  * compares endings across lines
-  * checks conformity to rhyme scheme (e.g., AABB, ABAB)
-* Fully symbolic and language-specific
-
-### 7. Feedback & Regeneration Loop
-
-* If formal violations are detected:
-
-  * generates structured feedback
-  * performs controlled regeneration
-  * logs results for experimental analysis
+- **Backend**: Python 3.13 · FastAPI · Pydantic · Poetry · Jinja2
+- **LLM**: Google Gemini (configurable model: 2.0-flash, 2.5-pro, 3.x-pro)
+- **Linguistics**:
+  - Meter — `ukrainian-word-stress` (Stanza-backed) for stress resolution + custom Pattern algorithm for foot-template matching
+  - Rhyme — custom Ukrainian → IPA transcriber + Levenshtein on the rhyme part (from the stressed vowel onward) + classifier (exact / assonance / consonance / inexact / none)
+- **RAG**: LaBSE multilingual sentence embeddings (`sentence-transformers`)
+- **Reliability**: typed retry / timeout / sanitization decorator stack with structured `DomainError` → HTTP mapping
+- **Quality gate**: 1131 tests (unit + integration + component), 91% coverage, ruff (lint), mypy (typecheck) — all gated in `make ci`
+- **Reproducibility**: everything runs in Docker; `Makefile` is the single entry point
 
 ---
 
-## Experimental Evaluation
+## Where to go next
 
-Supports systematic experiments:
+📍 **You're new and just want to use it** → [`docs/en/user_guide.md`](./docs/en/user_guide.md) ([🇺🇦](./docs/ua/user_guide.md))
+   Pages, input limits, expected timing, costs, errors, FAQ.
 
-* Baseline comparison: **pure LLM generation without formal control**
-* Ablation studies: disabling individual modules (retrieval, feedback)
-* Automatic metrics: meter accuracy, rhyme accuracy, regeneration success rate
-* Human evaluation: perceived poetic quality and thematic relevance
+🎓 **You're reviewing this for academic context** → [`docs/en/system_overview_for_readers.md`](./docs/en/system_overview_for_readers.md) ([🇺🇦](./docs/ua/system_overview_for_readers.md))
+   "What is this and why" in plain language, no implementation details.
 
----
+🛠️ **You're a contributor / developer** → [`docs/en/system_overview.md`](./docs/en/system_overview.md) ([🇺🇦](./docs/ua/system_overview.md))
+   Full 16-section walkthrough: every component, every interface, every decision.
 
-## Architecture
+🔬 **You're a researcher running ablations** → [`docs/en/evaluation_harness.md`](./docs/en/evaluation_harness.md) ([🇺🇦](./docs/ua/evaluation_harness.md))
+   18 scenarios × 8 configs harness, batch runner, paired-Δ analysis.
 
-The system is structured around **Domain-Driven Design** with clear separation between domain logic, infrastructure adapters, and the application layer.
+🧠 **Algorithm deep-dives** → [meter](./docs/en/meter_validation.md) · [rhyme](./docs/en/rhyme_validation.md) · [stress](./docs/en/stress_and_syllables.md) · [detection](./docs/en/detection_algorithm.md) · [feedback loop](./docs/en/feedback_loop.md) · [LLM decorator stack](./docs/en/llm_decorator_stack.md)
 
-### Design Principles
+🏛️ **Architectural decisions** → [`docs/adr/`](./docs/adr/)
 
-| Principle | How it is applied |
-|-----------|------------------|
-| **Single Responsibility** | Each class has one reason to change: `PoetryService` orchestrates generation, `EvaluationService` runs ablation matrix, `RagPromptBuilder` builds prompts |
-| **Open/Closed** | New meter validators, rhyme checkers, or retrievers are plugged in via interfaces — no pipeline changes required |
-| **Dependency Inversion** | High-level services depend on abstract ports (`IThemeRepository`, `IRhymeValidator`, `IPromptBuilder`, …), not concrete classes |
-| **Dependency Injection** | All dependencies are injected through constructors; `composition_root.py` wires production defaults via a centralized `Container` |
-| **Strategy Pattern** | `IMeterValidator`, `IRhymeValidator`, `IPromptBuilder`, `IIterationStopPolicy` are interchangeable strategies |
-| **Repository Pattern** | `IThemeRepository`, `IMetricRepository` hide storage details behind domain ports |
-| **Decorator Pattern** | LLM reliability stack: `LoggingLLMProvider` → `RetryingLLMProvider` → `TimeoutLLMProvider` → real provider |
-| **Composite Pattern** | `CompositeEmbedder` (primary + fallback), `CompositePoemValidator` (meter + rhyme) |
-| **Null Object Pattern** | `NullTracer`, `NullLogger` — safe no-op implementations |
-| **Contract Tests** | `IEmbedderContract`, `ILLMProviderContract`, `IMetricCalculatorContract` — behavioral guarantees for port implementations |
-| **Registry Pattern** | `DefaultMetricCalculatorRegistry`, `ScenarioRegistry`, `DefaultLLMProviderFactory` — runtime registration of implementations |
-| **Value Objects** | `GenerationRequest` replaces long argument lists; `MeterSpec`, `RhymeScheme`, `PoemStructure` are immutable frozen dataclasses |
-
-### Domain Model
-
-```
-GenerationRequest (command)
-  ├── theme: str
-  ├── MeterSpec (value object)  ← meter name + foot count
-  ├── RhymeScheme (value object) ← ABAB / AABB / …
-  └── PoemStructure (value object) ← stanzas × lines
-
-GenerationResult (result)
-  ├── poem: str
-  └── ValidationResult   ← meter_ok, rhyme_ok, accuracy, feedback
-```
-
-### Key Service Classes
-
-```
-PoetryService                ← main façade (services/poetry_service.py)
-  └── depends on:
-      ├── IPoemGenerationPipeline  ← staged pipeline (retrieval → generation → validation → feedback)
-      ├── IPoemValidator           ← composite meter + rhyme checking
-      └── IProviderInfo            ← LLM provider metadata
-
-EvaluationService            ← ablation matrix runner (services/evaluation_service.py)
-  └── depends on:
-      ├── IPipeline               ← evaluation pipeline (stages)
-      ├── ITracerFactory           ← creates per-run tracers
-      ├── IScenarioRegistry        ← 18 curated scenarios
-      └── AblationConfig[]         ← 5 ablation configurations
-
-DetectionService             ← meter/rhyme auto-detection (services/detection_service.py)
-  └── depends on:
-      ├── IMeterDetector           ← brute-force meter classifier
-      └── IRhymeDetector           ← brute-force rhyme classifier
-```
-
-## Repository Structure
-
-```
-poetry-generation-ua/
-│
-├── docker/                        # Container configuration (Dockerfile, docker-compose.yml, entrypoint.sh)
-├── docs/                          # ADRs and design documents
-├── src/
-│   ├── composition_root.py        # Centralised DI — Container + build_* factories
-│   ├── config.py                  # AppConfig (frozen dataclass, loaded from env)
-│   │
-│   ├── domain/                    # Domain layer (DDD) — zero infrastructure imports
-│   │   ├── models/                # Value objects, commands, results, entities
-│   │   │   ├── specifications.py  # MeterSpec, RhymeScheme, PoemStructure
-│   │   │   ├── commands.py        # GenerationRequest, ValidationRequest
-│   │   │   ├── results.py         # MeterResult, RhymeResult, ValidationResult, GenerationResult
-│   │   │   ├── entities.py        # ThemeExcerpt, MetricExample, LineTokens
-│   │   │   └── aggregates.py      # Poem
-│   │   ├── ports/                 # Abstract interfaces (ABC) — 30+ focused ports
-│   │   ├── values.py              # MeterName, RhymePattern, ScenarioCategory enums
-│   │   ├── errors.py              # DomainError hierarchy
-│   │   ├── evaluation.py          # AblationConfig, EvaluationSummary, PipelineTrace
-│   │   ├── feedback.py            # LineFeedback, PairFeedback
-│   │   ├── scenarios.py           # EvaluationScenario, ScenarioRegistry
-│   │   └── pipeline_context.py    # PipelineState (mutable stage aggregate)
-│   │
-│   ├── services/                  # Application layer — thin orchestrators
-│   │   ├── poetry_service.py      # PoetryService — generate + validate façade
-│   │   └── evaluation_service.py  # EvaluationService — ablation matrix runner
-│   │
-│   ├── handlers/                  # Transport adapters
-│   │   ├── api/                   # FastAPI REST endpoints
-│   │   │   ├── app.py             # Application factory + lifespan + error handler
-│   │   │   ├── dependencies.py    # Depends() providers from app.state
-│   │   │   ├── schemas.py         # Pydantic request/response models
-│   │   │   └── routers/           # poems.py, health.py, detection.py
-│   │   ├── web/                   # Jinja2 HTML interface
-│   │   │   ├── routes/            # index, generation, validation, detection, evaluation
-│   │   │   ├── templates/         # Jinja2 HTML templates
-│   │   │   └── static/            # CSS/JS assets
-│   │   └── shared/                # Shared handler helpers (line_displays, detect_orchestrator)
-│   │
-│   ├── runners/                   # IRunner implementations for scripts
-│   │   ├── generate_runner.py     # GenerateRunner — single poem generation
-│   │   ├── evaluation_runner.py   # EvaluationRunner — ablation matrix + reporting
-│   │   ├── build_corpus_runner.py # BuildCorpusRunner — theme reference corpus from data/
-│   │   ├── build_metric_corpus_runner.py  # BuildMetricCorpusRunner — auto-detected metric corpus
-│   │   ├── build_embeddings_runner.py     # BuildEmbeddingsRunner — LaBSE embeddings
-│   │   └── preload_resources_runner.py    # PreloadResourcesRunner — Stanza/LaBSE download
-│   │
-│   ├── infrastructure/            # Concrete adapter implementations
-│   │   ├── composition/           # DI sub-containers (primitives, validation, generation, metrics, evaluation, detection)
-│   │   ├── llm/                   # LLM providers (GeminiProvider, MockLLMProvider) + decorator stack
-│   │   ├── validators/            # Meter (Pattern, BSP) + Rhyme (Phonetic) + CompositePoemValidator
-│   │   ├── stress/                # UkrainianStressDict, SyllableCounter, PenultimateFallbackStressResolver
-│   │   ├── embeddings/            # LaBSE + OfflineDeterministic + Composite embedders
-│   │   ├── retrieval/             # SemanticRetriever (cosine similarity over LaBSE vectors)
-│   │   ├── repositories/          # JsonThemeRepository, DemoThemeRepository, JsonMetricRepository
-│   │   ├── stages/                # Pipeline stages (retrieval, metric examples, prompt, generation, validation, feedback, final metrics)
-│   │   ├── pipeline/              # SequentialPipeline, PoemGenerationPipeline, StageFactory, SkipPolicy
-│   │   ├── regeneration/          # ValidationFeedbackCycle, ValidatingFeedbackIterator, stop policies
-│   │   ├── prompts/               # RagPromptBuilder, NumberedLinesRegenerationPromptBuilder
-│   │   ├── metrics/               # Metric calculators (meter/rhyme accuracy, semantic relevance, …) + registry
-│   │   ├── evaluation/            # ScenarioRegistry, DefaultEvaluationAggregator
-│   │   ├── reporting/             # MarkdownReporter, JsonResultsWriter
-│   │   ├── tracing/               # PipelineTracer, NullTracer, StageTimer
-│   │   ├── text/                  # UkrainianTextProcessor, LevenshteinSimilarity
-│   │   ├── phonetics/             # UkrainianIpaTranscriber
-│   │   ├── feedback/              # UkrainianFeedbackFormatter
-│   │   ├── http/                  # HttpErrorMapper
-│   │   ├── logging/               # StdOutLogger, NullLogger
-│   │   ├── serialization/         # Evaluation JSON serializers
-│   │   ├── corpus/                # PoemFileParser
-│   │   ├── detection/             # MeterDetector, RhymeDetector, StanzaSampler
-│   │   └── meter/                 # MeterCanonicalizer, UkrainianMeterTemplates, WeakStressLexicon, SyllableFlagStrategy
-│   │
-│   └── shared/                    # Thin cross-cutting pure utilities
-│       ├── string_distance.py     # Levenshtein distance / normalised similarity
-│       └── text_utils_ua.py       # Ukrainian text helpers (vowel detection, syllable counting)
-│
-├── corpus/
-│   ├── uk_theme_reference_corpus.json          # Theme corpus + LaBSE embeddings (153 poems, semantic retrieval)
-│   ├── uk_metric-rhyme_reference_corpus.json   # Manually verified meter/rhyme reference examples (38 entries)
-│   └── uk_auto_metric_corpus.json              # Auto-detected meter/rhyme corpus (built by build-metric-corpus)
-├── data/                          # Raw poem source files (.txt)
-├── docs/                          # ADRs and design documents
-├── scripts/                       # Entry-point scripts (run_pipeline, run_evaluation, build_corpus_*, preload_stanza)
-├── tests/
-│   ├── contracts/                 # Shared interface contract base classes (IEmbedderContract, ILLMProviderContract, …)
-│   ├── fixtures/                  # Layered fixtures (infrastructure, validators, services, domain)
-│   ├── unit/                      # Mirrors src/ structure (~570 tests)
-│   │   ├── domain/
-│   │   ├── infrastructure/
-│   │   ├── handlers/
-│   │   ├── runners/
-│   │   └── services/
-│   └── integration/               # Full pipeline tests with real ML models (~51 tests)
-│       ├── handlers/
-│       └── services/
-└── README.md
-```
+> Documentation is bilingual (UA + EN), kept in sync.
 
 ---
 
-## Reproducibility & Deployment
+## Programmatic use
 
-* Entire system runs inside **Docker**
-* No local Python installation required
-* Experiments can be reproduced from a clean environment using a **single command**
+If you want to integrate this into your own pipeline rather than use the web UI:
+
+```python
+from src.composition_root import build_poetry_service
+from src.config import AppConfig
+from src.domain.models import (
+    GenerationRequest, MeterSpec, PoemStructure, RhymeScheme,
+)
+
+service = build_poetry_service(AppConfig.from_env())
+
+result = service.generate(GenerationRequest(
+    theme="весна у лісі, пробудження природи",
+    meter=MeterSpec(name="ямб", foot_count=4),
+    rhyme=RhymeScheme(pattern="ABAB"),
+    structure=PoemStructure(stanza_count=1, lines_per_stanza=4),
+    max_iterations=2,
+))
+
+print(result.poem)
+print(f"meter {result.validation.meter.accuracy:.0%} · "
+      f"rhyme {result.validation.rhyme.accuracy:.0%}")
+```
+
+There is also a JSON API — see Swagger at http://localhost:8000/docs once `make serve` is up.
 
 ---
 
-## Academic Context
+## Project layout
 
-* Developed as part of a **Master’s thesis in Software Engineering**
-* Focus areas:
+```
+src/
+├── domain/            # pure-Python models + ports (interfaces)
+├── infrastructure/    # adapters: validators, LLM, retrieval, tracing, persistence
+├── services/          # use-case façades (PoetryService, EvaluationService, ...)
+├── handlers/
+│   ├── api/           # FastAPI JSON routes
+│   └── web/           # Jinja-template pages
+└── composition_root.py  # DI wiring
+docs/                  # bilingual documentation
+data/                  # raw .txt poems (corpus source)
+corpus/                # built-and-versioned theme + metric corpora (JSON)
+tests/                 # unit (1019) + integration (107) + component (5) tests
+results/               # batch run outputs (gitignored)
+```
 
-  * hybrid AI system design
-  * controlled natural language generation
-  * symbolic vs. neural methods
-  * reproducible experimental research
+Clean-architecture layers; the inner layers (`domain`, `services`) have no infrastructure imports.
+
+---
+
+## Common commands
+
+| Command | What it does |
+|---------|---------------|
+| `make serve` | Start the web UI at http://localhost:8000 |
+| `make test` | Run all tests in Docker |
+| `make ci` | Lint + typecheck + tests (the full CI gate) |
+| `make demo` | Run a default scenario through the full pipeline, print trace |
+| `make ablation` | Run 18 × 8 × 3 = 432 ablation prog (~\$25–50 on Gemini Flash) |
+| `make ablation-cheap` | Same as `ablation` but `SEEDS=1` (~\$8–15, ~90% of the signal) |
+| `make ablation-report RUNS=results/batch_…/runs.csv` | Build PNG plots + dashboard data |
+| `make diagnose-meter-detector` | Sanity-check the meter detector on a 193-entry reference corpus |
+| `make build-theme-corpus-with-embeddings` | Rebuild the theme RAG corpus from raw `data/` |
+
+Full Makefile reference: `make help` (or just open `Makefile` — it's heavily commented).
+
+---
+
+## Configuration (essentials)
+
+Most settings work out of the box. The only required env var is `GEMINI_API_KEY`.
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `GEMINI_API_KEY` | — | Google Gemini key (required for generation). See setup recipe in [Try it in 60 seconds § Option A](#option-a--full-system-with-real-gemini-recommended) |
+| `GEMINI_MODEL` | `gemini-3.1-pro-preview` | Model name. **Paid** (~\$2/1M in, ~\$12/1M out). For free smoke-testing: `gemini-2.5-flash` (significantly worse quality for poetry) |
+| `LLM_TIMEOUT_SEC` | `120` | Per-call hard timeout. 120s suits Pro reasoning models; drop to 20s if you switch to Flash |
+| `OFFLINE_EMBEDDER` | `false` | `true` → skip LaBSE download (deterministic stub for tests/offline dev) |
+
+Full table + reasoning-model caveats: [`docs/en/reliability_and_config.md`](./docs/en/reliability_and_config.md).
 
 ---
 
 ## Status
 
-Fully implemented and tested:
-
-* Complete RAG pipeline: semantic retrieval + metric examples retrieval + LLM generation
-* Rule-based meter validator (5 meters, pyrrhic/spondee tolerance, feminine/catalectic endings)
-* Rule-based rhyme validator (IPA transcription + Levenshtein distance)
-* Feedback & regeneration loop
-* Evaluation harness: 18 scenarios × 5 ablation configs (90 runs)
-* 621 tests (570 unit + 51 integration), all passing in Docker
+- ✅ **1131 tests** (1019 unit + 107 integration + 5 component) — `make ci` green
+- ✅ **91% line coverage**, 84% branch coverage
+- ✅ **No type errors** (mypy strict on `src/` and `tests/`)
+- ✅ **Reproducible**: Docker + Poetry lock + deterministic offline embedder fallback
+- ✅ **Bilingual documentation** (UA + EN) covering every component and contract
 
 ---
 
-## Quick Start — OOP API
+## Academic context
 
-The preferred way to use the system programmatically is through `PoetryService`:
+MSc thesis project, 2026. Demonstrates:
 
-```python
-from src.composition_root import build_poetry_service
-from src.config import AppConfig
-from src.domain.models import GenerationRequest, MeterSpec, PoemStructure, RhymeScheme
+- **Hybrid AI architecture**: combining neural text generation with symbolic linguistic verification.
+- **Quantitative ablation**: paired-Δ design with bootstrap CIs measures each component's marginal contribution.
+- **Clean-architecture discipline**: hexagonal layout with strict port/adapter separation, testable in isolation.
 
-# Describe the poem to generate
-request = GenerationRequest(
-    theme="весна у лісі, пробудження природи",
-    meter=MeterSpec(name="ямб", foot_count=4),
-    rhyme=RhymeScheme(pattern="ABAB"),
-    structure=PoemStructure(stanza_count=2, lines_per_stanza=4),
-    max_iterations=3,
-)
-
-# Wire up the service (reads GEMINI_API_KEY from env, falls back to MockLLMProvider)
-service = build_poetry_service(AppConfig.from_env())
-
-# Generate
-result = service.generate(request)
-print(result.poem)
-print(f"Meter OK: {result.validation.meter.ok}")
-print(f"Rhyme OK: {result.validation.rhyme.ok}")
-```
+Cite as a research artefact, fork as a starter for similar pipelines on other Slavic / morphologically rich languages.
 
 ---
 
-## Running the Project
+## License
 
-All components run **inside Docker containers**; no local Python installation or system dependencies are required.
+This project is released under the **[PolyForm Noncommercial License 1.0.0](./LICENSE)** — see [`LICENSE`](./LICENSE) for the full text.
 
-Project management and execution are handled via **Makefile**.
+In short:
 
-### Prerequisites
+| Use case | Allowed under this licence? |
+|----------|------------------------------|
+| Personal research, study, hobby projects | ✅ Yes (free) |
+| Academic / non-profit / educational research | ✅ Yes (free) — please cite (see [`CITATION.cff`](./CITATION.cff)) |
+| Public-sector, government, NGO use | ✅ Yes (free) |
+| Modifying, forking, redistributing for the above | ✅ Yes (with attribution + same licence) |
+| Integrating into a commercial product / SaaS / paid service | ❌ Requires a separate commercial licence |
+| Selling derivatives or revenue-generating use | ❌ Requires a separate commercial licence |
 
-* Docker (version 20+)
-* Docker Compose (v2)
-* GNU Make
+**For commercial use:** contact **olhadziuhal@gmail.com** — commercial licensing is offered on reasonable terms.
 
----
-
-### Development Environment Setup
-
-```bash
-make up
-```
-
-* Builds Docker images
-* Starts required services in detached mode
-* Prepares an isolated development environment
-
----
-
-### Accessing the Container
-
-```bash
-make bash
-```
-
-* Opens an interactive shell in the container
-* Poetry virtualenv activated
-* Useful for running exploratory scripts, inspecting intermediate data, and manual debugging
-
----
-
-### Quick Demo — Run the Full System
-
-```bash
-make demo
-```
-
-* Runs scenario **N01** (весна у лісі, ямб 4ст, ABAB) through the **full system** (config E)
-* Prints a stage-by-stage trace: retrieval → metric examples → prompt → generation → validation → feedback
-* Saves results to `results/demo_N01_YYYYMMDD_HHMMSS.json` and a human-readable `results/demo_N01_YYYYMMDD_HHMMSS.md`
-* To try a different scenario: `make demo SCENARIO=N03`
-
-This is the fastest way to see the complete pipeline in action with a real Gemini API key, or with `MockLLMProvider` when no key is configured.
-
----
-
-### Running the Generation Pipeline
-
-```bash
-make pipeline
-```
-
-* Executes the full poetry generation pipeline
-* Uses Poetry-managed Python environment
-* Output stored in container-mounted volumes for reproducibility
-
----
-
-### Running Tests
-
-```bash
-make test                # all tests (unit + integration)
-make test-unit           # only unit tests
-make test-integration    # only integration tests
-```
-
-* Automatically pre-downloads Stanza and LaBSE models before running tests
-* Models are cached in Docker volumes — subsequent runs start instantly
-
----
-
-## Corpus Management
-
-The project uses two separate corpora, both built from raw `.txt` files under `data/`:
-
-| Corpus | File | Purpose |
-|--------|------|---------|
-| **Theme reference** | `corpus/uk_theme_reference_corpus.json` | Poems + LaBSE embeddings for semantic retrieval by theme |
-| **Metric-rhyme reference** | `corpus/uk_metric-rhyme_reference_corpus.json` | Manually verified examples with exact meter, foot count, and rhyme scheme |
-| **Auto-detected metric** | `corpus/uk_auto_metric_corpus.json` | Auto-detected meter/rhyme via brute-force detection (built by `build-metric-corpus`) |
-
-### Theme Reference Corpus
-
-Ready-to-use corpus with **pre-computed LaBSE embeddings** — no runtime encoding overhead during retrieval.
-
-```bash
-make build-theme-corpus                        # build corpus only (no embeddings)
-make embed-theme-corpus                        # compute LaBSE embeddings for existing corpus
-make build-theme-corpus-with-embeddings        # build corpus AND compute embeddings in one step
-```
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DATA_DIR` | `data` | Source directory with `.txt` poem files |
-| `THEME_OUT` | `corpus/uk_theme_reference_corpus.json` | Output corpus JSON path |
-| `MIN_COUNT` | `1` | Minimum number of poems required to succeed |
-| `THEME_CORPUS` | `corpus/uk_theme_reference_corpus.json` | Path used by `embed-theme-corpus` |
-
-Examples:
-
-```bash
-make build-theme-corpus DATA_DIR=data THEME_OUT=corpus/uk_theme_reference_corpus.json MIN_COUNT=1
-make embed-theme-corpus THEME_CORPUS=corpus/uk_theme_reference_corpus.json
-make build-theme-corpus-with-embeddings DATA_DIR=data MIN_COUNT=50
-```
-
-### Metric-Rhyme Corpus (auto-detected)
-
-Scans poems in `data/`, runs brute-force meter and rhyme detection, and writes qualifying poems to a JSON corpus file.
-
-```bash
-make build-metric-corpus                                    # default output
-make build-metric-corpus DATA_DIR=data METRIC_OUT=corpus/uk_auto_metric_corpus.json
-make build-metric-corpus SAMPLE_LINES=8                     # sample first N lines per poem
-```
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DATA_DIR` | `data` | Source directory with `.txt` poem files |
-| `METRIC_OUT` | `corpus/uk_auto_metric_corpus.json` | Output JSON path |
-| `SAMPLE_LINES` | *(all)* | Number of leading lines to sample per poem |
-
-### Direct script usage
-
-```bash
-# Build theme corpus with embeddings in one command
-python3 scripts/build_corpus_from_data_dir.py \
-  --data-dir data \
-  --out corpus/uk_theme_reference_corpus.json \
-  --min-count 1 \
-  --embed
-
-# Compute embeddings separately (idempotent — skips poems that already have them)
-python3 scripts/build_corpus_embeddings.py --corpus corpus/uk_theme_reference_corpus.json
-
-# Build auto-detected metric-rhyme corpus
-python3 scripts/build_metric_corpus.py --data-dir data --out corpus/uk_auto_metric_corpus.json
-```
-
-The corpus path can also be set at runtime via the `CORPUS_PATH` environment variable:
-
-```bash
-CORPUS_PATH=corpus/my_corpus.json make evaluate SCENARIO=N01 CONFIG=D
-```
-
----
-
-### Evaluation Harness
-
-Run the automated evaluation pipeline with **18 curated scenarios × 5 ablation configs**.
-
-```bash
-make evaluate                                        # all scenarios × all configs (90 runs)
-make evaluate SCENARIO=N01                           # one scenario, all configs
-make evaluate SCENARIO=N01 CONFIG=E                  # one scenario, full system (~1–4 API calls)
-make evaluate CONFIG=E                               # all scenarios, full system config
-make evaluate CATEGORY=corner                        # only corner-case scenarios
-make evaluate SCENARIO=N01 CONFIG=E VERBOSE=1        # with detailed stage-by-stage traces
-make evaluate OUTPUT=results/my_run.json             # custom output path
-make evaluate STANZAS=2 LINES_PER_STANZA=4           # override poem structure for all scenarios
-make evaluate SCENARIO=N01 STANZAS=3 LINES_PER_STANZA=6  # specific scenario, custom structure
-```
-
-#### Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SCENARIO` | *(all)* | Scenario ID: `N01`–`N05`, `E01`–`E05`, `C01`–`C08` |
-| `CONFIG` | *(all)* | Ablation config: `A`, `B`, `C`, `D`, or `E` |
-| `CATEGORY` | *(all)* | Filter by category: `normal`, `edge`, or `corner` |
-| `VERBOSE` | *(off)* | Set to `1` for full stage-by-stage traces |
-| `OUTPUT` | `results/eval_TIMESTAMP.json` | Path to save JSON results (`.md` report is written alongside automatically) |
-| `STANZAS` | `2` | Number of stanzas to generate (overrides per-scenario default) |
-| `LINES_PER_STANZA` | `4` | Lines per stanza (overrides per-scenario default) |
-
-Both `STANZAS` and `LINES_PER_STANZA` override the values defined in the scenario. Total lines generated = `STANZAS × LINES_PER_STANZA`. Each scenario also defines its own defaults (see `src/domain/scenarios.py`), which take effect when the variables are not set.
-
-#### Poem Structure per Scenario
-
-Each `EvaluationScenario` carries `stanza_count`, `lines_per_stanza`, and a computed `total_lines` property. The prompt sent to the LLM explicitly specifies the required structure, e.g.:
-
-```
-Structure: 2 stanzas of 4 lines each (8 lines total)
-Generate a Ukrainian poem with exactly 8 lines.
-```
-
-#### Scenario Categories
-
-* **Normal** (N01–N05) — typical requests: iamb+ABAB, trochee+AABB, amphibrach, dactyl
-* **Edge** (E01–E05) — boundary conditions: 2-foot minimal, 6-foot alexandrine, monorhyme AAAA, abstract theme
-* **Corner** (C01–C08) — adversarial inputs: minimal theme, XSS injection, unsupported meter, mixed languages, zero feet
-
-#### Ablation Configs
-
-| Config | Semantic RAG | Metric Examples | Validator | Feedback | Description |
-|--------|-------------|-----------------|-----------|----------|-------------|
-| **A** | ✗ | ✗ | ✓ | ✗ | Baseline (LLM + validator, no RAG, no feedback) |
-| **B** | ✗ | ✗ | ✓ | ✓ | LLM + Val + Feedback (no RAG) |
-| **C** | ✓ | ✗ | ✓ | ✓ | Semantic RAG + Val + Feedback |
-| **D** | ✗ | ✓ | ✓ | ✓ | Metric Examples + Val + Feedback |
-| **E** | ✓ | ✓ | ✓ | ✓ | Full system (semantic + metric examples + val + feedback) |
-
-Comparing pairs measures each component's contribution: `A→B` = impact of feedback loop, `B→C` = impact of semantic retrieval (thematic RAG), `B→D` = impact of metric examples retrieval (rhythm/rhyme RAG), `C→E` or `D→E` = impact of combining both retrieval types.
-
-#### Output
-
-Each run produces:
-* **Summary table** — meter accuracy, rhyme accuracy, iterations, duration per scenario × config (printed to terminal)
-* **Aggregates** — averages by config and by category (printed to terminal)
-* **JSON export** — full traces with stage-by-stage records, iteration history, and metrics (`results/eval_TIMESTAMP.json`)
-* **Markdown report** — human-readable comparison table per scenario + final poem for each config (`results/eval_TIMESTAMP.md`), written automatically alongside the JSON
-
-> **Tip:** For a quick test with real Gemini, run:
-> `make evaluate SCENARIO=N01 CONFIG=E VERBOSE=1`
-> This runs the full system (semantic + metric examples + validation + feedback) with ~1–4 API calls and shows the complete pipeline trace.
-
----
-
-### Stopping and Cleaning Up
-
-```bash
-make down
-```
-
-* Stops all containers
-* Removes volumes and orphaned resources
-* Recommended when switching branches, resetting experiments, or reclaiming disk space
-
----
-
-### Rebuilding Images
-
-```bash
-make rebuild
-```
-
-* Rebuilds Docker images from scratch without cache
-* Useful when dependency definitions or Dockerfiles change
-
----
-
-## Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `GEMINI_API_KEY` | — | Google Gemini API key (required for real LLM) |
-| `GEMINI_MODEL` | `gemini-2.0-flash` | Gemini model name |
-| `GEMINI_TEMPERATURE` | `0.9` | Sampling temperature |
-| `GEMINI_MAX_TOKENS` | `4096` | Max tokens per generation |
-| `LLM_PROVIDER` | (auto) | Force provider: `gemini`, `mock`, or empty for auto-detect |
-| `CORPUS_PATH` | `corpus/uk_theme_reference_corpus.json` | Path to the theme poetry corpus JSON |
-| `METRIC_EXAMPLES_PATH` | `corpus/uk_metric-rhyme_reference_corpus.json` | Path to metric/rhyme reference corpus |
-| `LABSE_MODEL` | `sentence-transformers/LaBSE` | HuggingFace model for semantic embeddings |
-| `OFFLINE_EMBEDDER` | `false` | Use deterministic offline embedder (for tests) |
-| `HOST` | `127.0.0.1` | Server bind address |
-| `PORT` | `8000` | Server bind port |
-| `DEBUG` | `false` | Enable debug mode |
-
-Without `GEMINI_API_KEY`, the system falls back to `MockLLMProvider` (deterministic stub), which is sufficient for running tests and verifying the pipeline structure.
-
----
-
-## Notes on Reproducibility
-
-* All experiments executed **inside containers**
-* Dependencies are locked via Poetry
-* Same commands produce **identical environments across machines**
-
-This ensures **experimental results can be reliably reproduced**.
-
----
+The Ukrainian poetry source texts in `data/` are not covered by this licence and remain subject to their authors' copyright (most pre-1953 authors are in the public domain in Ukraine; later authors may not be). See `LICENSE` § *Scope* for details.
