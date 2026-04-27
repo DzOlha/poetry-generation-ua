@@ -9,7 +9,7 @@
 > - Алгоритми: [наголос і склади](./stress_and_syllables.md), [валідація метру](./meter_validation.md), [валідація рими](./rhyme_validation.md), [детекція](./detection_algorithm.md)
 > - RAG і промпти: [семантичний пошук](./semantic_retrieval.md), [побудова промптів](./prompt_construction.md)
 > - Цикл корекції: [feedback loop](./feedback_loop.md), [санітизація](./sanitization_pipeline.md), [LLM decorator stack](./llm_decorator_stack.md), [конфігурація](./reliability_and_config.md)
-> - Дослідження: [evaluation harness](./evaluation_harness.md) — 18 сценаріїв × 5 абляцій
+> - Дослідження: [evaluation harness](./evaluation_harness.md) — 18 сценаріїв × 8 абляцій
 
 ---
 
@@ -1020,6 +1020,9 @@ num_lines = Poem.from_text(poem_text).line_count
 | **C** | ✅ | ❌ | ✅ | ✅ | Semantic RAG + Val + Feedback |
 | **D** | ❌ | ✅ | ✅ | ✅ | Metric Examples + Val + Feedback |
 | **E** | ✅ | ✅ | ✅ | ✅ | **Повна система** (semantic + metric examples + val + feedback) |
+| **F** | ✅ | ❌ | ✅ | ❌ | Semantic RAG + Val (без feedback) — чистий ефект RAG |
+| **G** | ❌ | ✅ | ✅ | ❌ | Metric Examples + Val (без feedback) — чистий ефект метричних прикладів |
+| **H** | ✅ | ✅ | ✅ | ❌ | Semantic + Metric Examples + Val (без feedback) — чистий поєднаний ефект |
 
 **Навіщо абляції:** порівнюючи конфігурації попарно, можна кількісно виміряти внесок кожного компонента:
 
@@ -1029,6 +1032,11 @@ num_lines = Poem.from_text(poem_text).line_count
 | `B → C` | вплив семантичного RAG (тематичне натхнення) |
 | `B → D` | вплив метричних прикладів (ритмічний еталон) |
 | `C → E` або `D → E` | вплив поєднання обох типів ретрівалу |
+| `A → F` | чистий вплив semantic RAG на перший драфт (без маскування feedback-ом) |
+| `A → G` | чистий вплив метричних прикладів на перший драфт |
+| `A → H` | чистий поєднаний вплив обох ретрівалів на перший драфт |
+
+> **Чому потрібні F/G/H:** коли feedback увімкнений в обох порівнюваних конфігах, цикл ітеративно ремонтує початковий драфт, і внесок етапу збагачення (RAG / метричні приклади) маскується — обидві конфігурації сходяться до схожої фінальної якості. F/G/H повторюють C/D/E з вимкненим feedback-ом, тож paired-Δ vs. A вимірює *сирий* ефект кожного збагачення на перший драфт.
 
 ### Матриця оцінки
 
@@ -1080,7 +1088,7 @@ make evaluate STANZAS=3 LINES_PER_STANZA=6
 | Змінна | За замовчуванням | Опис |
 |--------|-----------------|------|
 | `SCENARIO` | *(всі)* | ID сценарію: `N01`–`N05`, `E01`–`E05`, `C01`–`C08` |
-| `CONFIG` | *(всі)* | Абляційна конфіг: `A`, `B`, `C`, `D`, або `E` |
+| `CONFIG` | *(всі)* | Абляційна конфіг: `A`–`H` |
 | `CATEGORY` | *(всі)* | Фільтр: `normal`, `edge`, або `corner` |
 | `VERBOSE` | *(вимк.)* | `1` для повних stage-by-stage трасів |
 | `OUTPUT` | `results/eval_TIMESTAMP.json` | Шлях для збереження JSON (`.md`-звіт записується автоматично поруч) |

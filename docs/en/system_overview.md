@@ -9,7 +9,7 @@
 > - Algorithms: [stress and syllables](./stress_and_syllables.md), [metre validation](./meter_validation.md), [rhyme validation](./rhyme_validation.md), [detection](./detection_algorithm.md)
 > - RAG and prompts: [semantic retrieval](./semantic_retrieval.md), [prompt construction](./prompt_construction.md)
 > - Feedback loop + LLM integration: [feedback loop](./feedback_loop.md), [sanitization](./sanitization_pipeline.md), [LLM decorator stack](./llm_decorator_stack.md), [reliability & config](./reliability_and_config.md)
-> - Research: [evaluation harness](./evaluation_harness.md) — 18 scenarios × 5 ablation configs
+> - Research: [evaluation harness](./evaluation_harness.md) — 18 scenarios × 8 ablation configs
 
 ---
 
@@ -1023,6 +1023,9 @@ Not averaged — used as a per-run diagnostic.
 | **C** | ✅ | ❌ | ✅ | ✅ | Semantic RAG + Val + Feedback |
 | **D** | ❌ | ✅ | ✅ | ✅ | Metric Examples + Val + Feedback |
 | **E** | ✅ | ✅ | ✅ | ✅ | **Full system** (semantic + metric examples + val + feedback) |
+| **F** | ✅ | ❌ | ✅ | ❌ | Semantic RAG + Val (no feedback) — pure RAG effect |
+| **G** | ❌ | ✅ | ✅ | ❌ | Metric Examples + Val (no feedback) — pure metric-examples effect |
+| **H** | ✅ | ✅ | ✅ | ❌ | Semantic + Metric Examples + Val (no feedback) — pure combined effect |
 
 **Why ablations:** comparing configs pair-wise isolates each component's contribution:
 
@@ -1032,6 +1035,11 @@ Not averaged — used as a per-run diagnostic.
 | `B → C` | impact of semantic RAG (thematic inspiration) |
 | `B → D` | impact of metric examples (rhythm template) |
 | `C → E` or `D → E` | impact of combining both retrieval types |
+| `A → F` | pure semantic-RAG effect on the first draft (not masked by feedback) |
+| `A → G` | pure metric-examples effect on the first draft |
+| `A → H` | pure combined-enrichment effect on the first draft |
+
+> **Why F/G/H exist:** when feedback is enabled in both arms of a comparison, the loop iteratively repairs the initial draft and the contribution of an enrichment stage (RAG / metric examples) gets masked — both configs converge on similar final quality. F/G/H mirror C/D/E with feedback OFF, so paired-Δ vs. A measures the *raw* effect of each enrichment on the first-attempt poem.
 
 ### Evaluation matrix
 
@@ -1083,7 +1091,7 @@ The `STANZAS` / `LINES_PER_STANZA` Makefile variables (or `--stanzas` / `--lines
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `SCENARIO` | *(all)* | Scenario ID: `N01`–`N05`, `E01`–`E05`, `C01`–`C08` |
-| `CONFIG` | *(all)* | Ablation config: `A`, `B`, `C`, `D`, or `E` |
+| `CONFIG` | *(all)* | Ablation config: `A`–`H` |
 | `CATEGORY` | *(all)* | Filter: `normal`, `edge`, or `corner` |
 | `VERBOSE` | *(off)* | `1` for full stage-by-stage traces |
 | `OUTPUT` | `results/eval_TIMESTAMP.json` | JSON path (`.md` report written alongside automatically) |
