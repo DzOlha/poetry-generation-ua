@@ -118,7 +118,7 @@ from src.domain.ports.prosody import (
 )
 
 # -- Reporting --
-from src.domain.ports.reporting import IReporter, IResultsWriter
+from src.domain.ports.reporting import IBatchResultsWriter, IReporter, IResultsWriter
 
 # -- Retrieval --
 from src.domain.ports.retrieval import IRetriever
@@ -250,6 +250,7 @@ __all__ = [
     # Reporting
     "IReporter",
     "IResultsWriter",
+    "IBatchResultsWriter",
     # Pipeline
     "IPipelineStage",
     "IStageSkipPolicy",

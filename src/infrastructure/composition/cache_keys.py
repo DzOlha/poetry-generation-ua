@@ -65,6 +65,7 @@ class CacheKey(str, Enum):
     FINAL_METRICS_STAGE = "final_metrics_stage"
     REPORTER = "reporter"
     RESULTS_WRITER = "results_writer"
+    BATCH_RESULTS_WRITER = "batch_results_writer"
     TRACER_FACTORY = "tracer_factory"
     HTTP_ERROR_MAPPER = "http_error_mapper"
     STAGE_RECORD_BUILDER = "stage_record_builder"

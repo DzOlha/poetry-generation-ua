@@ -82,6 +82,32 @@ ABLATION_CONFIGS: list[AblationConfig] = [
         }),
         description="Full system (semantic + metric examples + val + feedback)",
     ),
+    # ── No-feedback variants (F, G, H) ─────────────────────────────────
+    # When feedback is enabled in both arms of a comparison, the loop
+    # iteratively repairs the initial draft and the contribution of an
+    # enrichment stage (RAG / metric examples) gets masked — both
+    # configs converge on similar final quality. These three configs
+    # mirror C / D / E with feedback OFF, so paired-Δ vs. A measures the
+    # *raw* effect of an enrichment on the first-attempt poem.
+    AblationConfig(
+        label="F",
+        enabled_stages=frozenset({STAGE_RETRIEVAL, STAGE_VALIDATION}),
+        description="Semantic RAG + Val (no feedback) — pure RAG effect",
+    ),
+    AblationConfig(
+        label="G",
+        enabled_stages=frozenset({STAGE_METRIC_EXAMPLES, STAGE_VALIDATION}),
+        description="Metric Examples + Val (no feedback) — pure metric-examples effect",
+    ),
+    AblationConfig(
+        label="H",
+        enabled_stages=frozenset({
+            STAGE_RETRIEVAL,
+            STAGE_METRIC_EXAMPLES,
+            STAGE_VALIDATION,
+        }),
+        description="Semantic + Metric Examples + Val (no feedback) — pure combined effect",
+    ),
 ]
 
 # Default configuration used by PoetryService.generate — every togglable
@@ -167,4 +193,41 @@ class PipelineTrace:
     final_poem: str = ""
     final_metrics: dict[str, MetricValue] = field(default_factory=dict)
     total_duration_sec: float = 0.0
+    error: str | None = None
+
+
+# ---------------------------------------------------------------------------
+# Batch evaluation — one flat row per (scenario, config, seed) run
+# ---------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class BatchRunRow:
+    """One row in the flat batch-run CSV consumed by downstream analysis."""
+
+    scenario_id: str
+    scenario_name: str
+    category: str
+    meter: str
+    foot_count: int
+    rhyme_scheme: str
+    config_label: str
+    config_description: str
+    seed: int
+    meter_accuracy: float
+    rhyme_accuracy: float
+    regeneration_success: float
+    semantic_relevance: float
+    num_iterations: int
+    num_lines: int
+    duration_sec: float
+    # Token + cost instrumentation. Totals across all LLM calls in the run
+    # (initial generation + every feedback iteration). ``iteration_tokens``
+    # is the per-iteration breakdown serialised as
+    # ``it=<idx>:in=<n>:out=<n>,it=…`` so the CSV stays a flat row yet
+    # keeps the per-call information analysts may want.
+    input_tokens: int = 0
+    output_tokens: int = 0
+    total_tokens: int = 0
+    estimated_cost_usd: float = 0.0
+    iteration_tokens: str = ""
     error: str | None = None

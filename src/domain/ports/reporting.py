@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from src.domain.evaluation import EvaluationSummary, PipelineTrace
+    from src.domain.evaluation import BatchRunRow, EvaluationSummary, PipelineTrace
 
 
 class IReporter(ABC):
@@ -35,3 +36,14 @@ class IResultsWriter(ABC):
         summaries: list[EvaluationSummary],
         traces: list[PipelineTrace],
     ) -> None: ...
+
+
+class IBatchResultsWriter(ABC):
+    """Persists a stream of (scenario, config, seed) rows as a flat CSV.
+
+    Implementations must flush after every row so that a crash mid-batch
+    leaves a valid partial file — a 270-run job is expensive to re-run.
+    """
+
+    @abstractmethod
+    def write(self, output_path: str, rows: Iterable[BatchRunRow]) -> int: ...

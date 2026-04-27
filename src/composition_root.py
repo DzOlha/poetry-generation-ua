@@ -28,6 +28,7 @@ if TYPE_CHECKING:
 
 from src.config import AppConfig
 from src.domain.ports import (
+    IBatchResultsWriter,
     IClock,
     IDelayer,
     IEmbedder,
@@ -86,6 +87,7 @@ from src.infrastructure.composition import (
     ValidationSubContainer,
 )
 from src.infrastructure.logging import StdOutLogger
+from src.services.batch_evaluation_service import BatchEvaluationService
 from src.services.evaluation_service import EvaluationService
 from src.services.poetry_service import PoetryService
 
@@ -277,6 +279,9 @@ class Container:
     def results_writer(self) -> IResultsWriter:
         return self.metrics.results_writer()
 
+    def batch_results_writer(self) -> IBatchResultsWriter:
+        return self.metrics.batch_results_writer()
+
     def tracer_factory(self) -> ITracerFactory:
         return self.metrics.tracer_factory()
 
@@ -378,6 +383,23 @@ def build_evaluation_service(
         scenario_registry=c.scenario_registry(),
         ablation_configs=ABLATION_CONFIGS,
         clock=c.clock(),
+    )
+
+
+def build_batch_evaluation_service(
+    config: AppConfig,
+    logger: ILogger | None = None,
+    *,
+    llm: ILLMProvider | None = None,
+    container: Container | None = None,
+) -> BatchEvaluationService:
+    """Wire and return a fully configured BatchEvaluationService."""
+    c = container or build_container(config=config, logger=logger, llm=llm)
+    return BatchEvaluationService(
+        evaluation_service=build_evaluation_service(config, logger=logger, llm=llm, container=c),
+        writer=c.batch_results_writer(),
+        logger=c.logger,
+        delayer=c.delayer(),
     )
 
 
