@@ -36,8 +36,8 @@ continues to work unchanged.
 """
 
 # -- Corpus --
-# -- Feedback utility (lives in domain.feedback, re-exported for convenience) --
-from src.domain.feedback import format_all_feedback  # noqa: E402
+# -- Feedback utility (lives in domain.models.feedback, re-exported for convenience) --
+from src.domain.models.feedback import format_all_feedback  # noqa: E402
 from src.domain.ports.corpus import ICorpusParser, ParsedPoem
 
 # -- Data plane --

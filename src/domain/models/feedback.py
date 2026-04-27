@@ -13,6 +13,7 @@ objects into the natural-language strings the LLM sees.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Protocol
 
 from src.domain.value_objects import ClausulaType, RhymePrecision
 
@@ -70,17 +71,32 @@ class PairFeedback:
     precision: RhymePrecision = RhymePrecision.NONE
 
 
+class _FeedbackFormatterProto(Protocol):
+    """Structural type matching ``IFeedbackFormatter`` without importing it.
+
+    Defined locally so this domain module avoids a circular import with
+    ``src.domain.ports.prompts`` (which imports ``LineFeedback`` /
+    ``PairFeedback``). Any object with the two methods below — every
+    real ``IFeedbackFormatter`` does — is accepted by mypy without
+    a ``# type: ignore``.
+    """
+
+    def format_line(self, fb: LineFeedback) -> str: ...
+
+    def format_pair(self, fb: PairFeedback) -> str: ...
+
+
 def format_all_feedback(
-    formatter: object,
+    formatter: _FeedbackFormatterProto,
     line_fbs: tuple[LineFeedback, ...],
     pair_fbs: tuple[PairFeedback, ...],
 ) -> list[str]:
     """Render every piece of feedback via *formatter*, meter first then rhyme.
 
-    Accepts any object with ``format_line`` and ``format_pair`` methods
-    (i.e. any ``IFeedbackFormatter`` implementation). The *formatter*
-    parameter is typed as ``object`` to avoid a circular import between
-    this module and ``ports.prompts`` — at runtime the duck-typed call is
-    safe because every caller passes an ``IFeedbackFormatter``.
+    Accepts any object satisfying ``_FeedbackFormatterProto`` (every
+    ``IFeedbackFormatter`` does, by structural subtyping).
     """
-    return [formatter.format_line(f) for f in line_fbs] + [formatter.format_pair(f) for f in pair_fbs]  # type: ignore[attr-defined]
+    return (
+        [formatter.format_line(f) for f in line_fbs]
+        + [formatter.format_pair(f) for f in pair_fbs]
+    )

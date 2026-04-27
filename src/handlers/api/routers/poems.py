@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from src.config import LLMInfo
 from src.domain.errors import DomainError
 from src.domain.evaluation import IterationRecord
-from src.domain.feedback import LineFeedback, PairFeedback
 from src.domain.models import ValidationRequest
+from src.domain.models.feedback import LineFeedback, PairFeedback
 from src.domain.ports import (
     EvaluationContext,
     IFeedbackFormatter,

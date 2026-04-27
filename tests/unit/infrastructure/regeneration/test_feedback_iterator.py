@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from src.domain.errors import LLMError
 from src.domain.evaluation import ABLATION_CONFIGS
-from src.domain.feedback import LineFeedback, PairFeedback
 from src.domain.models import (
     GenerationRequest,
     LineMeterResult,

@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from src.domain.feedback import LineFeedback
 from src.domain.models import LineMeterResult, MeterSpec
+from src.domain.models.feedback import LineFeedback
 
 
 class IMeterTemplateProvider(ABC):
@@ -85,11 +85,19 @@ class IProsodyAnalyzer(
     IExpectedMeterBuilder,
     IMismatchTolerance,
 ):
-    """Facade union of the three focused prosody ports.
+    """**Deprecated for new code.**  Facade union of three focused ports.
 
-    Kept as a marker interface so existing callers that legitimately need
-    the full surface (validators, line-feedback builder) can still depend
-    on one type. New code should prefer the narrower ports above.
+    The architectural audit flagged this union as an Interface Segregation
+    smell — most callers only need one of the three sub-ports, but
+    depending on ``IProsodyAnalyzer`` forces them to know about (and mock)
+    the whole surface. Existing callers that legitimately want the full
+    surface (BSP/pattern meter validators, the line-feedback builder)
+    continue to use it, but new code MUST depend on the narrowest port
+    that satisfies its actual contract:
+
+      - ``IStressPatternAnalyzer``  — for line-level stress derivation
+      - ``IExpectedMeterBuilder``   — for canonical-pattern lookup
+      - ``IMismatchTolerance``      — for ignoring acceptable deviations
     """
 
 

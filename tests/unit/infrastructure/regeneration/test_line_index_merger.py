@@ -1,7 +1,7 @@
 """Tests for LineIndexMerger — the structured IRegenerationMerger implementation."""
 from __future__ import annotations
 
-from src.domain.feedback import LineFeedback, PairFeedback
+from src.domain.models.feedback import LineFeedback, PairFeedback
 from src.infrastructure.regeneration import LineIndexMerger
 
 

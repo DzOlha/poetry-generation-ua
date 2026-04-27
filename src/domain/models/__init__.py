@@ -2,20 +2,21 @@
 
 Organised into focused modules:
 
-  models.specifications — MeterSpec, RhymeScheme, PoemStructure
-  models.commands       — GenerationRequest, ValidationRequest
-  models.aggregates     — Poem
-  models.results        — LineMeterResult, RhymePairResult, MeterResult,
-                          RhymeResult, ValidationResult, GenerationResult
-  models.entities       — ThemeExcerpt, MetricExample, MetricQuery,
-                          RetrievedExcerpt, LineTokens
+  models.specifications      — MeterSpec, RhymeScheme, PoemStructure
+  models.commands            — GenerationRequest, ValidationRequest
+  models.aggregates          — Poem
+  models.results             — LineMeterResult, RhymePairResult, MeterResult,
+                               RhymeResult, ValidationResult, GenerationResult
+  models.entities            — ThemeExcerpt, MetricExample, MetricQuery,
+                               RetrievedExcerpt, LineTokens
+  models.feedback            — LineFeedback, PairFeedback (structured violations)
+  models.corpus_entry        — CorpusEntry typed dict
+  models.metric_corpus_entry — MetricCorpusEntry typed dict
 
 All names are re-exported here so ``from src.domain.models import X``
 continues to work unchanged.
 """
 
-# -- Value objects (must be imported before results to avoid circular import
-# with src.domain.feedback which also depends on these enums) --
 # -- Aggregates --
 from src.domain.models.aggregates import Poem
 
@@ -25,6 +26,9 @@ from src.domain.models.commands import (
     ValidationRequest,
 )
 
+# -- Corpus entries (typed dicts for JSON corpus shapes) --
+from src.domain.models.corpus_entry import CorpusEntry
+
 # -- Entities --
 from src.domain.models.entities import (
     LineTokens,
@@ -33,6 +37,16 @@ from src.domain.models.entities import (
     RetrievedExcerpt,
     ThemeExcerpt,
 )
+
+# -- Feedback (structured validator violations) --
+from src.domain.models.feedback import (
+    LineFeedback,
+    PairFeedback,
+    format_all_feedback,
+)
+
+# -- Metric corpus entry --
+from src.domain.models.metric_corpus_entry import MetricCorpusEntry
 
 # -- Results --
 from src.domain.models.results import (
@@ -80,4 +94,11 @@ __all__ = [
     "MetricQuery",
     "RetrievedExcerpt",
     "LineTokens",
+    # Feedback
+    "LineFeedback",
+    "PairFeedback",
+    "format_all_feedback",
+    # Corpus entries
+    "CorpusEntry",
+    "MetricCorpusEntry",
 ]

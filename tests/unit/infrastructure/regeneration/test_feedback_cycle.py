@@ -3,13 +3,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from src.domain.feedback import LineFeedback, PairFeedback
 from src.domain.models import (
     MeterResult,
     MeterSpec,
     RhymeResult,
     RhymeScheme,
 )
+from src.domain.models.feedback import LineFeedback, PairFeedback
 from src.domain.ports import (
     IFeedbackFormatter,
     IMeterValidator,

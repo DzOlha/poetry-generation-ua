@@ -16,7 +16,7 @@ from pathlib import Path
 from src.composition_root import build_detection_service, build_logger
 from src.config import AppConfig
 from src.domain.errors import DomainError, RepositoryError
-from src.domain.metric_corpus_entry import MetricCorpusEntry
+from src.domain.models.metric_corpus_entry import MetricCorpusEntry
 from src.domain.ports import ICorpusParser, ILogger, IRunner
 from src.domain.ports.detection import IDetectionService
 

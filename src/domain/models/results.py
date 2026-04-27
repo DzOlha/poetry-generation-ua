@@ -8,7 +8,7 @@ from src.domain.models.aggregates import Poem
 from src.domain.value_objects import ClausulaType, RhymePrecision
 
 if TYPE_CHECKING:
-    from src.domain.feedback import LineFeedback, PairFeedback
+    from src.domain.models.feedback import LineFeedback, PairFeedback
 
 
 @dataclass(frozen=True)

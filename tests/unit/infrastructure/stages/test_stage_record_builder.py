@@ -5,13 +5,13 @@ summary strings, per-line/per-pair dicts, rounding, and metrics.
 """
 from __future__ import annotations
 
-from src.domain.feedback import LineFeedback, PairFeedback
 from src.domain.models import (
     LineMeterResult,
     MeterResult,
     RhymePairResult,
     RhymeResult,
 )
+from src.domain.models.feedback import LineFeedback, PairFeedback
 from src.infrastructure.stages.stage_record_builder import DefaultStageRecordBuilder
 
 

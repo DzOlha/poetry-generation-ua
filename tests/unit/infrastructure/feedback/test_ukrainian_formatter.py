@@ -1,7 +1,7 @@
 """Tests for UkrainianFeedbackFormatter."""
 from __future__ import annotations
 
-from src.domain.feedback import LineFeedback, PairFeedback
+from src.domain.models.feedback import LineFeedback, PairFeedback
 from src.infrastructure.feedback import UkrainianFeedbackFormatter
 
 

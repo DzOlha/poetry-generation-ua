@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from src.domain.feedback import LineFeedback
 from src.domain.models import LineMeterResult, MeterResult, MeterSpec
+from src.domain.models.feedback import LineFeedback
 from src.domain.ports import (
     ILineFeedbackBuilder,
     IMeterValidator,

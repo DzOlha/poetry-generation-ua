@@ -107,7 +107,7 @@ class TestCheckRhyme:
 
 class TestRhymeFeedback:
     def test_feedback_format(self, stress_dict: IStressDictionary):
-        from src.domain.feedback import PairFeedback
+        from src.domain.models.feedback import PairFeedback
 
         pair = PairFeedback(
             line_a_idx=2,

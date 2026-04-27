@@ -3,12 +3,12 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from src.domain.feedback import LineFeedback, PairFeedback
 from src.domain.models import (
     GenerationRequest,
     MetricExample,
     RetrievedExcerpt,
 )
+from src.domain.models.feedback import LineFeedback, PairFeedback
 
 
 class IPromptBuilder(ABC):

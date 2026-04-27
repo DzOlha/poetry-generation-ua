@@ -7,8 +7,8 @@ validator-specific extras without any `isinstance` branching.
 """
 from __future__ import annotations
 
-from src.domain.feedback import LineFeedback
 from src.domain.models import LineMeterResult, MeterSpec
+from src.domain.models.feedback import LineFeedback
 from src.domain.ports import ILineFeedbackBuilder, IMeterTemplateProvider
 
 

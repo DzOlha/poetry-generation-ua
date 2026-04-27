@@ -6,7 +6,6 @@ from typing import Any
 import pytest
 
 from src.domain.errors import UnsupportedConfigError
-from src.domain.feedback import LineFeedback, PairFeedback
 from src.domain.models import (
     GenerationRequest,
     GenerationResult,
@@ -17,6 +16,7 @@ from src.domain.models import (
     RhymeScheme,
     ValidationResult,
 )
+from src.domain.models.feedback import LineFeedback, PairFeedback
 
 # ===========================================================================
 # MeterSpec

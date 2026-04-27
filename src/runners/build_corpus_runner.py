@@ -15,8 +15,8 @@ from pathlib import Path
 
 from src.composition_root import build_logger
 from src.config import AppConfig
-from src.domain.corpus_entry import CorpusEntry
 from src.domain.errors import DomainError, RepositoryError
+from src.domain.models.corpus_entry import CorpusEntry
 from src.domain.ports import ICorpusParser, ILogger, IRunner
 
 

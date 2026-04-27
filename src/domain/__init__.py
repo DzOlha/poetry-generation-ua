@@ -1,14 +1,14 @@
 """Domain layer — value objects, entities, DTOs, and abstract ports.
 
 Modules:
-  models      — immutable data containers (value objects, command/result objects)
-  values      — meter/rhyme/category enums
-  feedback    — structured LineFeedback / PairFeedback value objects
-  errors      — DomainError hierarchy
-  evaluation  — AblationConfig, traces, summaries
-  scenarios   — EvaluationScenario dataclass + ScenarioRegistry
-  ports       — abstract interfaces
-  pipeline_state — shared state for pipeline stages
+  models           — immutable data containers (value objects, command/result objects,
+                     LineFeedback/PairFeedback, CorpusEntry/MetricCorpusEntry)
+  values           — meter/rhyme/category enums
+  errors           — DomainError hierarchy
+  evaluation       — AblationConfig, traces, summaries
+  scenarios        — EvaluationScenario dataclass + ScenarioRegistry
+  ports            — abstract interfaces
+  pipeline_context — shared state for pipeline stages
 """
 from src.domain.errors import (
     ConfigurationError,
@@ -20,7 +20,6 @@ from src.domain.errors import (
     UnsupportedConfigError,
     ValidationError,
 )
-from src.domain.feedback import LineFeedback, PairFeedback
 from src.domain.models import (
     GenerationRequest,
     GenerationResult,
@@ -38,6 +37,7 @@ from src.domain.models import (
     ValidationRequest,
     ValidationResult,
 )
+from src.domain.models.feedback import LineFeedback, PairFeedback
 from src.domain.ports import (
     CategoryAggregate,
     ConfigAggregate,

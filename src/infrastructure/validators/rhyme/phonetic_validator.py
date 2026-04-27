@@ -7,8 +7,8 @@ owns stress resolution, transcription, or string similarity.
 """
 from __future__ import annotations
 
-from src.domain.feedback import PairFeedback
 from src.domain.models import RhymePairResult, RhymeResult, RhymeScheme
+from src.domain.models.feedback import PairFeedback
 from src.domain.ports import (
     ILineSplitter,
     IRhymePairAnalyzer,
