@@ -7,10 +7,13 @@ Accepted
 Several domain ports have multiple implementations (e.g., `IEmbedder` has `LaBSEEmbedder`, `OfflineDeterministicEmbedder`, `CompositeEmbedder`; `ILLMProvider` has `GeminiProvider`, `MockLLMProvider`; `IThemeRepository` has 3 adapters). Each must satisfy the same behavioral contract.
 
 ## Decision
-Define abstract contract test base classes in `tests/contracts/`:
+Define abstract contract test base classes in `tests/contracts/`. The current set:
+
 - `IEmbedderContract` — encode returns non-empty vector, deterministic, stable dimension
 - `ILLMProviderContract` — generate/regenerate return non-empty strings, empty feedback accepted
 - `IMetricCalculatorContract` — non-empty name, finite float result, no context mutation
+- `IMeterDetectorContract` / `IRhymeDetectorContract` / `IStanzaSamplerContract` — detection ports
+- `IMeterValidatorContract` / `IRhymeValidatorContract` / `IPoemValidatorContract` — validation ports
 
 Concrete test classes inherit from the contract and provide the implementation via `_make_*()`.
 
@@ -18,3 +21,4 @@ Concrete test classes inherit from the contract and provide the implementation v
 - Adding a new port implementation requires only a new concrete test class that inherits from the contract.
 - Contract violations are caught at the unit test level, not at integration time.
 - Liskov Substitution Principle is enforced via tests, not just code review.
+- The LLM decorator stack is covered too: `tests/unit/infrastructure/llm/decorators/test_decorator_contracts.py` makes each of the five decorators (`LoggingLLMProvider`, `RetryingLLMProvider`, `TimeoutLLMProvider`, `SanitizingLLMProvider`, `ExtractingLLMProvider`) and the fully assembled stack inherit from `ILLMProviderContract`, closing the substitutability gap flagged by the architectural audit (fix #4).

@@ -16,7 +16,8 @@ Adopt hexagonal (ports-and-adapters) architecture:
 - **Composition root** (`src/composition_root.py`) is the single place where concrete classes are wired together.
 
 ## Consequences
-- All port interfaces live in `src/domain/ports/` as ABCs.
+- All port interfaces live in `src/domain/ports/` as ABCs. Domain models (including `LineFeedback`, `PairFeedback`, `CorpusEntry`, `MetricCorpusEntry`) live in `src/domain/models/`.
 - Infrastructure modules never import from services or handlers.
 - Tests can substitute any port with a fake/mock without touching infrastructure code.
-- The composition root is the only module that imports both domain ports and infrastructure classes.
+- The composition root (`Container` in `src/composition_root.py`) is now a thin façade composing six focused sub-containers (primitives, validation, generation, metrics, evaluation, detection) — each living in its own module under `src/infrastructure/composition/`. It is the only place that imports both domain ports and infrastructure classes.
+- The same discipline extends to time and sleep: services depend on `IClock` / `IDelayer` (`src/domain/ports/clock.py`); concrete `SystemClock` / `SystemDelayer` adapters wrapping `time.perf_counter` / `time.sleep` live in `src/infrastructure/clock/`. `EvaluationService` and `BatchEvaluationService` never call `time.*` directly — tests inject fakes.

@@ -2,6 +2,15 @@
 
 > **Для кого цей документ:** розробники, дослідники, рецензенти, які хочуть зрозуміти, як система працює під капотом — від вхідного запиту до фінального вірша і метрик якості.
 
+> **Англомовна версія:** [`../en/system_overview.md`](../en/system_overview.md).
+>
+> **Супутні документи** (сусідні файли в цій же теці):
+> - Почніть звідси: [огляд для читача](./system_overview_for_readers.md) ([EN](../en/system_overview_for_readers.md))
+> - Алгоритми: [наголос і склади](./stress_and_syllables.md), [валідація метру](./meter_validation.md), [валідація рими](./rhyme_validation.md), [детекція](./detection_algorithm.md)
+> - RAG і промпти: [семантичний пошук](./semantic_retrieval.md), [побудова промптів](./prompt_construction.md)
+> - Цикл корекції: [feedback loop](./feedback_loop.md), [санітизація](./sanitization_pipeline.md), [LLM decorator stack](./llm_decorator_stack.md), [конфігурація](./reliability_and_config.md)
+> - Дослідження: [evaluation harness](./evaluation_harness.md) — 18 сценаріїв × 5 абляцій
+
 ---
 
 ## Зміст
@@ -35,24 +44,34 @@
 ```
 src/
 ├── domain/              ← Доменний шар (value objects, entities, aggregates, ports)
-│   ├── models/          ← MeterSpec, RhymeScheme, Poem, GenerationRequest, ...
-│   ├── ports/           ← 30+ абстрактних інтерфейсів (ILLMProvider, IMeterValidator, ...)
+│   ├── models/          ← MeterSpec, RhymeScheme, Poem, GenerationRequest,
+│   │                      LineFeedback, PairFeedback, CorpusEntry, MetricCorpusEntry, ...
+│   ├── ports/           ← 30+ абстрактних інтерфейсів (ILLMProvider, IMeterValidator,
+│   │                      IClock, IDelayer, IStressPatternAnalyzer, ...)
 │   ├── values.py        ← MeterName, RhymePattern enums
-│   ├── errors.py        ← DomainError hierarchy
+│   ├── errors.py        ← DomainError hierarchy (кожен підклас несе власний http_status_code)
 │   └── evaluation.py    ← AblationConfig, PipelineTrace
-├── services/            ← Шар застосунку (PoetryService, EvaluationService)
+├── services/            ← Шар застосунку (PoetryService, EvaluationService,
+│                          BatchEvaluationService, DetectionService)
 ├── infrastructure/      ← Конкретні реалізації портів
-│   ├── composition/     ← DI sub-containers
-│   ├── llm/             ← GeminiProvider, MockLLMProvider, decorator stack
-│   ├── validators/      ← Meter (Pattern/BSP), Rhyme (Phonetic), Composite
+│   ├── composition/     ← DI sub-containers (primitives, validation, generation,
+│   │                      metrics, evaluation, detection — кожен розбито на фокусовані файли)
+│   ├── clock/           ← SystemClock / SystemDelayer (адаптери IClock / IDelayer)
+│   ├── llm/             ← GeminiProvider, MockLLMProvider, decorator stack (5 шарів)
+│   ├── http/            ← DefaultHttpErrorMapper (поліморфний dispatch на DomainError)
+│   ├── sanitization/    ← SentinelPoemExtractor, RegexPoemOutputSanitizer
+│   ├── validators/      ← Meter (Pattern), Rhyme (Phonetic), Composite
 │   ├── stages/          ← Pipeline stages
 │   ├── pipeline/        ← SequentialPipeline, StageFactory
+│   ├── reporting/       ← MarkdownReporter façade + TableFormatter / TraceFormatter
+│   │                      / CostCalculator / MarkdownDocumentBuilder колаборатори
+│   ├── tracing/         ← PipelineTracer, InMemoryLLMCallRecorder (для UI-трасування)
 │   └── ...              ← embeddings, retrieval, repositories, prompts, metrics, ...
-├── handlers/            ← Transport adapters (FastAPI, CLI, Web UI)
+├── handlers/            ← Transport adapters (FastAPI, Web UI)
 ├── runners/             ← IRunner implementations for scripts
 ├── shared/              ← Cross-cutting pure utilities
 ├── config.py            ← AppConfig (frozen, from env vars)
-└── composition_root.py  ← Single DI wiring point
+└── composition_root.py  ← Тонкий Container façade, що композує sub-контейнери
 ```
 
 ### Доменна модель
@@ -89,34 +108,39 @@ service.generate(request)  # один об'єкт GenerationRequest
 | `IRetriever` | `SemanticRetriever` (LaBSE cosine similarity) |
 | `IPromptBuilder` | `RagPromptBuilder` |
 | `IRegenerationPromptBuilder` | `NumberedLinesRegenerationPromptBuilder` |
-| `IMeterValidator` | `PatternMeterValidator`, `BSPMeterValidator` |
+| `IMeterValidator` | `PatternMeterValidator` |
 | `IRhymeValidator` | `PhoneticRhymeValidator` |
 | `IPoemValidator` | `CompositePoemValidator` (meter + rhyme) |
-| `ILLMProvider` | `GeminiProvider`, `MockLLMProvider` + decorator stack (Logging → Retry → Timeout) |
+| `ILLMProvider` | `GeminiProvider`, `MockLLMProvider` + decorator stack (Logging → Retry → Timeout → Sanitizing → Extracting) |
+| `IPoemExtractor` | `SentinelPoemExtractor` (видобуток `<POEM>…</POEM>`) |
+| `IPoemOutputSanitizer` | `RegexPoemOutputSanitizer` (allowlist-санітизація) |
+| `ILLMCallRecorder` | `InMemoryLLMCallRecorder` (raw/extracted/sanitized для UI-трасування) |
 | `IEmbedder` | `LaBSEEmbedder`, `OfflineDeterministicEmbedder`, `CompositeEmbedder` |
 | `IStressDictionary` | `UkrainianStressDict` |
 | `IPhoneticTranscriber` | `UkrainianIpaTranscriber` |
+| `IClock` / `IDelayer` | `SystemClock` / `SystemDelayer` (реальний час), `FakeClock` / `FakeDelayer` (тести) |
+| `IHttpErrorMapper` | `DefaultHttpErrorMapper` (поліморфний dispatch за `DomainError.http_status_code`) |
 
 ### Патерни проєктування
 
 | Патерн | Де застосований |
 |--------|----------------|
-| **Strategy** | `IMeterValidator` (Pattern / BSP), `IRhymeValidator`, `IStageSkipPolicy` |
+| **Strategy** | `IMeterValidator` (Pattern), `IRhymeValidator`, `IStageSkipPolicy` |
 | **Repository** | `IThemeRepository`, `IMetricRepository` |
 | **Factory** | `ILLMProviderFactory`, `IStageFactory`, `ITracerFactory` |
 | **Dependency Injection** | Constructor injection; `composition_root.Container` |
-| **Decorator** | LLM reliability: `Logging → Retry → Timeout` |
+| **Decorator** | LLM reliability + чистка виходу: `Logging → Retry → Timeout → Sanitizing → Extracting` |
 | **Composite** | `CompositeEmbedder` (primary + fallback), `CompositePoemValidator` (meter + rhyme) |
 | **Null Object** | `NullTracer`, `NullLogger` |
 | **Registry** | `IMetricCalculatorRegistry`, `IScenarioRegistry` |
 
 ### Принципи SOLID
 
-- **S** (SRP): `PoetryService` оркеструє; `CompositePoemValidator` валідує; `RagPromptBuilder` будує промпт; кожен sub-container wires один шматок графу
-- **O** (OCP): нова стратегія валідації чи ретрівера підключається через інтерфейс без зміни пайплайну
-- **L** (LSP): контрактні тести (`tests/contracts/`) гарантують взаємозамінність реалізацій
-- **I** (ISP): 30+ вузьких інтерфейсів замість кількох широких (окремі `ILineSplitter`, `ITokenizer`, `IStringSimilarity`)
-- **D** (DIP): сервіси залежать лише від абстракцій (`domain/ports/`); конкретні класи wired у `composition_root.py`
+- **S** (SRP): `PoetryService` оркеструє; `CompositePoemValidator` валідує; `RagPromptBuilder` будує промпт; кожен sub-container wires один шматок графу. `MarkdownReporter` тепер тонкий façade над чотирма колабораторами (`TableFormatter`, `TraceFormatter`, `CostCalculator`, `MarkdownDocumentBuilder`) — кожен фрагмент звітності живе в окремому класі.
+- **O** (OCP): нова стратегія валідації чи ретрівера підключається через інтерфейс без зміни пайплайну. `DefaultHttpErrorMapper` додає нові мапінги domain-error → HTTP виключно через розширення — кожен підклас `DomainError` несе власний `http_status_code` і `http_error_type` (ім'я класу), тому ланцюг `isinstance` у мапері відсутній.
+- **L** (LSP): контрактні тести (`tests/contracts/`) гарантують взаємозамінність реалізацій — включно з кожним декоратором LLM і повним стеком (див. `tests/unit/infrastructure/llm/decorators/test_decorator_contracts.py`).
+- **I** (ISP): 30+ вузьких інтерфейсів замість кількох широких (окремі `ILineSplitter`, `ITokenizer`, `IStringSimilarity`; широкий `IProsodyAnalyzer` тепер deprecated на користь `IStressPatternAnalyzer` + `IExpectedMeterBuilder` + `IMismatchTolerance`).
+- **D** (DIP): сервіси залежать лише від абстракцій (`domain/ports/`); конкретні класи wired у `composition_root.py`. Час і sleep абстраговано за `IClock` / `IDelayer`, тому `EvaluationService` та `BatchEvaluationService` ніколи не викликають `time.perf_counter` чи `time.sleep` напряму — у тестах інжектуються `FakeClock` / `FakeDelayer`.
 
 ---
 
@@ -147,7 +171,8 @@ service.generate(request)  # один об'єкт GenerationRequest
         │  prompt string
         ▼
 ┌────────────────┐
-│ 4. Generation  │  ← GeminiProvider генерує вірш (через декоратори Logging → Retry → Timeout)
+│ 4. Generation  │  ← GeminiProvider через 5-шаровий decorator-стек (Logging →
+│    Stage       │     Retry → Timeout → Sanitizing → Extracting → Gemini)
 │    Stage       │
 └────────────────┘
         │  poem text
@@ -174,7 +199,7 @@ service.generate(request)  # один об'єкт GenerationRequest
 
 ## 2. Компонент 1 — Корпус і завантаження даних
 
-**Файли:** `src/infrastructure/repositories/theme_repository.py`, `src/domain/corpus_entry.py`
+**Файли:** `src/infrastructure/repositories/theme_repository.py`, `src/domain/models/corpus_entry.py`
 
 ### Структура `CorpusEntry`
 
@@ -320,7 +345,7 @@ class MetricExample:
     note: str         # примітки
 ```
 
-Дані зберігаються у `MetricCorpusEntry` (TypedDict, `src/domain/metric_corpus_entry.py`) і перетворюються у `MetricExample` entities при завантаженні.
+Дані зберігаються у `MetricCorpusEntry` (TypedDict, `src/domain/models/metric_corpus_entry.py`) і перетворюються у `MetricExample` entities при завантаженні.
 
 ### Датасет `corpus/uk_metric-rhyme_reference_corpus.json`
 
@@ -456,46 +481,74 @@ class ILLMProvider(ABC):
 ```python
 client = genai.Client(api_key=api_key)
 response = client.models.generate_content(
-    model="gemini-2.0-flash",
+    model="gemini-3.1-pro-preview",
     contents=prompt,
     config=types.GenerateContentConfig(
         temperature=0.9,          # висока: більше творчості
-        max_output_tokens=4096,   # достатньо для 4-строфного вірша
+        max_output_tokens=8192,   # для reasoning-моделей ≥ 8192 обовʼязково
         system_instruction=...,
     ),
 )
 ```
 
-**Параметри:**
-- `temperature=0.9` — відносно висока, щоб генерація була варіативною і не повторювала однакові рядки
-- `max_output_tokens=4096` — 1024 раніше призводило до обрізаних віршів; збільшено до 4096
-- `model="gemini-2.0-flash"` — актуальна модель (не `gemini-3.1-pro`, якої не існує)
+**Параметри (актуальні дефолти):**
+- `temperature=0.9` — відносно висока, щоб генерація була варіативною і не повторювала однакові рядки. Для reasoning-моделей (Gemini 2.5+ / 3.x Pro) рекомендовано знижувати до `0.3` — зменшує ліплення CoT у вивід.
+- `max_output_tokens=8192` — мусить бути ≥ 8192 на reasoning-моделях, інакше chain-of-thought зʼїдає бюджет до того, як модель виведе `<POEM>` envelope.
+- `model="gemini-3.1-pro-preview"` — дефолт. Платна модель, найкраща якість для українського вірша. Альтернативи: `gemini-2.5-pro` (трохи дешевша), `gemini-2.5-flash` (free tier, але якість для поезії помітно гірша).
+- `thinking_config` — якщо `GEMINI_DISABLE_THINKING=true`, передається `ThinkingConfig(thinking_budget=0, include_thoughts=False)`. Gemini 2.5 це підтримує, Gemini 3.x Pro preview — ні (повертає HTTP 400).
 
 ### `MockLLMProvider` — заглушка для тестів
 
 Повертає фіксований вірш без API-запиту. Це дозволяє тестувати пайплайн без витрат API-квоти.
 
-### Декоратори надійності LLM
+### Декоратори надійності LLM (повний 5-шаровий стек)
 
-Реальний `GeminiProvider` обгортається стеком декораторів (Decorator Pattern):
+Реальний `GeminiProvider` обгортається стеком декораторів (Decorator Pattern). Порядок зовнішній → внутрішній:
 
 ```
-LoggingLLMProvider → RetryingLLMProvider → TimeoutLLMProvider → GeminiProvider
+LoggingLLMProvider              ← структурний лог на кожний виклик + duration
+  └─ RetryingLLMProvider        ← експ. backoff на LLMError (до retry_max_attempts)
+      └─ TimeoutLLMProvider     ← жорсткий дедлайн (timeout_sec)
+          └─ SanitizingLLMProvider   ← allowlist-санітизація, порожнє → LLMError
+              └─ ExtractingLLMProvider ← видобуток <POEM>…</POEM> з envelope
+                  └─ GeminiProvider   ← реальний виклик Gemini API
 ```
 
-- **`LoggingLLMProvider`** — логує промпти і відповіді
-- **`RetryingLLMProvider`** — експоненційний backoff при помилках API (до `retry_max_attempts` спроб)
-- **`TimeoutLLMProvider`** — обмежує час виконання запиту (`timeout_sec`)
+- **`LoggingLLMProvider`** — структурний INFO/ERROR лог, бачить оригінальні аргументи і фінальний результат (після retry).
+- **`RetryingLLMProvider`** — повторна спроба на `LLMError`. Таймаут теж вважається `LLMError`, тому ретраїться (часто марно — модель знову стільки ж).
+- **`TimeoutLLMProvider`** — запускає внутрішній виклик у daemon-потоці; на перевищення `timeout_sec` кидає `LLMError`. **Потік не вмирає**, фактичний HTTP-запит до Gemini триває далі; це Python-обмеження.
+- **`SanitizingLLMProvider`** — прогонює вихід через `IPoemOutputSanitizer`. На порожньому результаті (все сміття) кидає `LLMError`, що дає retry-шару шанс спробувати ще раз. Пише sanitized-текст у `ILLMCallRecorder` для UI-трасування.
+- **`ExtractingLLMProvider`** — видобуває вміст між тегами `<POEM>…</POEM>` через `IPoemExtractor`. Без тегів — повертає вхід незміненим (sanitizer підбере). Пише raw + extracted у `ILLMCallRecorder`.
 
-Конфігурація через `LLMReliabilityConfig` у `AppConfig`.
+Конфігурація — `LLMReliabilityConfig` у `AppConfig` (див. §15). Санітизатор і екстрактор деталізовано у [`sanitization_pipeline.md`](./sanitization_pipeline.md); декоратори — у [`llm_decorator_stack.md`](./llm_decorator_stack.md).
+
+### Санітизація виводу LLM
+
+Reasoning-моделі часто «просочують» chain-of-thought у фінальний вивід: scansion-нотацію (`КрОки`, `(u u -)`), склади з дефісами (`за-гу-бив-ся`), англомовні коментарі, bullet-марковані пояснення. Система має двошаровий захист:
+
+1. **Sentinel extraction** — модель просять загорнути фінальний вірш у `<POEM>…</POEM>` теги. `SentinelPoemExtractor` ([`src/infrastructure/sanitization/sentinel_poem_extractor.py`](../../src/infrastructure/sanitization/sentinel_poem_extractor.py)) толерантний до збоїв: кілька блоків → береться останній (як правило, фінальна редакція після CoT); тільки відкритий тег без закриваючого → береться все після останнього `<POEM>` (`max_tokens`-обрубаний вивід); відсутність тегів → вхід проходить далі на sanitizer.
+
+2. **Allowlist-санітизація** — `RegexPoemOutputSanitizer` ([`src/infrastructure/sanitization/regex_poem_output_sanitizer.py`](../../src/infrastructure/sanitization/regex_poem_output_sanitizer.py)) перевіряє кожен рядок посимвольно: дозволені **тільки** українські кириличні літери, комбінований акут, апостроф, пунктуація (. , ! ? : ; …), тире / дефіс, лапки (« » „ " " " '), круглі дужки, пробіл. Усе інше (латиниця, цифри, `|`, `/`, `\`, `<>`, `[]`, `=`, emoji) автоматично дискваліфікує рядок. Додатково три behavioural-перевірки: мінімум одна кирилична літера; заборона lowercase→uppercase у токені (`КрО`); заборона ≥2 intraword-дефісів (`за-гу-бив-ся`).
+
+Детальне пояснення алгоритму + «salvage pass» для парен-блоків зі scansion — у [`sanitization_pipeline.md`](./sanitization_pipeline.md).
+
+### LLM call tracing
+
+Для відображення у UI (сторінки генерації + оцінки абляцій) обидва sanitization-декоратори пишуть у `ILLMCallRecorder` ([`src/domain/ports/llm_trace.py`](../../src/domain/ports/llm_trace.py), реалізація `InMemoryLLMCallRecorder` у [`src/infrastructure/tracing/llm_call_recorder.py`](../../src/infrastructure/tracing/llm_call_recorder.py)):
+
+- `record_raw(text)` — оригінальна відповідь Gemini (ExtractingLLMProvider на вході)
+- `record_extracted(text)` — текст після видобутку `<POEM>…</POEM>` (ExtractingLLMProvider на виході)
+- `record_sanitized(text)` — текст після allowlist-фільтра (SanitizingLLMProvider на виході)
+
+`ValidationStage` (ітерація 0) і `ValidatingFeedbackIterator` (ітерації 1+) читають snapshot рекордера і зберігають у `IterationRecord.raw_llm_response` / `.sanitized_llm_response`. UI рендерить обидва поля під collapsible-блоком «LLM trace (raw / sanitized)».
 
 ### Вибір LLM-провайдера
 
 `ILLMProviderFactory` (конкретна реалізація: `DefaultLLMProviderFactory`) автоматично обирає провайдера:
-- Якщо `GEMINI_API_KEY` задано → `GeminiProvider` (з декораторами Logging → Retry → Timeout)
+- Якщо `GEMINI_API_KEY` задано → `GeminiProvider` (з повним 5-шаровим decorator-стеком)
 - Якщо ключа немає → `MockLLMProvider` (детерміністична заглушка)
 
-Вибір відбувається через `composition_root.py` при побудові контейнера залежностей (`GenerationSubContainer`).
+Вибір відбувається через `composition_root.py` при побудові контейнера залежностей. `GenerationSubContainer` тепер тонкий façade, що композує три фокусовані sub-контейнери — `GenerationDataPlaneSubContainer` (репозиторії, ембедер, ретрівер), `LLMStackSubContainer` (фабрика + декоратори надійності) і `PipelineStagesSubContainer` (промпти, feedback loop, pipeline) — кожен у власному модулі під `src/infrastructure/composition/`.
 
 ---
 
@@ -548,7 +601,7 @@ class UkrainianStressDict(IStressDictionary):
 
 ## 8. Компонент 7 — Валідатор метру
 
-**Файли:** `src/infrastructure/validators/meter/pattern_validator.py` (основний), `src/infrastructure/validators/meter/bsp_validator.py` (альтернативний)
+**Файли:** `src/infrastructure/validators/meter/pattern_validator.py`
 **Порт:** `src/domain/ports/validation.py` → `IMeterValidator`
 
 ### Підтримувані метри
@@ -837,9 +890,26 @@ class RhymeResult:
 
 ## 11. Метрики якості — формули і обґрунтування
 
-**Файл:** `src/infrastructure/metrics/` (meter_accuracy, rhyme_accuracy, regeneration_success, semantic_relevance, line_count)
+**Файли:** `src/infrastructure/metrics/` (meter_accuracy, rhyme_accuracy, semantic_relevance, regeneration_success, iteration_metrics, line_count, registry)
 
-### 10.1 Meter Accuracy
+Усі метрики реалізують порт `IMetricCalculator` і реєструються у `DefaultMetricCalculatorRegistry`. `FinalMetricsStage` прогоняє увесь реєстр наприкінці pipeline-у і складає `context.final_metrics` — ключі рівно такі, як `IMetricCalculator.name`.
+
+**Композиція.** `MetricsSubContainer` сам є тонким façade-ом і композує два фокусовані sub-контейнери: `CalculatorRegistrySubContainer` (реєстр + калькулятори + фінальний stage) та `ReportingSubContainer` (репортер, results-writer-и, tracer factory, HTTP error mapper, evaluation aggregator). Кожен живе у власному модулі під `src/infrastructure/composition/`, тому нова метрика чи новий writer змінюють один фокусований файл, а не широкий metrics-контейнер.
+
+**Реєстр метрик (8 калькуляторів):**
+
+| Ключ | Клас | Файл | Значення | Коли 0 |
+|------|------|------|----------|--------|
+| `meter_accuracy` | `MeterAccuracyCalculator` | `meter_accuracy.py` | частка рядків, що пройшли метричний валідатор | вірш порожній |
+| `rhyme_accuracy` | `RhymeAccuracyCalculator` | `rhyme_accuracy.py` | частка пар, що пройшли фонетичну перевірку | пар нема |
+| `semantic_relevance` | `SemanticRelevanceCalculator` | `semantic_relevance.py` | cosine(embed(theme), embed(poem_text)) | `EmbedderError` або пусті тексти |
+| `regeneration_success` | `RegenerationSuccessCalculator` | `regeneration_success.py` | дельта середньої accuracy (метр+рима) від перша → остання ітерація | ітерацій < 2 |
+| `meter_improvement` | `MeterImprovementCalculator` | `iteration_metrics.py` | `final.meter_accuracy − initial.meter_accuracy` | ітерацій < 2 |
+| `rhyme_improvement` | `RhymeImprovementCalculator` | `iteration_metrics.py` | `final.rhyme_accuracy − initial.rhyme_accuracy` | ітерацій < 2 |
+| `feedback_iterations` | `FeedbackIterationsCalculator` | `iteration_metrics.py` | кількість ітерацій feedback loop (крім initial) | завжди визначена |
+| `num_lines` | `LineCountCalculator` | `line_count.py` | кількість непорожніх рядків у фінальному вірші | порожній вірш |
+
+### 11.1 Meter Accuracy
 
 ```
 meter_accuracy = Σ(рядок_i.ok) / N_рядків
@@ -849,7 +919,7 @@ meter_accuracy = Σ(рядок_i.ok) / N_рядків
 
 **Обґрунтування порогу 2:** класична поезія допускає **ритмічні варіації**. Пірихії і спондеї на службових і односкладових словах не вважаються помилками — вони фільтруються до підрахунку. Строге правило `≤0 mismatches` відкидало б канонічні рядки Шевченка, Лесі Українки, Костенко.
 
-### 10.2 Rhyme Accuracy
+### 11.2 Rhyme Accuracy
 
 ```
 rhyme_accuracy = Σ(пара_i.rhyme_ok) / N_пар
@@ -859,16 +929,79 @@ rhyme_accuracy = Σ(пара_i.rhyme_ok) / N_пар
 
 **Обґрунтування порогу:** рима не завжди точна (чоловіча/жіноча, тощо). Поріг дозволяє приймати неточні рими і асонанси, але відхиляє суттєві розходження. Конкретне значення підібране експериментально на українському матеріалі.
 
-### 10.3 Regeneration Success Rate
+### 11.3 Semantic Relevance
 
+```python
+# src/infrastructure/metrics/semantic_relevance.py
+semantic_relevance = cosine(embed(theme), embed(poem_text))
+                   = dot(theme_vec, poem_vec) / (||theme_vec|| * ||poem_vec||)
 ```
-success_rate = (meter_violations_fixed + rhyme_violations_fixed) /
-               (initial_meter_violations + initial_rhyme_violations)
+
+Вимірює **семантичну близькість фінального вірша до заданої теми**. Використовує той самий `IEmbedder` (`LaBSEEmbedder` у проді, `OfflineDeterministicEmbedder` у тестах), що і `SemanticRetriever` — це гарантує метрологічну узгодженість із retrieval-фазою.
+
+**Діапазон:** `[-1, 1]` теоретично, практично `[0, 1]` (нормалізовані LaBSE-вектори у семантично валідному просторі майже не дають від'ємних косинусів).
+
+**Значення ≥ 0.6** — тематично дотичний вірш. **≥ 0.8** — високо релевантний. **< 0.4** — модель «втекла» у бічну тему (часто через погано сформульований промпт або занадто малу кількість retrieval-прикладів).
+
+**Поведінка при збоях:**
+- `EmbedderError` (LaBSE недоступний, offline fallback не виручив) → повертає `0.0` і пише `warning` у лог. **НЕ** зриває pipeline — семантична метрика не критична для принципу «вірш згенеровано».
+- При `OFFLINE_EMBEDDER=true` метрика стає шумом (детерміністичним хеш-вектором, який не має семантичного змісту). Для research-режиму це варто фіксувати в звітах.
+
+**Навіщо:** окрема від `meter_accuracy` / `rhyme_accuracy` — **формальна коректність** ≠ **тематична відповідність**. Вірш може ідеально тримати ямб і ABAB, але писати про картопляні чіпси замість «весняного лісу».
+
+### 11.4 Regeneration Success (delta accuracy)
+
+```python
+# src/infrastructure/metrics/regeneration_success.py
+initial = iterations[0]        # ітерація 0 (результат initial generation)
+final   = iterations[-1]       # остання ітерація (після всіх feedback-проходів)
+regeneration_success = ((final.meter_accuracy - initial.meter_accuracy)
+                      + (final.rhyme_accuracy - initial.rhyme_accuracy)) / 2.0
 ```
 
-Показує, яку частку порушень вдалося виправити через feedback loop. Значення `1.0` = всі порушення виправлені, `0.0` = нічого не покращилось.
+**Діапазон:** `[-1, 1]`. Від'ємні значення повертаються **як є** (не clamp-аться) — це свідома деградація, яку треба **бачити** у звітах як сигнал про проблеми промпту / моделі.
 
-**Навіщо:** ця метрика вимірює **ефективність feedback** незалежно від початкової якості LLM. Навіть якщо вірш починається поганим (низький meter/rhyme accuracy), високий success rate означає що система вміє виправляти.
+- `+0.3` = feedback loop підвищив середню accuracy на 30%
+- `0.0` = нічого не змінилось (либо відразу було ідеально, либо feedback не допоміг)
+- `-0.2` = **модель зіпсувала вірш** намагаючись виправити — тривожний сигнал
+
+**Коли `0.0`:** якщо `len(iterations) < 2` (feedback loop не запустився; або `max_iterations=0`, або вірш був валідний з першого разу).
+
+**Навіщо:** відділяє **ефективність корекції** від вихідної якості. Система з baseline 50% + feedback 80% — краща за систему з baseline 75% без feedback.
+
+### 11.5 Meter / Rhyme Improvement (окремі дельти)
+
+```python
+# src/infrastructure/metrics/iteration_metrics.py
+meter_improvement = final.meter_accuracy - initial.meter_accuracy
+rhyme_improvement = final.rhyme_accuracy - initial.rhyme_accuracy
+```
+
+Розкладання `regeneration_success` на два канали. Дозволяє побачити **куди саме** feedback loop вклав корекцію: якщо `meter_improvement=+0.4` а `rhyme_improvement=-0.05`, то модель виправила метр і **розбила** риму — сигнал тюнити prompt-format, щоб обидва аспекти утримувались разом.
+
+### 11.6 Feedback Iterations
+
+```python
+feedback_iterations = max(0, len(iterations) - 1)
+```
+
+Кількість викликів feedback loop-у (крім initial generation). `0` = вірш був валідний з першої спроби, `1..max_iterations` = скільки разів довелось переробляти.
+
+**У абляційних конфігураціях:** медіанне значення цієї метрики по матриці сценаріїв — непрямий показник складності сценарію або кволості моделі.
+
+### 11.7 Num Lines
+
+```python
+num_lines = Poem.from_text(poem_text).line_count
+```
+
+Кількість непорожніх рядків у **фінальному** вірші (після sanitization). `Poem.from_text` пропускає рядки через `_is_poem_line()` — філтрує scansion-стаби, порожні, bulleted.
+
+**Діагностичне значення:** очікуване = `request.structure.total_lines`. Розходження сигналізує:
+- sanitizer викинув реальні рядки як «сміття» (false positive) → редагувати regex-правила;
+- модель видала менше/більше рядків ніж просили → тюнити промпт або піднімати `max_iterations`.
+
+Не агрегується у середні — використовується як per-run диагностика.
 
 ---
 
@@ -1055,9 +1188,12 @@ PipelineTrace
 | Змінна | За замовчуванням | Опис |
 |--------|-----------------|------|
 | `GEMINI_API_KEY` | — | API-ключ Gemini (обов'язково для реальної генерації) |
-| `GEMINI_MODEL` | `gemini-2.0-flash` | Назва моделі |
-| `GEMINI_TEMPERATURE` | `0.9` | Температура генерації |
-| `GEMINI_MAX_TOKENS` | `4096` | Ліміт токенів виводу |
+| `GEMINI_MODEL` | `gemini-3.1-pro-preview` | Назва моделі. Дефолт — платна (~\$2/1M in, ~\$12/1M out), найкраща якість. Альтернативи: `gemini-2.5-pro`, `gemini-2.5-flash` (free tier, гірша якість для поезії) |
+| `GEMINI_TEMPERATURE` | `0.9` | `[0, 2]`. Для reasoning-моделей знизити до `0.3` зменшує CoT-ліплення у вивід |
+| `GEMINI_MAX_TOKENS` | `8192` | Ліміт токенів виводу. Для reasoning ≥8192 обовʼязково (інакше `<POEM>` envelope не встигає вивестися) |
+| `GEMINI_DISABLE_THINKING` | `false` | `true` → передати `ThinkingConfig(thinking_budget=0)`. Підтримується тільки Gemini 2.5; Pro-preview повертає 400 |
+| `LLM_TIMEOUT_SEC` | `120` | Жорсткий timeout одного виклику. 120s для Pro, знизити до 20s для flash |
+| `LLM_RETRY_MAX_ATTEMPTS` | `2` | Скільки спроб на `LLMError`. Retry на timeout марний, але страхує від 5xx / rate-limit |
 | `LLM_PROVIDER` | `""` (auto) | Force provider: `gemini`, `mock`, або порожній для auto-detect |
 | `CORPUS_PATH` | `corpus/uk_theme_reference_corpus.json` | Шлях до JSON-файлу тематичного корпусу |
 | `METRIC_EXAMPLES_PATH` | `corpus/uk_metric-rhyme_reference_corpus.json` | Шлях до метричного корпусу |
@@ -1066,6 +1202,10 @@ PipelineTrace
 | `HOST` | `127.0.0.1` | Адреса сервера |
 | `PORT` | `8000` | Порт сервера |
 | `DEBUG` | `false` | Режим налагодження |
+
+**Увага:** у `.env` **не пишіть inline-коментарі** — docker-compose `env_file`-парсер читає їх як частину значення. Всі пояснення на окремому рядку перед змінною. `AppConfig.from_env` має захисну санітизацію (`_str()` helper), але краще не провокувати.
+
+Детальна довідка по всіх knob-ах, тюнинг під reasoning-моделі і таблиця типових збоїв: [docs/ua/reliability_and_config.md](./reliability_and_config.md) ([EN](../en/reliability_and_config.md)).
 
 ### Corpus management (Makefile)
 
@@ -1104,11 +1244,27 @@ PipelineTrace
                      └─────────────┘
                            │ prompt string (~600-2500 chars)
                            ▼
-                     ┌─────────────┐     GEMINI API
-                     │ GeminiPro-  │ ──────────────► generate_content()
-                     │  vider      │ ◄──────────────  poem text (full poem)
-                     └─────────────┘
-                           │
+    ┌────────────── LLM DECORATOR STACK (зовнішній → внутрішній) ──────────────┐
+    │                                                                          │
+    │   LoggingLLMProvider (INFO/ERROR + duration_sec)                         │
+    │     │                                                                    │
+    │     ▼                                                                    │
+    │   RetryingLLMProvider (exp. backoff на LLMError, до retry_max_attempts)  │
+    │     │                                                                    │
+    │     ▼                                                                    │
+    │   TimeoutLLMProvider (жорсткий дедлайн timeout_sec)                      │
+    │     │                                                                    │
+    │     ▼                                                                    │
+    │   SanitizingLLMProvider (allowlist-фільтр; порожнє → LLMError → retry)   │
+    │     │                                ◄── record_sanitized()              │
+    │     ▼                                                                    │
+    │   ExtractingLLMProvider (видобуток <POEM>…</POEM>)                       │
+    │     │                                ◄── record_raw()  record_extracted()│
+    │     ▼                                                                    │
+    │   GeminiProvider ──────► generate_content() ◄────── poem text (CoT+envelope)
+    │                                                                          │
+    └──────────────────────────────────────────────────────────────────────────┘
+                           │ cleaned poem text
                            ▼
                      ┌─────────────┐     UkrainianStressDict (ukrainian-word-stress + Stanza)
                      │ PatternMe-  │ ──► per-line stress pattern comparison
@@ -1117,21 +1273,23 @@ PipelineTrace
                            │
                      ┌─────────────┐     UkrainianIpaTranscriber → IPA
                      │ PhoneticRhy │ ──► LevenshteinSimilarity → normalized distance
-                     │  meValid.   │     → RhymeResult
+                     │  meValid.   │     → RhymeResult + precision (EXACT/ASSONANCE/…)
                      └─────────────┘
                            │
                            ├── ALL OK? ──────────────────► RETURN poem
                            │
-                           │ violations → feedback messages
+                           │ violations → feedback messages (UkrainianFeedbackFormatter)
                            ▼
-                     ┌─────────────┐     GEMINI API
-                     │ GeminiPro-  │ ──────────────► generate(regen_prompt)
-                     │  vider      │ ◄──────────────  revised full poem
+                     ┌─────────────┐
+                     │ Regeneration│  той самий 5-шаровий decorator-стек
+                     │ llm-call    │  generate → raw → extract → sanitize → LLMError→retry
                      └─────────────┘
                            │
                      ┌─────────────┐
-                     │ LineIndex-  │ ── safety guard: якщо LLM повернув < рядків →
-                     │   Merger    │    підставляє нові рядки в оригінал
+                     │ LineIndex-  │ ── 3 стратегії:
+                     │   Merger    │    A) повний вірш (regen == original lines)
+                     │             │    B) частковий splice за violation_indices
+                     │             │    C) safety fallback (regen = копія original → no-op)
                      └─────────────┘
                            │
                            └── validate() → (повтор, max_iterations разів)
