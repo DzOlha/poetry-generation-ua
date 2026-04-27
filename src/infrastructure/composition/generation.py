@@ -1,27 +1,22 @@
-"""Generation sub-container.
+"""Generation sub-container — façade composing three focused sub-containers.
 
-Owns the data plane (LLM, theme/metric repositories, embedder, retriever),
-prompt builders, the feedback loop stack, the pipeline stage
-registrations, and the concrete `IPipeline` / `IPoemGenerationPipeline`.
+The original module bundled five concerns (data plane, LLM stack, prompt
+builders, feedback loop, pipeline stages). After the architectural audit
+those concerns now live in their own modules:
 
-LLM construction goes through a reliability stack (timeout → retry →
-logging) so every production caller inherits the same reliability
-behaviour without each one re-implementing retry/timeout by hand.
+  - ``generation_data_plane``      — repositories, embedder, retriever
+  - ``generation_llm_stack``       — LLM factory + reliability decorators
+  - ``generation_pipeline_stages`` — prompts, feedback loop, pipeline
+
+This file exists only to preserve the original public API
+(``GenerationSubContainer``) so the parent ``Container`` and any
+existing call sites do not have to change. Every accessor delegates to
+the matching focused sub-container; nothing else lives here.
 """
 from __future__ import annotations
 
-from pathlib import Path
 from typing import TYPE_CHECKING
 
-from src.config import LLMReliabilityConfig
-from src.domain.evaluation import (
-    STAGE_FEEDBACK_LOOP,
-    STAGE_INITIAL_GENERATION,
-    STAGE_METRIC_EXAMPLES,
-    STAGE_PROMPT_CONSTRUCTION,
-    STAGE_RETRIEVAL,
-    STAGE_VALIDATION,
-)
 from src.domain.ports import (
     IEmbedder,
     IFeedbackCycle,
@@ -44,320 +39,114 @@ from src.domain.ports import (
     IStageSkipPolicy,
     IThemeRepository,
 )
-from src.infrastructure.composition.cache_keys import CacheKey
-from src.infrastructure.embeddings import (
-    CompositeEmbedder,
-    LaBSEEmbedder,
-    OfflineDeterministicEmbedder,
+from src.infrastructure.composition.generation_data_plane import (
+    GenerationDataPlaneSubContainer,
 )
-from src.infrastructure.llm import DefaultLLMProviderFactory
-from src.infrastructure.llm.decorators import (
-    ExponentialBackoffRetry,
-    ExtractingLLMProvider,
-    LoggingLLMProvider,
-    RetryingLLMProvider,
-    SanitizingLLMProvider,
-    TimeoutLLMProvider,
+from src.infrastructure.composition.generation_llm_stack import LLMStackSubContainer
+from src.infrastructure.composition.generation_pipeline_stages import (
+    PipelineStagesSubContainer,
 )
-from src.infrastructure.llm.provider_info import LLMProviderInfo
-from src.infrastructure.pipeline import (
-    DefaultPoemGenerationPipeline,
-    DefaultStageFactory,
-    DefaultStageSkipPolicy,
-    SequentialPipeline,
-    StageRegistration,
-)
-from src.infrastructure.prompts import (
-    NumberedLinesRegenerationPromptBuilder,
-    RagPromptBuilder,
-)
-from src.infrastructure.regeneration import (
-    LineIndexMerger,
-    MaxIterationsOrValidStopPolicy,
-    ValidatingFeedbackIterator,
-)
-from src.infrastructure.regeneration.feedback_cycle import ValidationFeedbackCycle
-from src.infrastructure.repositories.metric_repository import JsonMetricRepository
-from src.infrastructure.repositories.theme_repository import (
-    DemoThemeRepository,
-    JsonThemeRepository,
-)
-from src.infrastructure.retrieval import SemanticRetriever
-from src.infrastructure.sanitization import (
-    RegexPoemOutputSanitizer,
-    SentinelPoemExtractor,
-)
-from src.infrastructure.stages import (
-    FeedbackLoopStage,
-    GenerationStage,
-    MetricExamplesStage,
-    PromptStage,
-    RetrievalStage,
-    ValidationStage,
-)
-from src.infrastructure.tracing import InMemoryLLMCallRecorder
+from src.infrastructure.pipeline import StageRegistration
 
 if TYPE_CHECKING:
     from src.composition_root import Container
 
 
 class GenerationSubContainer:
-    """LLM, retrieval, prompts, feedback loop, and pipeline wiring."""
+    """Thin façade — three focused sub-containers over the shared cache."""
+
+    _stages: PipelineStagesSubContainer
 
     def __init__(self, parent: Container) -> None:
         self._parent = parent
+        self._data_plane = GenerationDataPlaneSubContainer(parent)
+        # The LLM stack needs the regeneration prompt builder lazily —
+        # the pipeline-stages container owns it. Pass a callable so the
+        # cycle stays untriggered until the LLM is actually constructed.
+        self._llm_stack = LLMStackSubContainer(
+            parent=parent,
+            regeneration_prompt_builder_factory=self._regen_prompt_builder,
+        )
+        self._stages = PipelineStagesSubContainer(
+            parent=parent,
+            data_plane=self._data_plane,
+            llm_stack=self._llm_stack,
+        )
+
+    def _regen_prompt_builder(self) -> IRegenerationPromptBuilder:
+        return self._stages.regeneration_prompt_builder()
 
     # ------------------------------------------------------------------
-    # Data plane (repos, embedder, retriever)
+    # Data plane delegation
     # ------------------------------------------------------------------
 
     def theme_repo(self) -> IThemeRepository:
-        def factory() -> IThemeRepository:
-            cfg = self._parent.config
-            if Path(cfg.corpus_path).exists():
-                return JsonThemeRepository(path=cfg.corpus_path)
-            return DemoThemeRepository()
-
-        return self._parent._get(CacheKey.THEME_REPO, factory)
+        return self._data_plane.theme_repo()
 
     def metric_repo(self) -> IMetricRepository:
-        return self._parent._get(
-            CacheKey.METRIC_REPO,
-            lambda: JsonMetricRepository(
-                path=self._parent.config.metric_examples_path,
-                meter_canonicalizer=self._parent.primitives.meter_canonicalizer(),
-            ),
-        )
+        return self._data_plane.metric_repo()
 
     def embedder(self) -> IEmbedder:
-        def factory() -> IEmbedder:
-            cfg = self._parent.config
-            offline = OfflineDeterministicEmbedder(logger=self._parent.logger)
-            if cfg.offline_embedder:
-                return offline
-            primary = LaBSEEmbedder(
-                logger=self._parent.logger, model_name=cfg.labse_model_name,
-            )
-            # CompositeEmbedder falls back to the offline embedder on
-            # runtime LaBSE failures (model missing, network down, OOM).
-            return CompositeEmbedder(
-                primary=primary,
-                fallback=offline,
-                logger=self._parent.logger,
-            )
-
-        return self._parent._get(CacheKey.EMBEDDER, factory)
+        return self._data_plane.embedder()
 
     def retriever(self) -> IRetriever:
-        return self._parent._get(
-            CacheKey.RETRIEVER,
-            lambda: SemanticRetriever(embedder=self.embedder()),
-        )
+        return self._data_plane.retriever()
 
     # ------------------------------------------------------------------
-    # Prompts + regeneration merger
-    # ------------------------------------------------------------------
-
-    def regeneration_prompt_builder(self) -> IRegenerationPromptBuilder:
-        return self._parent._get(
-            CacheKey.REGENERATION_PROMPT_BUILDER,
-            NumberedLinesRegenerationPromptBuilder,
-        )
-
-    def prompt_builder(self) -> IPromptBuilder:
-        return self._parent._get(CacheKey.PROMPT_BUILDER, RagPromptBuilder)
-
-    def regeneration_merger(self) -> IRegenerationMerger:
-        return self._parent._get(CacheKey.REGENERATION_MERGER, LineIndexMerger)
-
-    def iteration_stop_policy(self) -> IIterationStopPolicy:
-        return self._parent._get(
-            CacheKey.ITERATION_STOP_POLICY, MaxIterationsOrValidStopPolicy,
-        )
-
-    # ------------------------------------------------------------------
-    # LLM provider stack (raw → timeout → retry → logging)
+    # LLM stack delegation
     # ------------------------------------------------------------------
 
     def llm_factory(self) -> ILLMProviderFactory:
-        return self._parent._get(
-            CacheKey.LLM_FACTORY,
-            lambda: DefaultLLMProviderFactory(config=self._parent.config),
-        )
+        return self._llm_stack.llm_factory()
 
     def poem_output_sanitizer(self) -> IPoemOutputSanitizer:
-        return self._parent._get(
-            CacheKey.POEM_OUTPUT_SANITIZER, RegexPoemOutputSanitizer,
-        )
+        return self._llm_stack.poem_output_sanitizer()
 
     def poem_extractor(self) -> IPoemExtractor:
-        return self._parent._get(CacheKey.POEM_EXTRACTOR, SentinelPoemExtractor)
+        return self._llm_stack.poem_extractor()
 
     def llm_call_recorder(self) -> ILLMCallRecorder:
-        return self._parent._get(CacheKey.LLM_CALL_RECORDER, InMemoryLLMCallRecorder)
+        return self._llm_stack.llm_call_recorder()
 
     def llm(self) -> ILLMProvider:
-        def factory() -> ILLMProvider:
-            if self._parent.injected_llm is not None:
-                # Test/CI mocks do not get wrapped; they never fail or hang.
-                return self._parent.injected_llm
-            raw = self.llm_factory().create(self.regeneration_prompt_builder())
-            return self._wrap_with_reliability(raw)
-
-        return self._parent._get(CacheKey.LLM, factory)
-
-    def _wrap_with_reliability(self, provider: ILLMProvider) -> ILLMProvider:
-        rel: LLMReliabilityConfig = self._parent.config.llm_reliability
-        recorder = self.llm_call_recorder()
-        extracted = ExtractingLLMProvider(
-            inner=provider,
-            extractor=self.poem_extractor(),
-            recorder=recorder,
-        )
-        sanitized = SanitizingLLMProvider(
-            inner=extracted,
-            sanitizer=self.poem_output_sanitizer(),
-            recorder=recorder,
-        )
-        timed = TimeoutLLMProvider(
-            inner=sanitized,
-            timeout_sec=rel.timeout_sec,
-        )
-        retrying = RetryingLLMProvider(
-            inner=timed,
-            policy=ExponentialBackoffRetry(
-                max_attempts=rel.retry_max_attempts,
-                base_delay_sec=rel.retry_base_delay_sec,
-                max_delay_sec=rel.retry_max_delay_sec,
-                multiplier=rel.retry_multiplier,
-            ),
-            logger=self._parent.logger,
-        )
-        return LoggingLLMProvider(inner=retrying, logger=self._parent.logger)
+        return self._llm_stack.llm()
 
     def provider_info(self) -> IProviderInfo:
-        return self._parent._get(
-            CacheKey.PROVIDER_INFO,
-            lambda: LLMProviderInfo(self.llm()),
-        )
+        return self._llm_stack.provider_info()
 
     # ------------------------------------------------------------------
-    # Feedback loop
+    # Pipeline-stages delegation
     # ------------------------------------------------------------------
+
+    def regeneration_prompt_builder(self) -> IRegenerationPromptBuilder:
+        return self._stages.regeneration_prompt_builder()
+
+    def prompt_builder(self) -> IPromptBuilder:
+        return self._stages.prompt_builder()
+
+    def regeneration_merger(self) -> IRegenerationMerger:
+        return self._stages.regeneration_merger()
+
+    def iteration_stop_policy(self) -> IIterationStopPolicy:
+        return self._stages.iteration_stop_policy()
 
     def feedback_cycle(self) -> IFeedbackCycle:
-        return self._parent._get(
-            CacheKey.FEEDBACK_CYCLE,
-            lambda: ValidationFeedbackCycle(
-                meter_validator=self._parent.validation.meter_validator(),
-                rhyme_validator=self._parent.validation.rhyme_validator(),
-                feedback_formatter=self._parent.validation.feedback_formatter(),
-            ),
-        )
+        return self._stages.feedback_cycle()
 
     def feedback_iterator(self) -> IFeedbackIterator:
-        return self._parent._get(
-            CacheKey.FEEDBACK_ITERATOR,
-            lambda: ValidatingFeedbackIterator(
-                llm=self.llm(),
-                feedback_cycle=self.feedback_cycle(),
-                regeneration_merger=self.regeneration_merger(),
-                stop_policy=self.iteration_stop_policy(),
-                logger=self._parent.logger,
-                llm_call_recorder=self.llm_call_recorder(),
-            ),
-        )
-
-    # ------------------------------------------------------------------
-    # Pipeline stages
-    # ------------------------------------------------------------------
+        return self._stages.feedback_iterator()
 
     def skip_policy(self) -> IStageSkipPolicy:
-        return self._parent._get(CacheKey.SKIP_POLICY, DefaultStageSkipPolicy)
+        return self._stages.skip_policy()
 
     def stage_registrations(self) -> list[StageRegistration]:
-        def factory() -> list[StageRegistration]:
-            skip = self.skip_policy()
-            val = self._parent.validation
-            return [
-                StageRegistration(
-                    name=STAGE_RETRIEVAL,
-                    stage=RetrievalStage(
-                        theme_repo=self.theme_repo(),
-                        retriever=self.retriever(),
-                        skip_policy=skip,
-                        logger=self._parent.logger,
-                    ),
-                    togglable=True,
-                ),
-                StageRegistration(
-                    name=STAGE_METRIC_EXAMPLES,
-                    stage=MetricExamplesStage(
-                        metric_repo=self.metric_repo(),
-                        skip_policy=skip,
-                        logger=self._parent.logger,
-                    ),
-                    togglable=True,
-                ),
-                StageRegistration(
-                    name=STAGE_PROMPT_CONSTRUCTION,
-                    stage=PromptStage(prompt_builder=self.prompt_builder()),
-                    togglable=False,
-                ),
-                StageRegistration(
-                    name=STAGE_INITIAL_GENERATION,
-                    stage=GenerationStage(
-                        llm=self.llm(),
-                        logger=self._parent.logger,
-                    ),
-                    togglable=False,
-                ),
-                StageRegistration(
-                    name=STAGE_VALIDATION,
-                    stage=ValidationStage(
-                        meter_validator=val.meter_validator(),
-                        rhyme_validator=val.rhyme_validator(),
-                        feedback_formatter=val.feedback_formatter(),
-                        skip_policy=skip,
-                        logger=self._parent.logger,
-                        record_builder=self._parent.metrics.stage_record_builder(),
-                        llm_call_recorder=self.llm_call_recorder(),
-                    ),
-                    togglable=True,
-                ),
-                StageRegistration(
-                    name=STAGE_FEEDBACK_LOOP,
-                    stage=FeedbackLoopStage(
-                        iterator=self.feedback_iterator(),
-                        skip_policy=skip,
-                    ),
-                    togglable=True,
-                ),
-            ]
-
-        return self._parent._get(CacheKey.STAGE_REGISTRATIONS, factory)
+        return self._stages.stage_registrations()
 
     def stage_factory(self) -> IStageFactory:
-        return self._parent._get(
-            CacheKey.STAGE_FACTORY,
-            lambda: DefaultStageFactory(registrations=self.stage_registrations()),
-        )
+        return self._stages.stage_factory()
 
     def generation_pipeline_inner(self) -> IPipeline:
-        """IPipeline without final-metrics — used by `PoetryService.generate`."""
-        return self._parent._get(
-            CacheKey.GENERATION_PIPELINE_INNER,
-            lambda: SequentialPipeline(
-                stages=self.stage_factory().build_for(frozenset()),
-                final_metrics_stage=None,
-            ),
-        )
+        return self._stages.generation_pipeline_inner()
 
     def poem_generation_pipeline(self) -> IPoemGenerationPipeline:
-        return self._parent._get(
-            CacheKey.POEM_GENERATION_PIPELINE,
-            lambda: DefaultPoemGenerationPipeline(
-                pipeline=self.generation_pipeline_inner(),
-                logger=self._parent.logger,
-            ),
-        )
+        return self._stages.poem_generation_pipeline()
