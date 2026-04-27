@@ -20,11 +20,19 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class LLMCallSnapshot:
-    """Text observed at each decorator layer for a single LLM call."""
+    """Text + usage observed at each decorator layer for a single LLM call.
+
+    Token counts are reported by the concrete LLM adapter when the provider
+    exposes usage metadata (Gemini's ``response.usage_metadata``, OpenAI's
+    ``response.usage``, etc.). Adapters that cannot report usage leave the
+    fields at 0 and downstream cost/analyzer code treats that as "unknown".
+    """
 
     raw: str = ""
     extracted: str = ""
     sanitized: str = ""
+    input_tokens: int = 0
+    output_tokens: int = 0
 
 
 class ILLMCallRecorder(ABC):
@@ -38,6 +46,9 @@ class ILLMCallRecorder(ABC):
 
     @abstractmethod
     def record_sanitized(self, text: str) -> None: ...
+
+    @abstractmethod
+    def record_usage(self, input_tokens: int, output_tokens: int) -> None: ...
 
     @abstractmethod
     def snapshot(self) -> LLMCallSnapshot: ...

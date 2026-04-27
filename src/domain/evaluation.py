@@ -144,6 +144,13 @@ class EvaluationSummary:
     num_iterations: int
     num_lines: int
     duration_sec: float
+    # Token + cost totals across every LLM call in this run (initial
+    # generation + feedback iterations). 0 when the provider does not
+    # expose usage metadata (mock adapters, safety blocks).
+    input_tokens: int = 0
+    output_tokens: int = 0
+    total_tokens: int = 0
+    estimated_cost_usd: float = 0.0
     error: str | None = None
 
 
@@ -180,6 +187,18 @@ class IterationRecord:
     # observed (e.g. mock providers that bypass the decorator stack).
     raw_llm_response: str = ""
     sanitized_llm_response: str = ""
+    # Token usage reported by the LLM provider for this iteration's
+    # single generate/regenerate call. 0 means "not available" (mock
+    # adapter, safety block, SDK drift) — consumers treat it as unknown,
+    # not as a free call.
+    input_tokens: int = 0
+    output_tokens: int = 0
+    # User-facing error message when this iteration failed (LLM error,
+    # quota, network, etc). When set, accuracy fields hold the *previous*
+    # iteration's metrics — the failed call did not produce a new poem,
+    # so validation kept the prior result. UI must surface this so users
+    # don't think regeneration silently succeeded with the same numbers.
+    error: str | None = None
 
 
 @dataclass(frozen=True)

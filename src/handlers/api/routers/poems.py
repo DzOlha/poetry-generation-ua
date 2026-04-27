@@ -80,6 +80,8 @@ def generate_poem(
             duration_sec=s.duration_sec,
             raw_llm_response=s.raw_llm_response,
             sanitized_llm_response=s.sanitized_llm_response,
+            input_tokens=s.input_tokens,
+            output_tokens=s.output_tokens,
         )
         for s in result.iteration_history
     )

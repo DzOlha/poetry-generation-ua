@@ -43,7 +43,7 @@ class GenerationStage(IPipelineStage):
                     state.poem = parsed.as_text()
             except LLMError as exc:
                 self._logger.error("LLM generation failed", error=str(exc))
-                state.abort(f"generation failed: {exc}")
+                state.abort(f"generation failed: {exc}", exception=exc)
                 state.tracer.add_stage(StageRecord(
                     name=self.STAGE_NAME,
                     input_summary=f"prompt ({len(state.prompt)} chars)",

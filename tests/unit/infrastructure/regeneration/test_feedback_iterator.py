@@ -14,6 +14,7 @@ from src.domain.models import (
     RhymeResult,
     RhymeScheme,
 )
+from src.domain.models.feedback import LineFeedback, PairFeedback
 from src.domain.pipeline_context import PipelineState
 from src.domain.ports import (
     IFeedbackCycle,
@@ -273,3 +274,54 @@ class TestEarlyExit:
         _make_iterator(llm).iterate(state)
         assert llm.regen_calls == []
         assert llm.generate_calls == []
+
+
+class TestErrorHandling:
+    """Failed iterations must still surface an IterationRecord + StageRecord
+    so the UI can show the user that an attempt was made and why it failed.
+    Without this the user sees identical metrics as the initial draft and
+    no clue why feedback "didn't fire" — that was the C05 anapest-1 bug.
+    """
+
+    def _make_failing_llm(self, message: str) -> _ScriptedLLM:
+        @dataclass
+        class _RaisingLLM(_ScriptedLLM):
+            def regenerate_lines(self, poem: str, feedback: list[str]) -> str:
+                raise LLMError(message)
+
+        return _RaisingLLM()
+
+    def test_failed_iteration_recorded_with_error(self):
+        # Same line count → goes through regenerate_lines path.
+        poem = "перший рядок\nдругий рядок\nтретій рядок\nчетвертий рядок\n"
+        llm = self._make_failing_llm("quota exceeded after 250 requests")
+        state = _make_state(
+            poem=poem, expected_lines=4, max_iterations=2,
+            meter_acc=0.5, meter_feedback=(_line_fb(0),),
+        )
+        _make_iterator(llm).iterate(state)
+
+        # IterationRecord MUST exist so feedback_iterations metric reflects
+        # the attempt and "Спроб" on the result page is correct.
+        iters = state.tracer.iterations()
+        assert len(iters) == 1
+        assert iters[0].error is not None
+        assert "quota exceeded" in iters[0].error
+        # StageRecord with error is also kept for the per-stage trace view.
+        stages = [
+            s for s in state.tracer.get_trace().stages
+            if s.name.startswith("feedback_iter_")
+        ]
+        assert len(stages) == 1
+        assert stages[0].error is not None
+
+    def test_failed_iteration_breaks_loop(self):
+        # max_iterations=3 but the first attempt fails → no further attempts.
+        poem = "перший рядок\nдругий рядок\nтретій рядок\nчетвертий рядок\n"
+        llm = self._make_failing_llm("network timeout")
+        state = _make_state(
+            poem=poem, expected_lines=4, max_iterations=3,
+            meter_acc=0.5, meter_feedback=(_line_fb(0),),
+        )
+        _make_iterator(llm).iterate(state)
+        assert len(state.tracer.iterations()) == 1  # not 3

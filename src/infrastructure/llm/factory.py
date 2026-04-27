@@ -16,21 +16,31 @@ from collections.abc import Callable
 
 from src.config import AppConfig
 from src.domain.errors import ConfigurationError
-from src.domain.ports import ILLMProvider, ILLMProviderFactory, IRegenerationPromptBuilder
+from src.domain.ports import (
+    ILLMCallRecorder,
+    ILLMProvider,
+    ILLMProviderFactory,
+    IRegenerationPromptBuilder,
+)
 from src.infrastructure.llm.gemini import GeminiProvider
 from src.infrastructure.llm.mock import MockLLMProvider
 
-ProviderBuilder = Callable[[AppConfig, IRegenerationPromptBuilder], ILLMProvider]
+ProviderBuilder = Callable[
+    [AppConfig, IRegenerationPromptBuilder, ILLMCallRecorder],
+    ILLMProvider,
+]
 
 
 def build_gemini_provider(
     config: AppConfig,
     regeneration_prompt_builder: IRegenerationPromptBuilder,
+    recorder: ILLMCallRecorder,
 ) -> ILLMProvider:
     """Default Gemini builder used by `DefaultLLMProviderFactory`."""
     return GeminiProvider(
         api_key=config.gemini_api_key,
         regeneration_prompt_builder=regeneration_prompt_builder,
+        recorder=recorder,
         model=config.gemini_model,
         temperature=config.gemini_temperature,
         max_output_tokens=config.gemini_max_tokens,
@@ -41,9 +51,10 @@ def build_gemini_provider(
 def build_mock_provider(
     config: AppConfig,
     regeneration_prompt_builder: IRegenerationPromptBuilder,
+    recorder: ILLMCallRecorder,
 ) -> ILLMProvider:
     """Default mock builder used by `DefaultLLMProviderFactory`."""
-    del config
+    del config, recorder
     return MockLLMProvider(regeneration_prompt_builder=regeneration_prompt_builder)
 
 
@@ -82,6 +93,7 @@ class DefaultLLMProviderFactory(ILLMProviderFactory):
     def create(
         self,
         regeneration_prompt_builder: IRegenerationPromptBuilder,
+        recorder: ILLMCallRecorder,
     ) -> ILLMProvider:
         cfg = self._config
         provider_name = self._resolve_name(cfg)
@@ -92,7 +104,7 @@ class DefaultLLMProviderFactory(ILLMProviderFactory):
             raise ConfigurationError(
                 f"Unknown LLM provider {provider_name!r}; available: {available}",
             ) from exc
-        return builder(cfg, regeneration_prompt_builder)
+        return builder(cfg, regeneration_prompt_builder, recorder)
 
     @staticmethod
     def _resolve_name(cfg: AppConfig) -> str:

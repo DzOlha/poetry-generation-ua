@@ -29,6 +29,10 @@ def evaluation_summary_to_dict(s: EvaluationSummary) -> dict[str, Any]:
         "iterations": s.num_iterations,
         "lines": s.num_lines,
         "duration_sec": round(s.duration_sec, 4),
+        "input_tokens": s.input_tokens,
+        "output_tokens": s.output_tokens,
+        "total_tokens": s.total_tokens,
+        "estimated_cost_usd": round(s.estimated_cost_usd, 6),
         "error": s.error,
     }
 
@@ -62,6 +66,8 @@ def iteration_record_to_dict(rec: IterationRecord) -> dict[str, Any]:
         "duration_sec": round(rec.duration_sec, 4),
         "raw_llm_response": rec.raw_llm_response,
         "sanitized_llm_response": rec.sanitized_llm_response,
+        "input_tokens": rec.input_tokens,
+        "output_tokens": rec.output_tokens,
     }
 
 

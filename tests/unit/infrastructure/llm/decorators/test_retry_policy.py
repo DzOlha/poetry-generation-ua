@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.domain.errors import DomainError, LLMError
+from src.domain.errors import DomainError, LLMError, LLMQuotaExceededError
 from src.infrastructure.llm.decorators import ExponentialBackoffRetry
 
 
@@ -20,6 +20,14 @@ class TestExponentialBackoffRetry:
     def test_should_retry_false_for_non_llm_error(self) -> None:
         policy = ExponentialBackoffRetry(max_attempts=3)
         assert policy.should_retry(attempt=1, exc=DomainError("other")) is False
+
+    def test_should_retry_false_for_quota_exceeded(self) -> None:
+        # Daily quota does not recover within a retry window — retrying is
+        # pure latency for the user.
+        policy = ExponentialBackoffRetry(max_attempts=3)
+        assert policy.should_retry(
+            attempt=1, exc=LLMQuotaExceededError("limit reached"),
+        ) is False
 
     def test_next_delay_doubles_then_caps(self) -> None:
         policy = ExponentialBackoffRetry(

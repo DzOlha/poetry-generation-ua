@@ -7,15 +7,19 @@ import pytest
 
 from src.config import AppConfig
 from src.domain.errors import ConfigurationError
-from src.domain.ports import ILLMProvider, IRegenerationPromptBuilder
+from src.domain.ports import ILLMCallRecorder, ILLMProvider, IRegenerationPromptBuilder
 from src.infrastructure.llm.factory import DefaultLLMProviderFactory
-from src.infrastructure.llm.gemini import GeminiProvider
 from src.infrastructure.llm.mock import MockLLMProvider
 from src.infrastructure.prompts import NumberedLinesRegenerationPromptBuilder
+from src.infrastructure.tracing.llm_call_recorder import NullLLMCallRecorder
 
 
 def _builder() -> IRegenerationPromptBuilder:
     return NumberedLinesRegenerationPromptBuilder()
+
+
+def _recorder() -> ILLMCallRecorder:
+    return NullLLMCallRecorder()
 
 
 class _FakeProvider(ILLMProvider):
@@ -33,7 +37,7 @@ class TestDefaultLLMProviderFactory:
     def test_auto_selects_mock_when_no_api_key(self) -> None:
         cfg = replace(AppConfig.from_env(), gemini_api_key="", llm_provider="")
         factory = DefaultLLMProviderFactory(config=cfg)
-        assert isinstance(factory.create(_builder()), MockLLMProvider)
+        assert isinstance(factory.create(_builder(), _recorder()), MockLLMProvider)
 
     def test_explicit_mock_selection(self) -> None:
         cfg = replace(
@@ -42,7 +46,7 @@ class TestDefaultLLMProviderFactory:
             llm_provider="mock",
         )
         factory = DefaultLLMProviderFactory(config=cfg)
-        assert isinstance(factory.create(_builder()), MockLLMProvider)
+        assert isinstance(factory.create(_builder(), _recorder()), MockLLMProvider)
 
     def test_unknown_provider_raises_configuration_error(self) -> None:
         cfg = replace(AppConfig.from_env(), llm_provider="mock")
@@ -50,7 +54,7 @@ class TestDefaultLLMProviderFactory:
         object.__setattr__(cfg, "llm_provider", "nonexistent")
         factory = DefaultLLMProviderFactory(config=cfg)
         with pytest.raises(ConfigurationError, match="Unknown LLM provider"):
-            factory.create(_builder())
+            factory.create(_builder(), _recorder())
 
     def test_register_adds_new_provider(self) -> None:
         cfg = replace(AppConfig.from_env(), llm_provider="mock")
@@ -59,9 +63,9 @@ class TestDefaultLLMProviderFactory:
         factory = DefaultLLMProviderFactory(config=cfg)
         factory.register(
             "fake",
-            lambda _cfg, _b: _FakeProvider(label="labelled"),
+            lambda _cfg, _b, _r: _FakeProvider(label="labelled"),
         )
-        provider = factory.create(_builder())
+        provider = factory.create(_builder(), _recorder())
         assert isinstance(provider, _FakeProvider)
         assert provider.label == "labelled"
 
@@ -75,15 +79,10 @@ class TestDefaultLLMProviderFactory:
         factory = DefaultLLMProviderFactory(
             config=cfg,
             builders={
-                "gemini": lambda _c, _b: _FakeProvider(label="gemini"),
-                "mock": lambda _c, _b: _FakeProvider(label="mock"),
+                "gemini": lambda _c, _b, _r: _FakeProvider(label="gemini"),
+                "mock": lambda _c, _b, _r: _FakeProvider(label="mock"),
             },
         )
-        provider = factory.create(_builder())
+        provider = factory.create(_builder(), _recorder())
         assert isinstance(provider, _FakeProvider)
         assert provider.label == "gemini"
-
-    def test_unused_gemini_builder_reference(self) -> None:
-        # Sanity check that the imported GeminiProvider symbol still resolves;
-        # guards against accidental deletion of the import when refactoring.
-        assert GeminiProvider is not None

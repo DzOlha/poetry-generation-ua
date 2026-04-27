@@ -208,6 +208,6 @@ class TestEvaluationMatrix:
             scenarios=[scenario],
             configs=ABLATION_CONFIGS,
         )
-        assert len(traces) == 5
+        assert len(traces) == 8
         labels = {t.config_label for t in traces}
-        assert labels == {"A", "B", "C", "D", "E"}
+        assert labels == {"A", "B", "C", "D", "E", "F", "G", "H"}

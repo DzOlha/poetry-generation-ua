@@ -19,6 +19,7 @@ from src.domain.evaluation import (
     StageRecord,
 )
 from src.domain.ports import (
+    IClock,
     ILogger,
     IPipeline,
     IScenarioRegistry,
@@ -122,6 +123,19 @@ class NullLogger(ILogger):
     def error(self, message: str, **fields) -> None: ...
 
 
+class FakeClock(IClock):
+    """Monotonic stub that advances by a fixed step on each call."""
+
+    def __init__(self, start: float = 0.0, step: float = 1.0) -> None:
+        self._t = start
+        self._step = step
+
+    def now(self) -> float:
+        t = self._t
+        self._t += self._step
+        return t
+
+
 # ---------------------------------------------------------------------------
 # Shared fixtures
 # ---------------------------------------------------------------------------
@@ -154,6 +168,7 @@ def service_and_doubles():
         logger=NullLogger(),
         scenario_registry=EmptyScenarioRegistry(),
         ablation_configs=(_CFG_A, _CFG_B),
+        clock=FakeClock(),
     )
     return service, pipeline, tracer_factory
 

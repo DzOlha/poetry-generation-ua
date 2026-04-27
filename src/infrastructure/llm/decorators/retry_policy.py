@@ -7,7 +7,7 @@ retries, or inject a custom `IRetryPolicy` double to observe calls.
 """
 from __future__ import annotations
 
-from src.domain.errors import LLMError
+from src.domain.errors import LLMError, LLMQuotaExceededError
 from src.domain.ports import IRetryPolicy
 
 
@@ -42,6 +42,10 @@ class ExponentialBackoffRetry(IRetryPolicy):
 
     def should_retry(self, attempt: int, exc: Exception) -> bool:
         if not isinstance(exc, LLMError):
+            return False
+        # Quota / daily-limit failures don't recover within a retry window —
+        # retrying just adds latency before the user sees the same error.
+        if isinstance(exc, LLMQuotaExceededError):
             return False
         return attempt < self._max_attempts
 

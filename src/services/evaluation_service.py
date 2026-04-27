@@ -161,6 +161,8 @@ class EvaluationService:
         scenario: EvaluationScenario,
     ) -> EvaluationSummary:
         fm = trace.final_metrics
+        input_tokens = int(fm.get("input_tokens", 0))
+        output_tokens = int(fm.get("output_tokens", 0))
         return EvaluationSummary(
             scenario_id=scenario.id,
             scenario_name=scenario.name,
@@ -173,5 +175,9 @@ class EvaluationService:
             num_iterations=int(fm.get("feedback_iterations", 0)),
             num_lines=int(fm.get("num_lines", 0)),
             duration_sec=trace.total_duration_sec,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            total_tokens=int(fm.get("total_tokens", input_tokens + output_tokens)),
+            estimated_cost_usd=float(fm.get("estimated_cost_usd", 0.0)),
             error=trace.error,
         )

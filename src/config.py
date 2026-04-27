@@ -17,6 +17,13 @@ from src.domain.errors import ConfigurationError
 
 _BASE_DIR = Path(__file__).resolve().parents[1]
 
+# Per-million-token prices used by EstimatedCostCalculator when no
+# GEMINI_INPUT_PRICE_PER_M / GEMINI_OUTPUT_PRICE_PER_M is supplied. The
+# numbers match Gemini 3.1 Pro Preview at ≤200K context and are the single
+# source of truth for both the dataclass default and the env-loader fallback.
+_GEMINI_DEFAULT_INPUT_PRICE_PER_M = 2.0
+_GEMINI_DEFAULT_OUTPUT_PRICE_PER_M = 12.0
+
 
 @dataclass(frozen=True)
 class ValidationConfig:
@@ -131,7 +138,7 @@ class LLMInfo:
     """
 
     provider: str          # "gemini" / "mock" / custom registered name
-    model: str             # "gemini-2.0-flash" for real providers; "—" for mock
+    model: str             # "gemini-3.1-pro-preview" for real providers; "—" for mock
     ready: bool            # True = capable of real generation
     error: str | None = None  # user-facing message when ready=False
 
@@ -143,7 +150,7 @@ class AppConfig:
     # LLM
     llm_provider: str = ""  # "" = auto (gemini if API key set, else mock)
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-2.0-flash"
+    gemini_model: str = "gemini-3.1-pro-preview"
     gemini_temperature: float = 0.9
     # 8192 gives reasoning models (2.5+ / 3.x) headroom for chain-of-thought
     # plus the final ``<POEM>...</POEM>`` block. At 4096 Gemini Pro typically
@@ -154,6 +161,14 @@ class AppConfig:
     # thinking-only variants (e.g. Gemini 3.x Pro preview) reject budget 0
     # with ``INVALID_ARGUMENT``. Enable only for models that support it.
     gemini_disable_thinking: bool = False
+    # Per-million-token prices used by EstimatedCostCalculator to turn
+    # token counts into an approximate USD bill in batch runs. Override
+    # via GEMINI_INPUT_PRICE_PER_M / GEMINI_OUTPUT_PRICE_PER_M env vars
+    # when you switch to a cheaper Flash-tier model. Module-level
+    # constants keep the dataclass default and the env-loader fallback
+    # in sync.
+    gemini_input_price_per_m: float = _GEMINI_DEFAULT_INPUT_PRICE_PER_M
+    gemini_output_price_per_m: float = _GEMINI_DEFAULT_OUTPUT_PRICE_PER_M
     llm_reliability: LLMReliabilityConfig = field(default_factory=LLMReliabilityConfig)
 
     # Data paths
@@ -192,6 +207,14 @@ class AppConfig:
         if self.gemini_max_tokens <= 0:
             raise ConfigurationError(
                 f"gemini_max_tokens must be > 0, got {self.gemini_max_tokens}"
+            )
+        if self.gemini_input_price_per_m < 0:
+            raise ConfigurationError(
+                f"gemini_input_price_per_m must be >= 0, got {self.gemini_input_price_per_m}"
+            )
+        if self.gemini_output_price_per_m < 0:
+            raise ConfigurationError(
+                f"gemini_output_price_per_m must be >= 0, got {self.gemini_output_price_per_m}"
             )
         if not 1 <= self.port <= 65535:
             raise ConfigurationError(f"port out of range: {self.port}")
@@ -256,10 +279,22 @@ class AppConfig:
         return cls(
             llm_provider=_str("LLM_PROVIDER"),
             gemini_api_key=_str("GEMINI_API_KEY"),
-            gemini_model=_str("GEMINI_MODEL", "gemini-2.0-flash"),
+            gemini_model=_str("GEMINI_MODEL", "gemini-3.1-pro-preview"),
             gemini_temperature=float(os.getenv("GEMINI_TEMPERATURE", "0.9")),
             gemini_max_tokens=int(os.getenv("GEMINI_MAX_TOKENS", "8192")),
             gemini_disable_thinking=_bool("GEMINI_DISABLE_THINKING", False),
+            gemini_input_price_per_m=float(
+                os.getenv(
+                    "GEMINI_INPUT_PRICE_PER_M",
+                    str(_GEMINI_DEFAULT_INPUT_PRICE_PER_M),
+                )
+            ),
+            gemini_output_price_per_m=float(
+                os.getenv(
+                    "GEMINI_OUTPUT_PRICE_PER_M",
+                    str(_GEMINI_DEFAULT_OUTPUT_PRICE_PER_M),
+                )
+            ),
             llm_reliability=LLMReliabilityConfig(
                 timeout_sec=float(os.getenv("LLM_TIMEOUT_SEC", "120")),
                 retry_max_attempts=int(os.getenv("LLM_RETRY_MAX_ATTEMPTS", "2")),

@@ -70,7 +70,7 @@ class ValidationStage(IPipelineStage):
             except DomainError as exc:
                 self._logger.warning("validation stage failed", error=str(exc))
                 state.tracer.add_stage(StageRecord(name=self.STAGE_NAME, error=str(exc)))
-                state.abort(f"validation failed: {exc}")
+                state.abort(f"validation failed: {exc}", exception=exc)
                 return
 
         state.last_meter_result = m_result
@@ -99,4 +99,6 @@ class ValidationStage(IPipelineStage):
             duration_sec=t.elapsed,
             raw_llm_response=snapshot.raw,
             sanitized_llm_response=snapshot.sanitized,
+            input_tokens=snapshot.input_tokens,
+            output_tokens=snapshot.output_tokens,
         ))

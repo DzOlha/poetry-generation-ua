@@ -31,6 +31,11 @@ class IterationSnapshot:
     # originates from a test double that bypasses the decorator stack.
     raw_llm_response: str = ""
     sanitized_llm_response: str = ""
+    # Per-iteration token usage reported by the provider (0 when the
+    # snapshot comes from a mock adapter or a call that failed before
+    # usage metadata was captured).
+    input_tokens: int = 0
+    output_tokens: int = 0
 
 
 @dataclass(frozen=True)

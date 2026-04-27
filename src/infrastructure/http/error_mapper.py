@@ -1,35 +1,29 @@
-"""Default `IHttpErrorMapper` — maps DomainError subclasses to HTTP responses.
+"""Default `IHttpErrorMapper` — dispatches polymorphically on DomainError.
 
-This adapter lives in the infrastructure layer because it knows the full
-domain-error taxonomy; handlers import it via `IHttpErrorMapper` only,
-keeping FastAPI-specific translation at the outermost edge of the system.
+After the audit, each ``DomainError`` subclass owns its own
+``http_status_code`` and ``http_error_type``. The mapper is reduced to a
+two-line check: domain errors carry their own metadata; anything else
+falls through to the standard 500 response. Adding a new domain error
+type no longer requires editing this module — the OCP-friendly approach
+the audit recommended.
 
-Mapping policy (stable contract, tested in
-`tests/unit/infrastructure/http/test_error_mapper.py`):
+Mapping policy (stable contract, exercised in
+``tests/unit/infrastructure/http/test_error_mapper.py``):
 
-    UnsupportedConfigError → 422  (caller asked for something the system
-                                   cannot handle — degenerate meter/scheme)
-    ConfigurationError     → 400  (caller-facing config problem)
-    ValidationError        → 422  (poem failed structural validation)
-    RepositoryError        → 503  (corpus/embedding source unavailable)
-    EmbedderError          → 503  (embedding backend unavailable)
-    StressDictionaryError  → 503  (linguistic backend unavailable)
-    LLMError               → 502  (upstream LLM refused / crashed)
-    DomainError (root)     → 500  (any unexpected domain fault)
-    Exception              → 500  (anything else — last-resort fallback)
+    UnsupportedConfigError → 422
+    ConfigurationError     → 400
+    ValidationError        → 422
+    RepositoryError        → 503
+    EmbedderError          → 503
+    StressDictionaryError  → 503
+    LLMQuotaExceededError  → 429
+    LLMError               → 502
+    DomainError (root)     → 500
+    Exception              → 500  (last-resort fallback)
 """
 from __future__ import annotations
 
-from src.domain.errors import (
-    ConfigurationError,
-    DomainError,
-    EmbedderError,
-    LLMError,
-    RepositoryError,
-    StressDictionaryError,
-    UnsupportedConfigError,
-    ValidationError,
-)
+from src.domain.errors import DomainError
 from src.domain.ports import HttpErrorResponse, IHttpErrorMapper
 
 
@@ -37,33 +31,18 @@ class DefaultHttpErrorMapper(IHttpErrorMapper):
     """Maps DomainError subclasses to framework-agnostic `HttpErrorResponse`."""
 
     def map(self, exc: Exception) -> HttpErrorResponse:
-        status, error_type = self._classify(exc)
+        if isinstance(exc, DomainError):
+            return HttpErrorResponse(
+                status_code=exc.http_status_code,
+                payload={
+                    "error": str(exc) or exc.__class__.__name__,
+                    "type": exc.http_error_type,
+                },
+            )
         return HttpErrorResponse(
-            status_code=status,
+            status_code=500,
             payload={
                 "error": str(exc) or exc.__class__.__name__,
-                "type": error_type,
+                "type": "InternalServerError",
             },
         )
-
-    @staticmethod
-    def _classify(exc: Exception) -> tuple[int, str]:
-        # Most specific subclasses first — order matters because subclasses
-        # would otherwise match their parent's branch.
-        if isinstance(exc, UnsupportedConfigError):
-            return 422, "UnsupportedConfigError"
-        if isinstance(exc, ValidationError):
-            return 422, "ValidationError"
-        if isinstance(exc, ConfigurationError):
-            return 400, "ConfigurationError"
-        if isinstance(exc, LLMError):
-            return 502, "LLMError"
-        if isinstance(exc, EmbedderError):
-            return 503, "EmbedderError"
-        if isinstance(exc, RepositoryError):
-            return 503, "RepositoryError"
-        if isinstance(exc, StressDictionaryError):
-            return 503, "StressDictionaryError"
-        if isinstance(exc, DomainError):
-            return 500, "DomainError"
-        return 500, "InternalServerError"

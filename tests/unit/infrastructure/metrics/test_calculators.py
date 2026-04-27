@@ -39,12 +39,40 @@ def _context_with_iterations(
 
 
 class TestMeterAccuracyCalculator:
-    def test_returns_float(self, meter_validator: IMeterValidator):
+    def test_forwards_actual_validator_score(self, meter_validator: IMeterValidator):
+        # The calculator must return *exactly* what the validator computes
+        # for the given (poem, meter). Type+bounds checks would pass even
+        # for a broken implementation that always returns 0.5 — this test
+        # pins down the forwarding contract.
+        poem = (
+            "Реве та стогне Дніпр широкий,\n"
+            "Сердитий вітер завива,\n"
+            "Додолу верби гне високі,\n"
+            "Горами хвилю підійма.\n"
+        )
+        meter = MeterSpec(name="ямб", foot_count=4)
+        expected = meter_validator.validate(poem, meter).accuracy
         calc = MeterAccuracyCalculator(meter_validator=meter_validator)
-        poem = "Весна прийшла у ліс зелений,\nДе тінь і світло гомонить.\n"
-        acc = calc.calculate(_context(poem))
-        assert isinstance(acc, float)
-        assert 0.0 <= acc <= 1.0
+        assert calc.calculate(_context(poem)) == expected
+
+    def test_calculates_partial_accuracy_for_partially_passing_poem(
+        self, meter_validator: IMeterValidator,
+    ):
+        # The classical Shevchenko quatrain is fully iambic by hand,
+        # but our stress resolver mis-stresses a couple of words
+        # (`широкий, високі`) so empirically only 2/4 lines validate.
+        # The point is: the calculator must return that real fractional
+        # score, not 0.0 or 1.0. Pinning to 0.5 catches both:
+        #   - regression to "all-or-nothing" scoring (would return 0.0/1.0)
+        #   - regression to constant returns (e.g. always 1.0)
+        poem = (
+            "Реве та стогне Дніпр широкий,\n"
+            "Сердитий вітер завива,\n"
+            "Додолу верби гне високі,\n"
+            "Горами хвилю підійма.\n"
+        )
+        calc = MeterAccuracyCalculator(meter_validator=meter_validator)
+        assert calc.calculate(_context(poem)) == 0.5
 
     def test_empty_poem_fails_validation(self, meter_validator: IMeterValidator):
         # Empty poems intentionally fail: there is nothing to validate.
@@ -56,11 +84,19 @@ class TestMeterAccuracyCalculator:
 
 
 class TestRhymeAccuracyCalculator:
-    def test_returns_float(self, rhyme_validator: IRhymeValidator):
+    def test_forwards_actual_validator_score(self, rhyme_validator: IRhymeValidator):
+        # Same forwarding-contract pin-down as the meter calculator.
+        poem = "ліс\nвіс\nріс\nніс\n"
+        rhyme = RhymeScheme(pattern="AABB")
+        expected = rhyme_validator.validate(poem, rhyme).accuracy
         calc = RhymeAccuracyCalculator(rhyme_validator=rhyme_validator)
-        acc = calc.calculate(_context("ліс\nвіс\nріс\nніс\n", scheme="AABB"))
-        assert isinstance(acc, float)
-        assert 0.0 <= acc <= 1.0
+        assert calc.calculate(_context(poem, scheme="AABB")) == expected
+
+    def test_perfect_rhymes_score_one(self, rhyme_validator: IRhymeValidator):
+        # 4 single-syllable words sharing the same stressed vowel `i` and
+        # consonant `s`. AABB scheme → both pairs (1-2, 3-4) must rhyme.
+        calc = RhymeAccuracyCalculator(rhyme_validator=rhyme_validator)
+        assert calc.calculate(_context("ліс\nвіс\nріс\nніс\n", scheme="AABB")) == 1.0
 
     def test_empty_poem(self, rhyme_validator: IRhymeValidator):
         calc = RhymeAccuracyCalculator(rhyme_validator=rhyme_validator)
@@ -82,12 +118,34 @@ class TestRegenerationSuccessCalculator:
         assert RegenerationSuccessCalculator().calculate(ctx) == 0.0
 
     def test_improvement_positive(self):
+        # initial violations = 0.7 + 0.7 = 1.4;  final = 0.1 + 0.1 = 0.2.
+        # coverage = 1 - 0.2/1.4 ≈ 0.857.
         ctx = _context_with_iterations("", [
             IterationRecord(iteration=0, poem_text="", meter_accuracy=0.3, rhyme_accuracy=0.3, feedback=()),
             IterationRecord(iteration=1, poem_text="", meter_accuracy=0.9, rhyme_accuracy=0.9, feedback=()),
         ])
         delta = RegenerationSuccessCalculator().calculate(ctx)
-        assert 0.55 < delta < 0.65  # ~0.6
+        assert 0.85 < delta < 0.86
+
+    def test_full_fix_of_single_axis_with_other_already_perfect(self):
+        # Regression against the old raw-delta formula: the rhyme axis is
+        # already at the ceiling, so only the meter axis can improve — the
+        # fix fully resolved the initial violation budget and the metric
+        # must report 100%, not 50%.
+        ctx = _context_with_iterations("", [
+            IterationRecord(iteration=0, poem_text="", meter_accuracy=0.0, rhyme_accuracy=1.0, feedback=()),
+            IterationRecord(iteration=1, poem_text="", meter_accuracy=1.0, rhyme_accuracy=1.0, feedback=()),
+        ])
+        assert RegenerationSuccessCalculator().calculate(ctx) == 1.0
+
+    def test_initial_already_perfect_returns_full_success(self):
+        # No violation budget to consume — regeneration had nothing to fix
+        # and nothing broke, so return 1.0 (vacuously successful).
+        ctx = _context_with_iterations("", [
+            IterationRecord(iteration=0, poem_text="", meter_accuracy=1.0, rhyme_accuracy=1.0, feedback=()),
+            IterationRecord(iteration=1, poem_text="", meter_accuracy=1.0, rhyme_accuracy=1.0, feedback=()),
+        ])
+        assert RegenerationSuccessCalculator().calculate(ctx) == 1.0
 
     def test_degradation_returned_as_negative(self):
         ctx = _context_with_iterations("", [

@@ -5,11 +5,19 @@ from src.domain.ports import EvaluationContext, IMetricCalculator
 
 
 class RegenerationSuccessCalculator(IMetricCalculator):
-    """Measures the quality improvement achieved through the feedback loop.
+    """Violation-coverage ratio between the first and last iteration.
 
-    Returns the raw delta of average (meter + rhyme) accuracy between the
-    first and last iteration. Negative values are returned as-is to expose
-    LLM degradation — consumers can clamp or display as they wish.
+    Defines violations as (1 − meter_accuracy) + (1 − rhyme_accuracy) and
+    returns ``1 − final_violations / initial_violations``. The resulting
+    number answers "what fraction of the initial violation budget did the
+    feedback loop resolve?": 1.0 = every violation fixed, 0.0 = none
+    fixed, negative = regeneration made things worse. When the initial
+    poem already had zero violations there is nothing to repair and the
+    metric is 1.0 (vacuously successful).
+
+    Preferred over a raw accuracy delta because a metric that was already
+    at the ceiling (e.g. rhyme=100%) cannot contribute to improvement and
+    unfairly drags the average down.
     """
 
     @property
@@ -23,6 +31,9 @@ class RegenerationSuccessCalculator(IMetricCalculator):
         initial = context.iterations[0]
         final = context.iterations[-1]
 
-        meter_improvement = final.meter_accuracy - initial.meter_accuracy
-        rhyme_improvement = final.rhyme_accuracy - initial.rhyme_accuracy
-        return (meter_improvement + rhyme_improvement) / 2.0
+        initial_violations = (1.0 - initial.meter_accuracy) + (1.0 - initial.rhyme_accuracy)
+        final_violations = (1.0 - final.meter_accuracy) + (1.0 - final.rhyme_accuracy)
+
+        if initial_violations <= 0.0:
+            return 1.0
+        return 1.0 - final_violations / initial_violations

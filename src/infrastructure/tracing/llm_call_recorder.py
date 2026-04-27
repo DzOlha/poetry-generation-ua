@@ -14,18 +14,22 @@ from src.domain.ports import ILLMCallRecorder, LLMCallSnapshot
 
 
 class InMemoryLLMCallRecorder(ILLMCallRecorder):
-    """Stores the most-recent raw/extracted/sanitized text in memory."""
+    """Stores the most-recent raw/extracted/sanitized text + token usage."""
 
     def __init__(self) -> None:
         self._raw = ""
         self._extracted = ""
         self._sanitized = ""
+        self._input_tokens = 0
+        self._output_tokens = 0
 
     def record_raw(self, text: str) -> None:
         self._raw = text
-        # A fresh raw recording marks a new LLM call; wipe the downstream
-        # stages so a stale snapshot from a previous call cannot surface
-        # if the extractor/sanitizer are not invoked this time around.
+        # Wipe downstream-stage text so a stale extracted/sanitized value
+        # from a previous call cannot surface if those stages are skipped.
+        # Token counts are intentionally NOT reset here: the LLM provider
+        # calls record_usage() before returning the raw text, so clearing
+        # tokens here would erase the data that was just captured.
         self._extracted = ""
         self._sanitized = ""
 
@@ -35,11 +39,17 @@ class InMemoryLLMCallRecorder(ILLMCallRecorder):
     def record_sanitized(self, text: str) -> None:
         self._sanitized = text
 
+    def record_usage(self, input_tokens: int, output_tokens: int) -> None:
+        self._input_tokens = max(0, int(input_tokens))
+        self._output_tokens = max(0, int(output_tokens))
+
     def snapshot(self) -> LLMCallSnapshot:
         return LLMCallSnapshot(
             raw=self._raw,
             extracted=self._extracted,
             sanitized=self._sanitized,
+            input_tokens=self._input_tokens,
+            output_tokens=self._output_tokens,
         )
 
 
@@ -49,6 +59,7 @@ class NullLLMCallRecorder(ILLMCallRecorder):
     def record_raw(self, text: str) -> None: ...
     def record_extracted(self, text: str) -> None: ...
     def record_sanitized(self, text: str) -> None: ...
+    def record_usage(self, input_tokens: int, output_tokens: int) -> None: ...
 
     def snapshot(self) -> LLMCallSnapshot:
         return LLMCallSnapshot()

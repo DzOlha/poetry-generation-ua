@@ -66,6 +66,7 @@ class ValidatingFeedbackIterator(IFeedbackIterator):
             ):
                 break
             llm_snapshot: LLMCallSnapshot = LLMCallSnapshot()
+            iter_error: str | None = None
             with StageTimer() as t_iter:
                 try:
                     prev_poem = state.poem
@@ -110,17 +111,21 @@ class ValidatingFeedbackIterator(IFeedbackIterator):
                     r_result = outcome.rhyme
                     feedback_messages = outcome.feedback_messages
                 except DomainError as exc:
+                    iter_error = str(exc)
                     self._logger.error(
                         "feedback iteration failed",
                         iter=it,
-                        error=str(exc),
+                        error=iter_error,
                     )
                     state.tracer.add_stage(StageRecord(
                         name=f"feedback_iter_{it}",
-                        error=str(exc),
+                        error=iter_error,
                     ))
-                    break
 
+            # Record the iteration even on failure, so the UI can show the
+            # attempt + the reason it didn't produce a new poem. Without
+            # this branch the user sees identical metrics as the initial
+            # draft and no clue why feedback "didn't fire".
             state.tracer.add_iteration(IterationRecord(
                 iteration=it,
                 poem_text=state.poem,
@@ -130,7 +135,13 @@ class ValidatingFeedbackIterator(IFeedbackIterator):
                 duration_sec=t_iter.elapsed,
                 raw_llm_response=llm_snapshot.raw,
                 sanitized_llm_response=llm_snapshot.sanitized,
+                input_tokens=llm_snapshot.input_tokens,
+                output_tokens=llm_snapshot.output_tokens,
+                error=iter_error,
             ))
+
+            if iter_error is not None:
+                break
 
         state.last_meter_result = m_result
         state.last_rhyme_result = r_result

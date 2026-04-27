@@ -1,11 +1,87 @@
 """Gemini LLM provider — Google Gemini API adapter."""
 from __future__ import annotations
 
+import re
 from typing import Any
 
-from src.domain.errors import LLMError
-from src.domain.ports import IRegenerationPromptBuilder
+from src.domain.errors import LLMError, LLMQuotaExceededError
+from src.domain.ports import ILLMCallRecorder, IRegenerationPromptBuilder
 from src.infrastructure.llm.base import BaseLLMProvider
+
+# Quota-error fingerprints: any of these (case-insensitive) in the upstream
+# exception text marks the failure as a quota exhaustion (HTTP 429) rather
+# than a generic LLM fault (HTTP 502).
+_QUOTA_FINGERPRINTS: tuple[str, ...] = (
+    "RESOURCE_EXHAUSTED",
+    "exceeded your current quota",
+    "quota exceeded",
+)
+
+# Daily-request-limit patterns. Matches both the human form ("limit: 250")
+# and the JSON form ("'quotaValue': '250'") that Gemini surfaces in 429
+# error bodies. First match wins.
+_LIMIT_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"\blimit:\s*(\d+)", re.IGNORECASE),
+    re.compile(r"quota[_\s]*value['\"]?\s*[:=]\s*['\"]?(\d+)", re.IGNORECASE),
+)
+
+# Retry-after patterns. The human form ("Please retry in 22h18m29s") gives
+# a friendlier rendering than the raw seconds count, but we accept both.
+_RETRY_HUMAN_PATTERN = re.compile(
+    r"retry in (?:(\d+)h)?(?:(\d+)m)?(?:[\d.]+s)?",
+    re.IGNORECASE,
+)
+_RETRY_SECONDS_PATTERN = re.compile(
+    r"retry[_\s]*delay['\"]?\s*[:=]\s*['\"]?(\d+)s",
+    re.IGNORECASE,
+)
+
+
+def _is_quota_error(exc: BaseException) -> bool:
+    text = str(exc)
+    return any(fp.lower() in text.lower() for fp in _QUOTA_FINGERPRINTS)
+
+
+def _extract_limit(text: str) -> str | None:
+    for pattern in _LIMIT_PATTERNS:
+        match = pattern.search(text)
+        if match:
+            return match.group(1)
+    return None
+
+
+def _extract_retry_hint(text: str) -> str | None:
+    """Render a Ukrainian-friendly «через X годин/хвилин» phrase, if available."""
+    human = _RETRY_HUMAN_PATTERN.search(text)
+    if human and (human.group(1) or human.group(2)):
+        hours = int(human.group(1) or 0)
+        minutes = int(human.group(2) or 0)
+        if hours >= 1:
+            return f"приблизно через {hours} год"
+        if minutes >= 1:
+            return f"приблизно через {minutes} хв"
+    seconds_match = _RETRY_SECONDS_PATTERN.search(text)
+    if seconds_match:
+        seconds = int(seconds_match.group(1))
+        if seconds >= 3600:
+            return f"приблизно через {seconds // 3600} год"
+        if seconds >= 60:
+            return f"приблизно через {seconds // 60} хв"
+    return None
+
+
+def _build_quota_message(raw_error: str) -> str:
+    limit = _extract_limit(raw_error)
+    retry_hint = _extract_retry_hint(raw_error) or "пізніше"
+    if limit:
+        return (
+            f"Досягнуто денного ліміту в {limit} запитів до LLM. "
+            f"Спробуйте, будь ласка, {retry_hint}."
+        )
+    return (
+        "Досягнуто денного ліміту запитів до LLM. "
+        f"Спробуйте, будь ласка, {retry_hint}."
+    )
 
 
 class GeminiProvider(BaseLLMProvider):
@@ -15,7 +91,8 @@ class GeminiProvider(BaseLLMProvider):
         self,
         api_key: str,
         regeneration_prompt_builder: IRegenerationPromptBuilder,
-        model: str = "gemini-2.0-flash",
+        recorder: ILLMCallRecorder,
+        model: str = "gemini-3.1-pro-preview",
         temperature: float = 0.9,
         max_output_tokens: int = 4096,
         disable_thinking: bool = True,
@@ -31,6 +108,7 @@ class GeminiProvider(BaseLLMProvider):
 
         self._client = genai.Client(api_key=api_key)
         self._types = types
+        self._recorder = recorder
         self._model_name = model
         self._temperature = temperature
         self._max_output_tokens = max_output_tokens
@@ -101,12 +179,37 @@ class GeminiProvider(BaseLLMProvider):
                 config=config,
             )
         except Exception as exc:
+            if _is_quota_error(exc):
+                raise LLMQuotaExceededError(_build_quota_message(str(exc))) from exc
             raise LLMError(f"Gemini call failed: {exc}") from exc
+
+        self._record_usage(response)
 
         text = response.text
         if not text:
             raise LLMError("Gemini returned an empty response")
         return text.strip() + "\n"
+
+    def _record_usage(self, response: Any) -> None:
+        """Push Gemini's usage_metadata into the recorder, tolerating SDK drift.
+
+        ``response.usage_metadata`` is the canonical shape; fields are
+        optional when Gemini streams partial content or hits a safety block.
+        Missing/None fields collapse to 0 so downstream cost estimation
+        treats the call as "unknown" rather than crashing.
+        """
+        meta = getattr(response, "usage_metadata", None)
+        if meta is None:
+            return
+        prompt_tokens = int(getattr(meta, "prompt_token_count", 0) or 0)
+        candidates = int(getattr(meta, "candidates_token_count", 0) or 0)
+        # Reasoning models surface chain-of-thought tokens separately; they
+        # are billed as output tokens, so fold them in when present.
+        thoughts = int(getattr(meta, "thoughts_token_count", 0) or 0)
+        self._recorder.record_usage(
+            input_tokens=prompt_tokens,
+            output_tokens=candidates + thoughts,
+        )
 
     def _build_thinking_config(self) -> Any:
         """Return a ``ThinkingConfig`` that suppresses visible reasoning, or None.

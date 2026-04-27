@@ -11,6 +11,7 @@ from src.domain.models import (
 )
 
 if TYPE_CHECKING:
+    from src.domain.ports.llm_trace import ILLMCallRecorder
     from src.domain.ports.prompts import IRegenerationPromptBuilder
 
 
@@ -61,6 +62,7 @@ class ILLMProviderFactory(ABC):
     def create(
         self,
         regeneration_prompt_builder: IRegenerationPromptBuilder,
+        recorder: ILLMCallRecorder,
     ) -> ILLMProvider: ...
 
 
