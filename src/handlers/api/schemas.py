@@ -11,6 +11,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from src.config import LLMInfo
 from src.domain.detection import DetectionResult, MeterDetection, RhymeDetection
 from src.domain.evaluation import (
     AblationConfig,
@@ -274,6 +275,11 @@ class IterationSnapshotSchema(BaseModel):
     line_displays: list[LineDisplaySchema] = Field(default_factory=list)
     raw_llm_response: str = ""
     sanitized_llm_response: str = ""
+    # Per-iteration token usage reported by the LLM provider. 0 when
+    # the provider did not surface usage metadata (mock adapter, safety
+    # block, SDK drift).
+    input_tokens: int = 0
+    output_tokens: int = 0
 
     @classmethod
     def from_domain(cls, s: IterationSnapshot) -> IterationSnapshotSchema:
@@ -286,6 +292,8 @@ class IterationSnapshotSchema(BaseModel):
             duration_sec=s.duration_sec,
             raw_llm_response=s.raw_llm_response,
             sanitized_llm_response=s.sanitized_llm_response,
+            input_tokens=s.input_tokens,
+            output_tokens=s.output_tokens,
         )
 
 
@@ -356,6 +364,19 @@ class ScenarioSchema(BaseModel):
             stanza_count=s.stanza_count,
             lines_per_stanza=s.lines_per_stanza,
         )
+
+
+class ScenariosByCategorySchema(BaseModel):
+    """Scenarios grouped by category (normal / edge / corner).
+
+    Mirrors the `scenarios_by_cat(...)` helper the HTML `evaluate.html`
+    page consumes so an SPA can render the same three-column grid
+    without grouping a flat list client-side.
+    """
+
+    normal: list[ScenarioSchema] = Field(default_factory=list)
+    edge: list[ScenarioSchema] = Field(default_factory=list)
+    corner: list[ScenarioSchema] = Field(default_factory=list)
 
 
 class AblationConfigSchema(BaseModel):
@@ -468,4 +489,82 @@ class EvaluationRunResponseSchema(BaseModel):
     scenario: ScenarioSchema
     config: AblationConfigSchema
     trace: PipelineTraceSchema
+
+
+# ---------------------------------------------------------------------------
+# Ablation-report schemas — JSON twin of the HTML `/ablation-report` page.
+# ---------------------------------------------------------------------------
+
+class ComponentExplanationSchema(BaseModel):
+    """One row of the component glossary shown on the ablation dashboard."""
+
+    name: str
+    label: str
+    comparison: str
+    summary: str
+    interpretation: str
+
+
+class PlotExplanationSchema(BaseModel):
+    """Static methodology caption for one plot — same across all batches."""
+
+    title: str
+    what: str
+    how_to_read: str
+    look_for: str
+
+
+class PlotAnalysisSchema(BaseModel):
+    """Per-batch auto-generated narrative analysis derived from the numbers.
+
+    `summary` and entries in `bullets` may contain inline HTML markup
+    (`<code>`, `<b>`) for template rendering — SPAs should either render
+    as HTML or strip the tags client-side.
+    """
+
+    summary: str
+    bullets: list[str] = Field(default_factory=list)
+    empty: bool = False
+
+
+class AblationInsightLineSchema(BaseModel):
+    """One bullet of the headline insights block — one (component, metric) pair."""
+
+    component: str
+    metric_key: str
+    metric_label: str
+    mean: str
+    ci: str
+    verdict: str
+    tone: Literal["positive", "negative", "neutral"]
+
+
+class AblationInsightsSchema(BaseModel):
+    """Top-level narrative summary derived from the contributions table."""
+
+    headline: str
+    component_lines: list[AblationInsightLineSchema] = Field(default_factory=list)
+    cost_lines: list[str] = Field(default_factory=list)
+
+
+class AblationReportResponseSchema(BaseModel):
+    """JSON twin of the HTML `/ablation-report` page payload.
+
+    Mirrors :class:`src.handlers.shared.ablation_report.BatchArtifacts`.
+    SPAs use this to render the same dashboard the web UI shows: glossary
+    + plot URLs + per-plot narrative + scenario/config catalogues + headline
+    insights, all derived from the latest `results/batch_*/` folder.
+    """
+
+    batch_id: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    contributions: list[dict[str, Any]] = Field(default_factory=list)
+    contributions_by_cat: list[dict[str, Any]] = Field(default_factory=list)
+    plot_urls: dict[str, str] = Field(default_factory=dict)
+    components: list[ComponentExplanationSchema] = Field(default_factory=list)
+    plot_explanations: dict[str, PlotExplanationSchema] = Field(default_factory=dict)
+    plot_analyses: dict[str, PlotAnalysisSchema] = Field(default_factory=dict)
+    scenarios_by_category: list[dict[str, Any]] = Field(default_factory=list)
+    configs: list[dict[str, Any]] = Field(default_factory=list)
+    insights: AblationInsightsSchema
 

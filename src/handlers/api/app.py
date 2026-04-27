@@ -32,9 +32,12 @@ from src.handlers.api.routers.detection import router as detection_router
 from src.handlers.api.routers.evaluation import router as evaluation_router
 from src.handlers.api.routers.health import router as health_router
 from src.handlers.api.routers.poems import router as poems_router
+from src.handlers.api.routers.system import router as system_router
 from src.handlers.web.router import router as web_router
+from src.handlers.web.validation_handler import install_validation_handler
 
 _STATIC_DIR = Path(__file__).parent.parent / "web" / "static"
+_RESULTS_DIR = Path(__file__).resolve().parents[3] / "results"
 
 
 def create_app(config: AppConfig | None = None) -> FastAPI:
@@ -50,9 +53,11 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
         app.state.app_config = cfg
         app.state.container = container
         app.state.poetry_service = poetry_service
+        app.state.results_dir = _RESULTS_DIR
         app.state.feedback_formatter = container.feedback_formatter()
         app.state.http_error_mapper = container.http_error_mapper()
         app.state.scenario_registry = container.scenario_registry()
+        app.state.meter_validator = container.meter_validator()
         app.state.ablation_configs = ABLATION_CONFIGS
         app.state.llm_info = cfg.llm_info()
         app.state.evaluation_service = build_evaluation_service(
@@ -76,8 +81,10 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     )
 
     _install_domain_error_handler(app)
+    install_validation_handler(app)
 
     app.include_router(health_router)
+    app.include_router(system_router)
     app.include_router(poems_router)
     app.include_router(detection_router)
     app.include_router(evaluation_router)
@@ -85,6 +92,9 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
 
     if _STATIC_DIR.exists():
         app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
+
+    if _RESULTS_DIR.exists():
+        app.mount("/results", StaticFiles(directory=str(_RESULTS_DIR)), name="results")
 
     return app
 

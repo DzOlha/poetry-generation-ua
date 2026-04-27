@@ -1,0 +1,501 @@
+{% extends "base.html" %}
+
+{% block title %}Аналітика якості — Генератор Українських Віршів{% endblock %}
+
+{% block content %}
+<div class="ablation-report-page">
+<div class="page-title">
+    <h1>Аналітика якості: внесок компонентів системи</h1>
+    {% if artifacts %}
+    <p class="subtitle">
+        Batch <b>{{ artifacts.batch_id }}</b> ·
+        {{ artifacts.metadata.total_runs }} прогонів ·
+        {{ artifacts.metadata.seeds }} seeds × {{ artifacts.metadata.n_scenarios }} сценаріїв × {{ artifacts.metadata.n_configs }} конфігів
+        {% if artifacts.metadata.cost and artifacts.metadata.cost.total_cost_usd %}
+        · витрачено <b>${{ '%.2f' % artifacts.metadata.cost.total_cost_usd }}</b>
+        ({{ '{:,}'.format(artifacts.metadata.cost.total_tokens) }} токенів)
+        {% endif %}
+        {% if artifacts.metadata.error_runs %}· <span class="ablation-errors">помилок: {{ artifacts.metadata.error_runs }}</span>{% endif %}
+    </p>
+    {% else %}
+    <p class="subtitle">Звіту ще немає.</p>
+    {% endif %}
+</div>
+
+<details class="card glossary-card">
+    <summary><h2>Глосарій термінів</h2></summary>
+    <p class="glossary-intro">Натисніть на термін, щоб побачити пояснення.</p>
+    <div class="glossary-list">
+        <details class="glossary-item">
+            <summary class="glossary-summary"><span class="glossary-term">Сценарій (scenario)</span></summary>
+            <div class="glossary-body">Передзадана задача для генератора: тема + метр + кількість стоп + схема рим (наприклад, «весна, ямб 4-стопний, ABAB»). На сьогодні в системі 18 сценаріїв трьох категорій — Normal (типові), Edge (граничні: рідкісні метри / схеми / довгі вірші) і Corner (деґенеративні: «нуль стоп», тощо).</div>
+        </details>
+
+        <details class="glossary-item">
+            <summary class="glossary-summary"><span class="glossary-term">Конфіг (config) A–H</span></summary>
+            <div class="glossary-body">Варіант пайплайну з різним набором увімкнених стадій. <b>A</b> — baseline (тільки LLM + валідатор, без RAG, без feedback). <b>E</b> — повна система (RAG + metric examples + feedback) — рекомендований дефолт для типового використання. <b>B / C / D</b> — проміжні комбінації, щоб виміряти внесок кожного компонента окремо. <b>F / G / H</b> — ті ж збагачення, що C/D/E, але без feedback-циклу — для виміру чистого raw-впливу збагачень на перший драфт (research-only).</div>
+        </details>
+
+        <details class="glossary-item">
+            <summary class="glossary-summary"><span class="glossary-term">Seed</span></summary>
+            <div class="glossary-body">Випадкове початкове число для LLM (та інших стохастичних компонентів). Один прогон із сценарієм S, конфігом C і seed=1 дає один вірш; з seed=2 — інший. Кілька seeds потрібні, щоб усереднити випадковість моделі.</div>
+        </details>
+
+        <details class="glossary-item">
+            <summary class="glossary-summary"><span class="glossary-term">Прогін (run)</span></summary>
+            <div class="glossary-body">Один повний запуск пайплайну: <code>scenario × config × seed</code>. Стандартний батч — 18 × 8 × 3 = 432 прогони.</div>
+        </details>
+
+        <details class="glossary-item">
+            <summary class="glossary-summary"><span class="glossary-term">Paired delta (парна різниця)</span></summary>
+            <div class="glossary-body">Різниця метрик одного й того ж сценарію та seed-у між двома конфігами. Цей дизайн вимикає шум «складних сценаріїв» (наприклад, дактиль 6-ст. — об'єктивно важчий, неважливо для якого конфігу), і залишає лише ефект самої зміни конфігу.</div>
+        </details>
+
+        <details class="glossary-item">
+            <summary class="glossary-summary"><span class="glossary-term">95% bootstrap CI (довірчий інтервал)</span></summary>
+            <div class="glossary-body">Діапазон, у якому з імовірністю 95% знаходиться справжній середній ефект конфігу — оцінений ресемплінгом наявних спостережень. Якщо CI не перетинає 0 — ефект статистично значущий.</div>
+        </details>
+
+        <details class="glossary-item">
+            <summary class="glossary-summary"><span class="glossary-term">Wilcoxon p-value</span></summary>
+            <div class="glossary-body">Імовірність побачити такий або сильніший ефект випадково, якщо насправді конфіг нічого не змінив. p &lt; 0.05 — традиційний поріг «значущо».</div>
+        </details>
+
+        <details class="glossary-item">
+            <summary class="glossary-summary"><span class="glossary-term">Forest plot</span></summary>
+            <div class="glossary-body">Графік із горизонтальними «вусами»: для кожного компонента — крапка (середній внесок) і відрізок (95% CI). Усе ліворуч від 0 — компонент шкодить, праворуч — допомагає.</div>
+        </details>
+
+        <details class="glossary-item">
+            <summary class="glossary-summary"><span class="glossary-term">Box plot</span></summary>
+            <div class="glossary-body">Розподіл метрики (наприклад, accuracy метру) по конфігах: коробка показує квартилі, лінія — медіану, «вуса» — діапазон.</div>
+        </details>
+
+        <details class="glossary-item">
+            <summary class="glossary-summary"><span class="glossary-term">Heatmap (config × scenario)</span></summary>
+            <div class="glossary-body">Таблиця: рядки — сценарії, стовпці — конфіги, клітинки кольоровані за результатом. Видно, який конфіг де працює добре, а де провалюється.</div>
+        </details>
+    </div>
+</details>
+
+{% if not artifacts %}
+<section class="card">
+    <h2>Як згенерувати звіт</h2>
+    <p>Стадії запуску:</p>
+    <ol class="ablation-steps">
+        <li><code>make ablation SEEDS=3</code> — прогнати 18 сценаріїв × 8 конфігів × 3 seeds (≈ 432 генерації). Результат: <code>results/batch_&lt;timestamp&gt;/runs.csv</code>.</li>
+        <li><code>make ablation-report RUNS=results/batch_&lt;timestamp&gt;/runs.csv</code> — порахувати paired-дельти, 95% bootstrap CI, Wilcoxon p-value, побудувати 4 PNG-графіки.</li>
+        <li>Оновити цю сторінку — побачите головний внесок кожного компонента з довірчими інтервалами.</li>
+    </ol>
+    <p class="form-hint">
+        <span class="form-hint-icon">&#9432;</span>
+        Paired design (однакові <i>(scenario, seed)</i> пари для порівняння конфігів) скасовує шум
+        «складних сценаріїв», тому 54 спарених спостережень (18 × 3 seeds) зазвичай дають стабільний CI.
+    </p>
+</section>
+{% else %}
+
+<!-- ────────────────────────────────────────────────────────────────────── -->
+<!--  SECTION: Auto-generated headline + how-to-read the report             -->
+<!-- ────────────────────────────────────────────────────────────────────── -->
+
+<section class="card report-summary">
+    <h2>Короткий висновок</h2>
+    <p class="report-headline">{{ artifacts.insights.headline }}</p>
+
+    {% if artifacts.insights.component_lines %}
+    <h3 class="report-subhead">Компоненти на ключових метриках</h3>
+    <ul class="insight-list">
+        {% for line in artifacts.insights.component_lines %}
+        <li class="insight-item insight-{{ line.tone }}">
+            <span class="insight-comp"><code>{{ line.component }}</code></span>
+            <span class="insight-metric">{{ line.metric_label }}</span>
+            <span class="insight-delta">Δ <b>{{ line.mean }}</b> · CI {{ line.ci }}</span>
+            <span class="insight-verdict">{{ line.verdict }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if artifacts.insights.cost_lines %}
+    <h3 class="report-subhead">Бюджет</h3>
+    <ul class="insight-list insight-cost">
+        {% for line in artifacts.insights.cost_lines %}<li>{{ line }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+</section>
+
+<details class="card report-howto" open>
+    <summary><h2>Як читати цей звіт</h2></summary>
+    <div class="report-howto-body">
+        <p>
+            Звіт побудовано на <b>paired-Δ дизайні</b>: для кожного компонента
+            ми беремо два конфіги, що відрізняються рівно цим компонентом
+            (наприклад, B vs A — лише feedback-цикл), і дивимося різницю
+            метрики на однакових <i>(сценарій, seed)</i> парах. Парування
+            скасовує шум «цей сценарій просто складний» / «цього разу LLM
+            повезло» — залишається саме внесок компонента.
+        </p>
+        <p>
+            Для кожного Δ рахуємо три речі:
+        </p>
+        <ul>
+            <li><b>Mean Δ</b> — середнє покращення (в одиницях метрики, від 0 до 1).</li>
+            <li><b>95% bootstrap CI</b> — діапазон, у якому з 95% впевненістю лежить справжнє середнє ({{ artifacts.metadata.bootstrap_iterations }} ресемплінгів).</li>
+            <li><b>Wilcoxon p-value</b> — статтест: чи відхилення від нуля систематичне.</li>
+        </ul>
+        <p>
+            <b>«Значущо»</b> = CI повністю по один бік від нуля.
+            Якщо CI перетинає 0 — навіть при ненульовому середньому ефект
+            непостійний, компонент допомагає одним сценаріям і шкодить іншим.
+        </p>
+    </div>
+</details>
+
+<!-- ────────────────────────────────────────────────────────────────────── -->
+<!--  SECTION: Component glossary                                           -->
+<!-- ────────────────────────────────────────────────────────────────────── -->
+
+<details class="card">
+    <summary><h2>Що означають назви компонентів</h2></summary>
+    <p class="subtitle">
+        У таблиці контрибуцій нижче ви побачите 5 рядків з такими назвами.
+        Ось що кожна з них означає і як її інтерпретувати.
+    </p>
+    <div class="glossary">
+        {% for c in artifacts.components %}
+        <div class="glossary-item">
+            <div class="glossary-head">
+                <code class="glossary-name">{{ c.name }}</code>
+                <span class="glossary-comparison">{{ c.comparison }}</span>
+                <span class="glossary-label">{{ c.label }}</span>
+            </div>
+            <p class="glossary-summary">{{ c.summary }}</p>
+            <p class="glossary-interpretation">
+                <span class="glossary-tag">Як інтерпретувати:</span>
+                {{ c.interpretation }}
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+</details>
+
+<!-- ────────────────────────────────────────────────────────────────────── -->
+<!--  SECTION: Config catalogue                                             -->
+<!-- ────────────────────────────────────────────────────────────────────── -->
+
+<details class="card">
+    <summary><h2>Конфігурації A–H (що тестуємо)</h2></summary>
+    <p class="subtitle">
+        Кожна абляційна конфігурація — це мінімальна різниця між двома
+        сусідніми конфігами рівно одного компонента системи. Різниця між
+        ними = «чистий» внесок цього компонента.
+    </p>
+    <ul class="config-list">
+        {% for cfg in artifacts.configs %}
+        <li class="config-item">
+            <div class="config-head">
+                <span class="config-label-pill">{{ cfg.label }}</span>
+                <span class="config-name">{{ cfg.short_description }}</span>
+            </div>
+            <p class="config-desc">{{ cfg.long_description }}</p>
+            <p class="config-stages">
+                <span class="config-stages-tag">Активні стадії:</span>
+                {% for st in cfg.enabled_stages %}<code>{{ st }}</code>{% if not loop.last %}, {% endif %}{% endfor %}
+            </p>
+        </li>
+        {% endfor %}
+    </ul>
+</details>
+
+<!-- ────────────────────────────────────────────────────────────────────── -->
+<!--  SECTION: Scenario catalogue                                           -->
+<!-- ────────────────────────────────────────────────────────────────────── -->
+
+<details class="card">
+    <summary><h2>Сценарії (на чому тестуємо)</h2></summary>
+    <p class="subtitle">
+        18 сценаріїв розбиті на 3 категорії за рівнем «складності».
+        Категорія сценарію впливає на інтерпретацію Δ: на normal зазвичай
+        мало куди рости, а на edge/corner компоненти і виявляють ефект.
+    </p>
+    {% for cat in artifacts.scenarios_by_category %}
+    <div class="scenario-cat">
+        <h3 class="scenario-cat-head">{{ cat.category_label }}
+            <small class="scenario-cat-count">· {{ cat.scenarios|length }} шт.</small>
+        </h3>
+        <p class="scenario-cat-blurb">{{ cat.category_blurb }}</p>
+        <div class="table-scroll">
+            <table class="scenario-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Тема</th>
+                        <th>Метр / стопи / рима</th>
+                        <th>Що перевіряє</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for s in cat.scenarios %}
+                    <tr>
+                        <td class="scenario-id-cell"><code>{{ s.id }}</code>{% if not s.expected_to_succeed %}<span class="scenario-flag">⚠</span>{% endif %}</td>
+                        <td>{{ s.theme }}</td>
+                        <td>{{ s.meter }} {{ s.foot_count }}ст. {{ s.rhyme_scheme }}</td>
+                        <td>{{ s.description }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endfor %}
+    <p class="form-hint">
+        <span class="form-hint-icon">&#9432;</span>
+        Сценарії з <span class="scenario-flag">⚠</span> очікувано провалюються (наприклад, «нульова кількість стоп»).
+        Вони перевіряють робастність pipeline'у, а не якість поезії.
+    </p>
+</details>
+
+<!-- ────────────────────────────────────────────────────────────────────── -->
+<!--  SECTION: Forest plot — paired contributions                           -->
+<!-- ────────────────────────────────────────────────────────────────────── -->
+
+<section class="card">
+    <h2>Внесок кожного компонента</h2>
+    <p class="subtitle">
+        Paired delta <code>Δ</code> = різниця метрики між двома конфігами на тих самих
+        <i>(сценарій, seed)</i> парах. CI — 95% percentile bootstrap
+        ({{ artifacts.metadata.bootstrap_iterations }} ресемплінгів).
+        «Значущо» = CI не перетинає 0.
+    </p>
+    <img class="ablation-plot" src="{{ artifacts.plot_urls.forest }}" alt="Forest plot внесків">
+    {% set analysis = artifacts.plot_analyses.forest %}
+    {% if not analysis.empty %}
+    <div class="plot-analysis">
+        <h3 class="plot-analysis-head">Аналіз цього графіка</h3>
+        <p class="plot-analysis-summary">{{ analysis.summary }}</p>
+        <ul class="plot-analysis-list">
+            {% for b in analysis.bullets %}<li>{{ b|safe }}</li>{% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    {% set plot = artifacts.plot_explanations.forest %}
+    <details class="plot-explainer">
+        <summary>Як читати цей графік (методологія)</summary>
+        <dl class="plot-dl">
+            <dt>Що показано</dt><dd>{{ plot.what }}</dd>
+            <dt>Як читати</dt><dd>{{ plot.how_to_read }}</dd>
+            <dt>На що звертати увагу</dt><dd>{{ plot.look_for }}</dd>
+        </dl>
+    </details>
+
+    <div class="table-scroll">
+        <table class="contributions-table">
+            <thead>
+                <tr>
+                    <th>Компонент</th>
+                    <th>Порівняння</th>
+                    <th>Метрика</th>
+                    <th class="num">n</th>
+                    <th class="num">Δ mean</th>
+                    <th class="num">95% CI</th>
+                    <th class="num">p-value</th>
+                    <th>Значущо</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for row in artifacts.contributions %}
+                <tr class="{{ 'row-sig' if row.significant else 'row-ns' }}">
+                    <td>{{ row.component }}</td>
+                    <td><code>{{ row.comparison }}</code></td>
+                    <td>{{ row.metric }}</td>
+                    <td class="num">{{ row.n }}</td>
+                    <td class="num">{{ '%+.3f' % row.mean_delta }}</td>
+                    <td class="num">[{{ '%+.3f' % row.ci_low }}, {{ '%+.3f' % row.ci_high }}]</td>
+                    <td class="num">{{ '%.4f' % row.p_value }}</td>
+                    <td>{% if row.significant %}&#10003;{% else %}—{% endif %}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────────────────────── -->
+<!--  SECTION: Box plot                                                     -->
+<!-- ────────────────────────────────────────────────────────────────────── -->
+
+<section class="card">
+    <h2>Розподіл метрик по конфігах</h2>
+    <p class="subtitle">
+        Сирі значення meter_accuracy / rhyme_accuracy на всіх прогонах, розбиті по 8 конфігах
+        абляції A–H (A–E з feedback, F–H — ті ж збагачення без feedback для raw-внеску).
+        Показує дисперсію і викиди, які стоять за зведеними середніми вище.
+    </p>
+    <img class="ablation-plot" src="{{ artifacts.plot_urls.box }}" alt="Box plot по конфігах">
+    {% set analysis = artifacts.plot_analyses.box %}
+    {% if not analysis.empty %}
+    <div class="plot-analysis">
+        <h3 class="plot-analysis-head">Аналіз цього графіка</h3>
+        <p class="plot-analysis-summary">{{ analysis.summary|safe }}</p>
+        <ul class="plot-analysis-list">
+            {% for b in analysis.bullets %}<li>{{ b|safe }}</li>{% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    {% set plot = artifacts.plot_explanations.box %}
+    <details class="plot-explainer">
+        <summary>Як читати цей графік (методологія)</summary>
+        <dl class="plot-dl">
+            <dt>Що показано</dt><dd>{{ plot.what }}</dd>
+            <dt>Як читати</dt><dd>{{ plot.how_to_read }}</dd>
+            <dt>На що звертати увагу</dt><dd>{{ plot.look_for }}</dd>
+        </dl>
+    </details>
+</section>
+
+<!-- ────────────────────────────────────────────────────────────────────── -->
+<!--  SECTION: Heatmap                                                      -->
+<!-- ────────────────────────────────────────────────────────────────────── -->
+
+<section class="card">
+    <h2>Де який конфіг провалюється</h2>
+    <p class="subtitle">
+        Heatmap середнього meter_accuracy по клітинках (config × scenario).
+        Червоне — проблемна ділянка, зелене — конфіг впевнено справляється.
+    </p>
+    <img class="ablation-plot" src="{{ artifacts.plot_urls.heatmap }}" alt="Heatmap config × scenario">
+    {% set analysis = artifacts.plot_analyses.heatmap %}
+    {% if not analysis.empty %}
+    <div class="plot-analysis">
+        <h3 class="plot-analysis-head">Аналіз цього графіка</h3>
+        <p class="plot-analysis-summary">{{ analysis.summary|safe }}</p>
+        <ul class="plot-analysis-list">
+            {% for b in analysis.bullets %}<li>{{ b|safe }}</li>{% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    {% set plot = artifacts.plot_explanations.heatmap %}
+    <details class="plot-explainer">
+        <summary>Як читати цей графік (методологія)</summary>
+        <dl class="plot-dl">
+            <dt>Що показано</dt><dd>{{ plot.what }}</dd>
+            <dt>Як читати</dt><dd>{{ plot.how_to_read }}</dd>
+            <dt>На що звертати увагу</dt><dd>{{ plot.look_for }}</dd>
+        </dl>
+    </details>
+</section>
+
+<!-- ────────────────────────────────────────────────────────────────────── -->
+<!--  SECTION: By category                                                  -->
+<!-- ────────────────────────────────────────────────────────────────────── -->
+
+<section class="card">
+    <h2>Внесок компонента по категоріях</h2>
+    <p class="subtitle">
+        Той самий внесок, але окремо для сценаріїв <i>normal</i>, <i>edge</i>, <i>corner</i>.
+        Корисно бачити, де компонент реально допомагає (частіше — на <i>edge</i>), а де нейтральний.
+    </p>
+    <img class="ablation-plot" src="{{ artifacts.plot_urls.by_category }}" alt="Contribution by category">
+    {% set analysis = artifacts.plot_analyses.by_category %}
+    {% if not analysis.empty %}
+    <div class="plot-analysis">
+        <h3 class="plot-analysis-head">Аналіз цього графіка</h3>
+        <p class="plot-analysis-summary">{{ analysis.summary }}</p>
+        <ul class="plot-analysis-list">
+            {% for b in analysis.bullets %}<li>{{ b|safe }}</li>{% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    {% set plot = artifacts.plot_explanations.by_category %}
+    <details class="plot-explainer">
+        <summary>Як читати цей графік (методологія)</summary>
+        <dl class="plot-dl">
+            <dt>Що показано</dt><dd>{{ plot.what }}</dd>
+            <dt>Як читати</dt><dd>{{ plot.how_to_read }}</dd>
+            <dt>На що звертати увагу</dt><dd>{{ plot.look_for }}</dd>
+        </dl>
+    </details>
+</section>
+
+{% if artifacts.metadata.cost and artifacts.metadata.cost.per_config %}
+<section class="card">
+    <h2>Токени та вартість</h2>
+    <p class="subtitle">
+        Сумарно по всьому батчу та у розбитті по конфігах. Вартість обчислюється
+        за тарифами з <code>AppConfig</code> (GEMINI_INPUT_PRICE_PER_M /
+        GEMINI_OUTPUT_PRICE_PER_M, дефолти — Gemini 3.1 Pro Preview: $2/M input,
+        $12/M output для ≤200K контексту). Reasoning-токени зараховуються як output.
+    </p>
+
+    <div class="cost-summary">
+        <div class="cost-card"><span class="cost-label">Всього input</span>
+            <span class="cost-val">{{ '{:,}'.format(artifacts.metadata.cost.total_input_tokens) }}</span></div>
+        <div class="cost-card"><span class="cost-label">Всього output</span>
+            <span class="cost-val">{{ '{:,}'.format(artifacts.metadata.cost.total_output_tokens) }}</span></div>
+        <div class="cost-card"><span class="cost-label">Всього токенів</span>
+            <span class="cost-val">{{ '{:,}'.format(artifacts.metadata.cost.total_tokens) }}</span></div>
+        <div class="cost-card"><span class="cost-label">Загальна вартість</span>
+            <span class="cost-val">${{ '%.4f' % artifacts.metadata.cost.total_cost_usd }}</span></div>
+        <div class="cost-card"><span class="cost-label">Токенів на прогін</span>
+            <span class="cost-val">{{ '%.0f' % artifacts.metadata.cost.avg_tokens_per_run }}</span></div>
+        <div class="cost-card"><span class="cost-label">$ на прогін</span>
+            <span class="cost-val">${{ '%.4f' % artifacts.metadata.cost.avg_cost_per_run_usd }}</span></div>
+    </div>
+
+    <div class="table-scroll">
+        <table class="contributions-table">
+            <thead>
+                <tr>
+                    <th>Конфіг</th>
+                    <th class="num">Прогонів</th>
+                    <th class="num">Input токенів</th>
+                    <th class="num">Output токенів</th>
+                    <th class="num">Сума токенів</th>
+                    <th class="num">Вартість, $</th>
+                    <th class="num">Токенів / прогін</th>
+                    <th class="num">$ / прогін</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for r in artifacts.metadata.cost.per_config %}
+                <tr>
+                    <td><b>{{ r.config }}</b></td>
+                    <td class="num">{{ r.runs }}</td>
+                    <td class="num">{{ '{:,}'.format(r.input_tokens) }}</td>
+                    <td class="num">{{ '{:,}'.format(r.output_tokens) }}</td>
+                    <td class="num">{{ '{:,}'.format(r.total_tokens) }}</td>
+                    <td class="num">${{ '%.4f' % r.total_cost_usd }}</td>
+                    <td class="num">{{ '%.0f' % r.avg_tokens_per_run }}</td>
+                    <td class="num">${{ '%.4f' % r.avg_cost_per_run_usd }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="form-hint">
+        <span class="form-hint-icon">&#9432;</span>
+        Сирий per-iteration розподіл доступний у CSV-колонці
+        <code>iteration_tokens</code> формату <code>it=&lt;i&gt;:in=&lt;n&gt;:out=&lt;n&gt;</code>,
+        одна пара на кожен feedback-крок.
+    </p>
+</section>
+{% endif %}
+
+<section class="card ablation-meta">
+    <h2>Метадані прогону</h2>
+    <dl class="kv">
+        <dt>batch_id</dt>            <dd><code>{{ artifacts.batch_id }}</code></dd>
+        <dt>Прогонів всього</dt>     <dd>{{ artifacts.metadata.total_runs }}</dd>
+        <dt>З них з помилками</dt>   <dd>{{ artifacts.metadata.error_runs }}</dd>
+        <dt>seeds</dt>               <dd>{{ artifacts.metadata.seeds }}</dd>
+        <dt>Сценаріїв</dt>           <dd>{{ artifacts.metadata.n_scenarios }}</dd>
+        <dt>Конфігів</dt>            <dd>{{ artifacts.metadata.configs | join(', ') }}</dd>
+        <dt>Метрики</dt>             <dd>{{ artifacts.metadata.metrics | join(', ') }}</dd>
+        <dt>Bootstrap N</dt>         <dd>{{ artifacts.metadata.bootstrap_iterations }}</dd>
+        <dt>CI</dt>                  <dd>{{ artifacts.metadata.ci_level }}%</dd>
+    </dl>
+</section>
+{% endif %}
+</div>{# /.ablation-report-page #}
+{% endblock %}

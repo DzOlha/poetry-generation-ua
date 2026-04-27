@@ -6,11 +6,18 @@ without monkey-patching modules. Module-level singletons are forbidden.
 """
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import Request
 
 from src.config import LLMInfo
 from src.domain.evaluation import AblationConfig
-from src.domain.ports import IFeedbackFormatter, IMetricCalculatorRegistry, IScenarioRegistry
+from src.domain.ports import (
+    IFeedbackFormatter,
+    IMetricCalculatorRegistry,
+    IScenarioRegistry,
+)
+from src.domain.ports.validation import IMeterValidator
 from src.services.detection_service import DetectionService
 from src.services.evaluation_service import EvaluationService
 from src.services.poetry_service import PoetryService
@@ -54,3 +61,13 @@ def get_metric_registry(request: Request) -> IMetricCalculatorRegistry:
 def get_llm_info(request: Request) -> LLMInfo:
     """Return the active LLM provider / model metadata and readiness flag."""
     return request.app.state.llm_info
+
+
+def get_meter_validator(request: Request) -> IMeterValidator:
+    """Return the singleton IMeterValidator built at app startup."""
+    return request.app.state.meter_validator
+
+
+def get_results_dir(request: Request) -> Path:
+    """Return the path to the `results/` directory holding ablation batches."""
+    return request.app.state.results_dir
