@@ -75,7 +75,13 @@ class DetectionConfig:
     # filtering the all-mismatch case.
     rhyme_min_accuracy: float = 0.5
     sample_lines: int = 4
-    feet_min: int = 2
+    # Detection sweep covers the same foot range as generation/validation
+    # (1–6), so a poem the system itself can produce is also a poem the
+    # system can recognise. 1-foot meters (e.g. anapest «Мерехтить / Мов
+    # перлина») are short and rare but legitimate. Longer lines fall out
+    # naturally via `line_length_ok` — a 6-syllable line vs a 1-foot
+    # expected pattern fails length tolerance long before scoring.
+    feet_min: int = 1
     feet_max: int = 6
 
     def __post_init__(self) -> None:

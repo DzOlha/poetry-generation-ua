@@ -28,7 +28,7 @@ class PhoneticRhymeValidator(IRhymeValidator):
         tokenizer: ITokenizer,
         scheme_extractor: IRhymeSchemeExtractor,
         pair_analyzer: IRhymePairAnalyzer,
-        threshold: float = 0.7,
+        threshold: float = 0.55,
     ) -> None:
         self._lines = line_splitter
         self._tokenizer = tokenizer

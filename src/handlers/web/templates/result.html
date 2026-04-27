@@ -36,7 +36,19 @@
     </section>
 
     <section class="card validation-card">
-        <h2>Результат перевірки</h2>
+        <div class="card-header">
+            <h2>Результат перевірки</h2>
+            {% if extra_metrics and extra_metrics.total_tokens is defined and extra_metrics.total_tokens > 0 %}
+            <div class="token-badges">
+                <span class="token-badge">in <b>{{ "{:,}".format(extra_metrics.input_tokens|int) }}</b></span>
+                <span class="token-badge">out <b>{{ "{:,}".format(extra_metrics.output_tokens|int) }}</b></span>
+                <span class="token-badge">total <b>{{ "{:,}".format(extra_metrics.total_tokens|int) }}</b></span>
+                {% if extra_metrics.estimated_cost_usd is defined %}
+                <span class="token-badge token-badge--cost"><b>${{ "%.4f"|format(extra_metrics.estimated_cost_usd) }}</b></span>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
 
         <div class="validity-badge {% if is_valid %}valid{% else %}invalid{% endif %}">
             {% if is_valid %}✓ Вірш відповідає вимогам{% else %}✗ Є порушення{% endif %}
@@ -44,20 +56,29 @@
 
         <div class="metrics">
             <div class="metric">
-                <span class="metric-label">Метр ({{ meter }} {{ feet }}ст.)</span>
+                <span class="metric-label">
+                    Метр ({{ meter }} {{ feet }}ст.)
+                    <span class="field-help" tabindex="0" data-tip="Частка рядків, у яких реальний наголос збігається з очікуваним за метром (з допуском до 2 жорстких помилок на рядок). 100% — усі рядки чисті.">&#9432;</span>
+                </span>
                 <span class="metric-value {% if meter_ok %}ok{% else %}fail{% endif %}">
                     {{ "✓" if meter_ok else "✗" }} {{ "%.0f"|format(meter_accuracy * 100) }}%
                 </span>
             </div>
             <div class="metric">
-                <span class="metric-label">Рима ({{ scheme }})</span>
+                <span class="metric-label">
+                    Рима ({{ scheme }})
+                    <span class="field-help" tabindex="0" data-tip="Частка римованих пар рядків, що пройшли фонетичний поріг подібності (≥ 55% збігу IPA від наголошеного голосного). 100% — усі пари рим точні / асонансні / консонансні.">&#9432;</span>
+                </span>
                 <span class="metric-value {% if rhyme_ok %}ok{% else %}fail{% endif %}">
                     {{ "✓" if rhyme_ok else "✗" }} {{ "%.0f"|format(rhyme_accuracy * 100) }}%
                 </span>
             </div>
             {% if extra_metrics and extra_metrics.semantic_relevance is defined %}
             <div class="metric">
-                <span class="metric-label">Семантична релевантність</span>
+                <span class="metric-label">
+                    Семантична релевантність
+                    <span class="field-help" tabindex="0" data-tip="Косинусна подібність між LaBSE-ембедінгом теми та ембедінгом вірша, переведена у %. ≥50% — вірш помітно про задану тему.">&#9432;</span>
+                </span>
                 <span class="metric-value {% if extra_metrics.semantic_relevance >= 0.5 %}ok{% else %}fail{% endif %}">
                     {{ "%.0f"|format(extra_metrics.semantic_relevance * 100) }}%
                 </span>
@@ -65,7 +86,10 @@
             {% endif %}
             {% if extra_metrics and extra_metrics.regeneration_success is defined %}
             <div class="metric">
-                <span class="metric-label">Успішність регенерації</span>
+                <span class="metric-label">
+                    Успішність регенерації
+                    <span class="field-help" tabindex="0" data-tip="Зміна сумарної оцінки (метр + рима) між першою та останньою ітерацією. +X% — фідбек-цикл покращив результат на X пунктів; 0% — без змін; від'ємне — погіршив.">&#9432;</span>
+                </span>
                 <span class="metric-value {% if extra_metrics.regeneration_success >= 0 %}ok{% else %}fail{% endif %}">
                     {{ "%+.0f"|format(extra_metrics.regeneration_success * 100) }}%
                 </span>
@@ -73,7 +97,10 @@
             {% endif %}
             {% if iterations is defined %}
             <div class="metric">
-                <span class="metric-label">Спроб</span>
+                <span class="metric-label">
+                    Спроб
+                    <span class="field-help" tabindex="0" data-tip="Скільки разів LLM був викликаний: 1 — лише початковий драфт, далі +1 за кожну ітерацію виправлення. Максимум обмежено полем «Макс. ітерацій» у формі.">&#9432;</span>
+                </span>
                 <span class="metric-value">{{ iterations + 1 }}</span>
             </div>
             {% endif %}
@@ -100,6 +127,9 @@
             <details class="iter-item">
                 <summary class="iter-summary">
                     <span class="iter-idx">Ітерація {{ it.iteration }}</span>
+                    {% if it.error %}
+                    <span class="iter-badge fail">✗ помилка</span>
+                    {% else %}
                     <span class="iter-badge {% if it.meter_accuracy >= 0.8 %}ok{% else %}fail{% endif %}">
                         метр {{ "%.0f"|format(it.meter_accuracy * 100) }}%
                     </span>
@@ -107,9 +137,19 @@
                         рима {{ "%.0f"|format(it.rhyme_accuracy * 100) }}%
                     </span>
                     <span class="iter-badge">порушень: {{ it.feedback|length }}</span>
+                    {% endif %}
                     <span class="iter-badge">{{ "%.3f"|format(it.duration_sec) }}s</span>
+                    {% if it.input_tokens or it.output_tokens %}
+                    <span class="iter-badge">in {{ "{:,}".format(it.input_tokens) }} · out {{ "{:,}".format(it.output_tokens) }}</span>
+                    {% endif %}
                 </summary>
                 <div class="iter-body">
+                    {% if it.error %}
+                    <div class="error-banner">
+                        <strong>Помилка під час перегенерації:</strong> {{ it.error }}
+                        <p class="form-hint">Метрики нижче — з попередньої ітерації, бо новий вірш не вдалося отримати.</p>
+                    </div>
+                    {% endif %}
                     <div class="metrics">
                         <div class="metric">
                             <span class="metric-label">Метр</span>
@@ -131,6 +171,16 @@
                             <span class="metric-label">Час</span>
                             <span class="metric-value">{{ "%.3f"|format(it.duration_sec) }}s</span>
                         </div>
+                        {% if it.input_tokens or it.output_tokens %}
+                        <div class="metric">
+                            <span class="metric-label">Input токенів</span>
+                            <span class="metric-value">{{ "{:,}".format(it.input_tokens) }}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Output токенів</span>
+                            <span class="metric-value">{{ "{:,}".format(it.output_tokens) }}</span>
+                        </div>
+                        {% endif %}
                     </div>
                     {% if it.poem %}
                     <details class="iter-poem-details" open>

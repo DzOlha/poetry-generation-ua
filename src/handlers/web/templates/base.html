@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Генератор Українських Віршів{% endblock %}</title>
-    <link rel="stylesheet" href="/static/style.css?v=26">
+    <link rel="stylesheet" href="/static/style.css?v=38">
 </head>
 <body>
     <header>
@@ -15,6 +15,7 @@
                 <a href="/validate">Перевірка вірша</a>
                 <a href="/detect">Детекція вірша</a>
                 <a href="/evaluate">Розширені конфігурації</a>
+                <a href="/ablation-report">Аналітика якості</a>
             </div>
         </nav>
     </header>
@@ -24,7 +25,11 @@
     </main>
 
     <footer>
-        <p>Генератор українських віршів · API: <a href="/docs">/docs</a></p>
+        <p>
+            Генератор українських віршів ·
+            API: <a href="/docs">/docs</a> ·
+            <a href="https://github.com/DzOlha/poetry-generation-ua/blob/main/docs/ua/user_guide.md" target="_blank" rel="noopener">Документація користувача</a>
+        </p>
     </footer>
 
     <script src="/static/main.js?v=4"></script>

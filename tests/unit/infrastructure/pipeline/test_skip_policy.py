@@ -52,3 +52,37 @@ class TestDefaultStageSkipPolicy:
         state = _state("E")
         for stage in ("retrieval", "metric_examples", "validation", "feedback_loop"):
             assert policy.should_skip(state, stage) is False
+
+
+class TestNoFeedbackAblationConfigs:
+    """The F/G/H configs mirror C/D/E but with feedback_loop disabled,
+    so paired-Δ vs. A measures the *raw* effect of an enrichment on the
+    first draft (not masked by feedback iteratively repairing it)."""
+
+    def test_f_runs_retrieval_validation_no_feedback(self):
+        policy = DefaultStageSkipPolicy()
+        state = _state("F")
+        assert policy.should_skip(state, "retrieval") is False
+        assert policy.should_skip(state, "validation") is False
+        assert policy.should_skip(state, "metric_examples") is True
+        assert policy.should_skip(state, "feedback_loop") is True
+
+    def test_g_runs_metric_examples_validation_no_feedback(self):
+        policy = DefaultStageSkipPolicy()
+        state = _state("G")
+        assert policy.should_skip(state, "metric_examples") is False
+        assert policy.should_skip(state, "validation") is False
+        assert policy.should_skip(state, "retrieval") is True
+        assert policy.should_skip(state, "feedback_loop") is True
+
+    def test_h_runs_both_enrichments_validation_no_feedback(self):
+        policy = DefaultStageSkipPolicy()
+        state = _state("H")
+        assert policy.should_skip(state, "retrieval") is False
+        assert policy.should_skip(state, "metric_examples") is False
+        assert policy.should_skip(state, "validation") is False
+        assert policy.should_skip(state, "feedback_loop") is True
+
+    def test_all_eight_configs_present(self):
+        labels = sorted(c.label for c in ABLATION_CONFIGS)
+        assert labels == ["A", "B", "C", "D", "E", "F", "G", "H"]

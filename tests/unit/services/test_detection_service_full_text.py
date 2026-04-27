@@ -6,7 +6,6 @@ for minimum line count validation.
 """
 from __future__ import annotations
 
-from src.config import DetectionConfig
 from src.domain.detection import MeterDetection, RhymeDetection
 from src.domain.ports.detection import IMeterDetector, IRhymeDetector, IStanzaSampler
 from src.infrastructure.logging import NullLogger
@@ -55,7 +54,7 @@ class TestDetectionReceivesFullText:
             sampler=_SpySampler(),
             meter_detector=meter_spy,
             rhyme_detector=_SpyRhymeDetector(),
-            config=DetectionConfig(),
+            default_sample_lines=4,
             logger=NullLogger(),
         )
         svc.detect(full_poem)
@@ -68,7 +67,7 @@ class TestDetectionReceivesFullText:
             sampler=_SpySampler(),
             meter_detector=_SpyMeterDetector(),
             rhyme_detector=rhyme_spy,
-            config=DetectionConfig(),
+            default_sample_lines=4,
             logger=NullLogger(),
         )
         svc.detect(full_poem)
@@ -80,7 +79,7 @@ class TestDetectionReceivesFullText:
             sampler=sampler,
             meter_detector=_SpyMeterDetector(),
             rhyme_detector=_SpyRhymeDetector(),
-            config=DetectionConfig(),
+            default_sample_lines=4,
             logger=NullLogger(),
         )
         result = svc.detect("short")

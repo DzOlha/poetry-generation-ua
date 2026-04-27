@@ -16,9 +16,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const FAST_SHOW_AFTER_MS = 1000;
     const SLOW_SHOW_AFTER_MS = 0;
-    // Matches the default backend LLM timeout (120 s) minus a small buffer,
-    // so the warning surfaces well before the server itself gives up.
-    const LONG_WAIT_WARN_MS = 60_000;
+    // Matches the "up to 2 minutes" expectation shown in the form hints
+    // (generate.html, evaluate.html). Once the call crosses this mark the
+    // user has waited longer than promised, so we surface the warning.
+    const LONG_WAIT_WARN_MS = 120_000;
 
     const formatElapsed = (ms) => {
         const sec = Math.floor(ms / 1000);

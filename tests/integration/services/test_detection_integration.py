@@ -29,6 +29,7 @@ _IAMB_4_ABAB = (
 )
 
 
+@pytest.mark.integration
 class TestDetectionIntegration:
     @pytest.mark.component
     def test_detects_meter_from_known_poem(self, detection_service) -> None:

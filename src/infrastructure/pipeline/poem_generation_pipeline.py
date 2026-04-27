@@ -7,6 +7,7 @@ comes out as a `GenerationResult` ready for handlers and runners.
 """
 from __future__ import annotations
 
+from src.domain.errors import LLMError
 from src.domain.evaluation import DEFAULT_GENERATION_CONFIG
 from src.domain.models import (
     GenerationRequest,
@@ -37,6 +38,17 @@ class DefaultPoemGenerationPipeline(IPoemGenerationPipeline):
         )
         self._pipeline.run(state)
 
+        # If a stage caught a DomainError and aborted the run, surface it
+        # to the caller. Without this re-raise, /generate silently renders
+        # an empty poem with 0% metrics — exactly the bug C05's quota /
+        # CoT-only failures triggered. Evaluation has its own surface for
+        # errors (trace.error in the dashboard) so it intentionally does
+        # NOT use this pipeline.
+        if state.aborted:
+            if state.abort_exception is not None:
+                raise state.abort_exception
+            raise LLMError(state.abort_reason or "pipeline aborted")
+
         meter_result = state.last_meter_result or MeterResult(ok=False, accuracy=0.0)
         rhyme_result = state.last_rhyme_result or RhymeResult(ok=False, accuracy=0.0)
 
@@ -55,6 +67,8 @@ class DefaultPoemGenerationPipeline(IPoemGenerationPipeline):
                 duration_sec=rec.duration_sec,
                 raw_llm_response=rec.raw_llm_response,
                 sanitized_llm_response=rec.sanitized_llm_response,
+                input_tokens=rec.input_tokens,
+                output_tokens=rec.output_tokens,
             )
             for rec in raw_iterations
         )

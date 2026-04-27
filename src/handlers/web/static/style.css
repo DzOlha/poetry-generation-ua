@@ -570,6 +570,35 @@ select[multiple], select[size]:not([size="1"]) {
 }
 .iter-badge.ok   { background: #dcfce7; color: var(--green); border-color: #bbf7d0; }
 .iter-badge.fail { background: #fee2e2; color: var(--red);   border-color: #fecaca; }
+
+/* ── Card header with right-aligned pill badges (tokens & cost) ── */
+.card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+.card-header h2 { margin-bottom: 0; }
+.token-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    align-items: center;
+}
+.token-badge {
+    font-size: .78rem;
+    padding: .15rem .6rem;
+    border-radius: 9999px;
+    background: var(--gray-100);
+    color: var(--gray-700);
+    border: 1px solid var(--gray-200);
+    font-variant-numeric: tabular-nums;
+}
+.token-badge b { color: var(--gray-900); font-weight: 600; }
+.token-badge--cost { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+.token-badge--cost b { color: #78350f; }
 .iter-body { padding: .85rem .9rem 1rem; display: flex; flex-direction: column; gap: .75rem; }
 .iter-poem-details,
 .iter-feedback-details,
@@ -884,12 +913,12 @@ select[multiple], select[size]:not([size="1"]) {
 
 /* ── Landing: hero ── */
 .hero {
-    margin: -2rem -1.5rem 3rem;
+    margin: -1.5rem -1.5rem 3rem;
     padding: 4.5rem 1.5rem 5rem;
     background:
         radial-gradient(ellipse at 20% 0%, rgba(37,99,235,.12), transparent 55%),
         radial-gradient(ellipse at 85% 100%, rgba(22,163,74,.10), transparent 55%),
-        var(--gray-50);
+        white;
     border-bottom: 1px solid var(--gray-200);
 }
 .hero-inner { max-width: 820px; margin: 0 auto; text-align: center; }
@@ -1199,3 +1228,326 @@ footer a { color: var(--blue); text-decoration: none; }
 
 /* ── Utility ── */
 .hidden { display: none !important; }
+
+/* ── Ablation report ── */
+.ablation-plot {
+    display: block;
+    width: 100%;
+    max-width: 1040px;
+    margin: 1rem auto 0;
+    border-radius: var(--radius);
+    background: white;
+}
+.ablation-errors { color: var(--red); font-weight: 600; }
+.ablation-steps { margin: .75rem 0 .75rem 1.25rem; display: flex; flex-direction: column; gap: .4rem; }
+.ablation-steps code,
+.contributions-table code { background: var(--gray-100); padding: 1px 6px; border-radius: 4px; font-size: .85em; }
+
+.table-scroll { overflow-x: auto; margin-top: 1rem; }
+.contributions-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.contributions-table th,
+.contributions-table td { padding: .5rem .7rem; text-align: left; border-bottom: 1px solid var(--gray-200); }
+.contributions-table th { font-weight: 600; color: var(--gray-600); background: var(--gray-50); }
+.contributions-table td.num,
+.contributions-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.contributions-table tbody tr.row-sig td { background: rgba(22,163,74,.05); }
+.contributions-table tbody tr.row-ns td { color: var(--gray-600); }
+
+.ablation-meta .kv { display: grid; grid-template-columns: max-content 1fr; gap: .35rem 1rem; font-size: .9rem; }
+.ablation-meta .kv dt { color: var(--gray-600); }
+.ablation-meta .kv dd { font-variant-numeric: tabular-nums; }
+
+.cost-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: .6rem;
+    margin: 0 0 1.25rem;
+}
+.cost-card {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: .65rem .85rem;
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+}
+.cost-card .cost-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--gray-600); }
+.cost-card .cost-val { font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* ── Ablation report — narrative additions ── */
+
+/* details-as-card: a <details> element styled like .card; clicking the
+   <summary> with an inline <h2> expands/collapses the body. */
+details.card { padding: 0; }
+details.card > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 1.1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+}
+details.card > summary::-webkit-details-marker { display: none; }
+details.card > summary::before {
+    content: "▸";
+    color: var(--gray-500);
+    transition: transform .15s ease;
+    font-size: .9rem;
+}
+details.card[open] > summary::before { transform: rotate(90deg); }
+details.card > summary > h2 { margin: 0; flex: 1; }
+details.card > *:not(summary) { padding: 0 1.5rem; }
+details.card > *:not(summary):last-child { padding-bottom: 1.25rem; }
+
+/* Headline summary card */
+.report-summary .report-headline {
+    font-size: 1.05rem;
+    line-height: 1.5;
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    padding: .75rem 1rem;
+    border-radius: 4px;
+    margin: 0 0 1rem;
+}
+.report-subhead { font-size: .95rem; font-weight: 600; color: var(--gray-700); margin: 1rem 0 .5rem; }
+
+/* Insight bullets — one per (component, metric) */
+.insight-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .45rem; }
+.insight-item {
+    display: grid;
+    grid-template-columns: minmax(160px, max-content) minmax(110px, max-content) 1fr max-content;
+    gap: .75rem;
+    align-items: center;
+    font-size: .9rem;
+    padding: .45rem .7rem;
+    border-radius: 6px;
+    border: 1px solid var(--gray-200);
+    background: white;
+}
+.insight-comp code { background: var(--gray-100); padding: 2px 6px; border-radius: 4px; font-size: .85em; }
+.insight-metric { color: var(--gray-700); }
+.insight-delta { font-variant-numeric: tabular-nums; color: var(--gray-800); }
+.insight-verdict { font-weight: 500; color: var(--gray-600); justify-self: end; text-align: right; }
+.insight-positive { background: #f0fdf4; border-color: #bbf7d0; }
+.insight-positive .insight-verdict { color: #16a34a; }
+.insight-negative { background: #fef2f2; border-color: #fecaca; }
+.insight-negative .insight-verdict { color: #dc2626; }
+.insight-neutral .insight-verdict { color: var(--gray-500); font-style: italic; }
+.insight-cost { font-size: .9rem; color: var(--gray-700); }
+.insight-cost li { margin-left: 1.1rem; list-style: disc; }
+
+/* "How to read this report" copy */
+.report-howto-body p { line-height: 1.55; margin: 0 0 .8rem; }
+.report-howto-body ul { margin: 0 0 .8rem 1.25rem; line-height: 1.55; }
+
+/* Component glossary */
+.glossary { display: flex; flex-direction: column; gap: .9rem; margin-top: .25rem; }
+.glossary-item {
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    padding: .8rem 1rem;
+    background: var(--gray-50);
+}
+.glossary-head {
+    display: flex;
+    align-items: baseline;
+    gap: .6rem;
+    flex-wrap: wrap;
+    margin-bottom: .3rem;
+}
+.glossary-name { font-size: .92rem; background: var(--gray-100); padding: 2px 8px; border-radius: 4px; }
+.glossary-comparison {
+    font-size: .78rem;
+    background: #fef3c7;
+    color: #78350f;
+    border: 1px solid #fde68a;
+    padding: 1px 7px;
+    border-radius: 9999px;
+    font-variant-numeric: tabular-nums;
+}
+.glossary-label { color: var(--gray-700); font-weight: 500; }
+.glossary-summary { line-height: 1.5; }
+.glossary-interpretation { margin: 0; line-height: 1.5; color: var(--gray-700); font-size: .9rem; }
+.glossary-tag {
+    display: inline-block;
+    font-size: .72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #6d28d9;
+    margin-right: .35rem;
+}
+
+/* Config catalogue */
+.config-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .7rem; }
+.config-item {
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    padding: .8rem 1rem;
+    background: white;
+}
+.config-head { display: flex; align-items: center; gap: .6rem; margin-bottom: .35rem; flex-wrap: wrap; }
+.config-label-pill {
+    font-size: .85rem;
+    font-weight: 700;
+    background: #e0e7ff;
+    color: #3730a3;
+    border: 1px solid #c7d2fe;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    min-width: 2rem;
+    text-align: center;
+}
+.config-name { color: var(--gray-700); font-weight: 500; }
+.config-desc { margin: 0 0 .35rem; line-height: 1.5; }
+.config-stages { margin: 0; font-size: .85rem; color: var(--gray-600); }
+.config-stages code { background: var(--gray-100); padding: 1px 6px; border-radius: 4px; font-size: .85em; }
+.config-stages-tag {
+    display: inline-block; font-size: .72rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .04em;
+    color: var(--gray-500); margin-right: .3rem;
+}
+
+/* Scenario catalogue */
+.scenario-cat { margin-bottom: 1.25rem; }
+.scenario-cat-head { font-size: 1rem; font-weight: 600; margin: 0 0 .25rem; color: var(--gray-800); }
+.scenario-cat-count { color: var(--gray-500); font-weight: 400; font-size: .85rem; }
+.scenario-cat-blurb { color: var(--gray-600); font-size: .9rem; line-height: 1.5; margin: 0 0 .55rem; }
+.scenario-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.scenario-table th, .scenario-table td { padding: .45rem .7rem; text-align: left; border-bottom: 1px solid var(--gray-200); vertical-align: top; }
+.scenario-table th { font-weight: 600; color: var(--gray-600); background: var(--gray-50); }
+.scenario-table code { background: var(--gray-100); padding: 1px 6px; border-radius: 4px; font-size: .85em; }
+.scenario-id-cell { white-space: nowrap; }
+.scenario-flag { color: #d97706; font-size: .9em; margin-left: .35rem; }
+
+/* Vertical rhythm for the ablation report — sections are sibling cards
+   without a parent flex container, so spacing has to live on the wrapper. */
+.ablation-report-page { display: flex; flex-direction: column; gap: 1.75rem; }
+.ablation-report-page > .page-title { margin-bottom: 0; }
+
+/* Analysis block — visible commentary derived from this batch's numbers. */
+.plot-analysis {
+    margin: .75rem 0 1.25rem;
+    background: #eff6ff;
+    border-left: 3px solid #2563eb;
+    border-radius: 0 8px 8px 0;
+    padding: .85rem 1rem .9rem;
+}
+.plot-analysis-head {
+    margin: 0 0 .35rem;
+    font-size: .82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #1e40af;
+}
+.plot-analysis-summary {
+    margin: 0 0 .5rem;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--gray-800);
+}
+.plot-analysis-summary code { background: white; padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+.plot-analysis-list {
+    margin: 0;
+    padding-left: 1.25rem;
+    line-height: 1.55;
+    color: var(--gray-800);
+    font-size: .92rem;
+}
+.plot-analysis-list li { margin-bottom: .25rem; }
+.plot-analysis-list li:last-child { margin-bottom: 0; }
+.plot-analysis-list code { background: white; padding: 1px 5px; border-radius: 4px; font-size: .88em; }
+
+/* Per-plot explainer */
+.plot-explainer {
+    margin: -.5rem 0 1rem;
+    border: 1px dashed var(--gray-300);
+    border-radius: 6px;
+    padding: 0;
+    background: #fafafa;
+}
+.plot-explainer > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: .5rem .8rem;
+    font-size: .85rem;
+    font-weight: 500;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+.plot-explainer > summary::-webkit-details-marker { display: none; }
+.plot-explainer > summary::before {
+    content: "▸";
+    transition: transform .15s ease;
+    color: #6b7280;
+}
+.plot-explainer[open] > summary::before { transform: rotate(90deg); }
+.plot-dl {
+    margin: 0;
+    padding: .25rem .8rem .75rem;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: .25rem .9rem;
+    font-size: .88rem;
+    line-height: 1.5;
+}
+.plot-dl dt { color: var(--gray-600); font-weight: 600; }
+.plot-dl dd { margin: 0; color: var(--gray-800); }
+
+/* ── Glossary card on /ablation-report ──────────────────────────────────── */
+.glossary-card .glossary-intro {
+    color: var(--gray-600);
+    font-size: .9rem;
+    margin-bottom: .9rem;
+}
+.glossary-list {
+    display: grid;
+    gap: .4rem;
+}
+.glossary-item {
+    border: 1px solid var(--gray-200);
+    border-radius: .5rem;
+    background: #fff;
+    overflow: hidden;
+    transition: box-shadow .15s ease, border-color .15s ease;
+}
+.glossary-item:hover { border-color: var(--gray-300); }
+.glossary-item[open] { box-shadow: var(--shadow); }
+.glossary-summary {
+    list-style: none;
+    cursor: pointer;
+    padding: .55rem .85rem;
+    background: var(--gray-50);
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    font-size: .92rem;
+}
+.glossary-summary::-webkit-details-marker { display: none; }
+.glossary-summary::before {
+    content: "▸";
+    color: var(--gray-600);
+    transition: transform .15s ease;
+    flex-shrink: 0;
+}
+.glossary-item[open] .glossary-summary::before { transform: rotate(90deg); }
+.glossary-term { font-weight: 600; color: var(--gray-800); }
+.glossary-body {
+    padding: .75rem .9rem .85rem 2.05rem;
+    font-size: .88rem;
+    line-height: 1.55;
+    color: var(--gray-700);
+    border-top: 1px dashed var(--gray-200);
+    background: #fff;
+}
+.glossary-body code {
+    background: var(--gray-100);
+    padding: .05rem .35rem;
+    border-radius: .25rem;
+    font-size: .85em;
+    color: var(--gray-800);
+}

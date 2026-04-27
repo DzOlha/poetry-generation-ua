@@ -28,7 +28,7 @@
                     Тема
                     <span class="field-help" tabindex="0" data-tip="Про що буде вірш — ідея, настрій, образ (напр., весна, кохання, самотність). Система шукає семантично близькі зразки у корпусі для натхнення.">&#9432;</span>
                 </label>
-                <input id="theme" name="theme" type="text" required
+                <input id="theme" name="theme" type="text" required maxlength="200"
                        placeholder="напр. весна, кохання, Україна..." autocomplete="off">
             </div>
 
@@ -51,7 +51,7 @@
                         Стопи
                         <span class="field-help" tabindex="0" data-tip="Стопа — мінімальна одиниця ритму: група з 2–3 складів. Кількість стоп визначає довжину рядка: 4-стопний ямб = 8 складів.">&#9432;</span>
                     </label>
-                    <input id="feet" name="feet" type="number" value="4" min="1" max="8" required>
+                    <input id="feet" name="feet" type="number" value="4" min="1" max="6" required>
                 </div>
             </div>
 
@@ -73,7 +73,7 @@
                         Строфи
                         <span class="field-help" tabindex="0" data-tip="Строфа — група рядків, об'єднаних римою (аналог абзацу у прозі). Наразі підтримуються лише чотирирядкові строфи (катрени).">&#9432;</span>
                     </label>
-                    <input id="stanzas" name="stanzas" type="number" value="4" min="1" max="10" required>
+                    <input id="stanzas" name="stanzas" type="number" value="1" min="1" max="5" required>
                 </div>
             </div>
 
@@ -82,11 +82,13 @@
                     Макс. ітерацій виправлення
                     <span class="field-help" tabindex="0" data-tip="Скільки разів LLM перегенеруватиме проблемні рядки після початкового драфту, щоб виправити помилки метру / рими. 0 — без корекції.">&#9432;</span>
                 </label>
-                <input id="iterations" name="iterations" type="number" value="3" min="0" max="3" required>
+                <input id="iterations" name="iterations" type="number" value="1" min="0" max="3" required>
             </div>
 
             <div class="info-box">
-                <strong>&#9432;</strong> За замовчуванням підтримуються лише 4-рядкові строфи (катрени).
+                <strong>&#9432;</strong> Підтримуються лише 4-рядкові строфи (катрени). Межі: до 6 стоп, до 5 строф,
+                тема — до 200 символів. Перший запит після свіжого деплою може зайняти довше — система довантажує
+                LaBSE (~1.8 ГБ) і Stanza-моделі для наголосового словника (~500 МБ).
             </div>
 
             <div class="form-actions">
@@ -101,7 +103,7 @@
             </div>
             <div class="form-hint">
                 <span class="form-hint-icon">⏱</span>
-                Генерація може зайняти до 1 хвилини — LLM пише початковий вірш, а потім ітеративно його виправляє.
+                Зазвичай — до 2 хвилин. У рідкісних випадках (повторні спроби після таймауту LLM) — до ~4 хв.
             </div>
             <div class="form-warning hidden" id="gen-warning" role="status" aria-live="polite">
                 <strong>&#9432;</strong> Триває довше ніж очікувалось. LLM (reasoning-модель)

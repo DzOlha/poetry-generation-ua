@@ -1,7 +1,6 @@
 """Unit tests for DetectionService."""
 from __future__ import annotations
 
-from src.config import DetectionConfig
 from src.domain.detection import MeterDetection, RhymeDetection
 from src.domain.ports.detection import IMeterDetector, IRhymeDetector, IStanzaSampler
 from src.infrastructure.logging import NullLogger
@@ -43,7 +42,7 @@ def _make_service(
         sampler=sampler or _FakeSampler(),
         meter_detector=meter or _FakeMeterDetector(),
         rhyme_detector=rhyme or _FakeRhymeDetector(),
-        config=DetectionConfig(sample_lines=4),
+        default_sample_lines=4,
         logger=NullLogger(),
     )
 

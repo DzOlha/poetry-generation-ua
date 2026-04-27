@@ -7,7 +7,11 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
 
 from src.domain.ports.validation import IMeterValidator
-from src.handlers.api.dependencies import get_detection_service, get_poetry_service
+from src.handlers.api.dependencies import (
+    get_detection_service,
+    get_meter_validator,
+    get_poetry_service,
+)
 from src.handlers.shared.detect_orchestrator import detect_poem
 from src.handlers.web.routes._shared import templates
 from src.services.detection_service import DetectionService
@@ -26,16 +30,16 @@ def detect_form(request: Request) -> HTMLResponse:
 @router.post("/detect", response_class=HTMLResponse)
 def detect_run(
     request: Request,
-    poem_text: str = Form(..., min_length=1),
+    poem_text: str = Form(..., min_length=1, max_length=5000),
     detect_meter: str | None = Form(None),
     detect_rhyme: str | None = Form(None),
     service: DetectionService = Depends(get_detection_service),
     poetry: PoetryService = Depends(get_poetry_service),
+    meter_validator: IMeterValidator = Depends(get_meter_validator),
 ) -> HTMLResponse:
     want_meter = detect_meter is not None
     want_rhyme = detect_rhyme is not None
 
-    meter_validator: IMeterValidator = request.app.state.container.meter_validator()
     ctx = detect_poem(
         poem_text=poem_text,
         want_meter=want_meter,

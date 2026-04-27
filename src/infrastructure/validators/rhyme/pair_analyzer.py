@@ -63,15 +63,27 @@ class PhoneticRhymePairAnalyzer(IRhymePairAnalyzer):
 
         for r_a in candidates_a:
             for r_b in candidates_b:
+                if not self._stressed_syllables_align(r_a, r_b):
+                    continue
                 score = self._suffix_aligned_score(r_a, r_b)
                 if score > best_score:
                     best_score, best_r_a, best_r_b = score, r_a, r_b
 
-        final_score = max(best_score, 0.0)
+        if best_score < 0.0:
+            # Every stress-candidate combination was gated out: the words
+            # share only an unstressed suffix and do not rhyme. Surface the
+            # canonical rhyme parts for diagnostics.
+            final_score = 0.0
+            precision = RhymePrecision.NONE
+            if candidates_a and candidates_b:
+                best_r_a = candidates_a[0]
+                best_r_b = candidates_b[0]
+        else:
+            final_score = best_score
+            precision = self._classify_precision(best_r_a, best_r_b, final_score)
 
         clausula_a = self._detect_clausula(word_a)
         clausula_b = self._detect_clausula(word_b)
-        precision = self._classify_precision(best_r_a, best_r_b, final_score)
 
         return RhymePairAnalysis(
             rhyme_part_a=best_r_a,
@@ -81,6 +93,32 @@ class PhoneticRhymePairAnalyzer(IRhymePairAnalyzer):
             clausula_b=clausula_b,
             precision=precision,
         )
+
+    def _stressed_syllables_align(self, r_a: str, r_b: str) -> bool:
+        """Reject pairs that share only an unstressed grammatical suffix.
+
+        Canonical rule of Ukrainian rhyme: the stressed vowel is the
+        anchor. The pair is accepted when either
+        * the stressed vowels match (exact / assonance / inexact rhyme), or
+        * the stressed vowels differ but the consonants framing the
+          stressed vowel match closely enough to qualify as consonance
+          (e.g. «по́лем / до́лом», «гра́д / звід»).
+
+        Returns False when both stressed vowels and stressed-syllable
+        consonants differ — that is the «шибочках / кутиках» case where
+        only the unstressed inflection «-ках» coincides.
+        """
+        if not r_a or not r_b:
+            return True
+        sv_a = _stressed_vowel(r_a)
+        sv_b = _stressed_vowel(r_b)
+        if not sv_a or not sv_b or sv_a == sv_b:
+            return True
+        cons_a = _stressed_syllable_consonants(r_a)
+        cons_b = _stressed_syllable_consonants(r_b)
+        if not cons_a or not cons_b:
+            return False
+        return self._similarity.similarity(cons_a, cons_b) >= _ASSONANCE_CONSONANCE_THRESHOLD
 
     # ------------------------------------------------------------------
     # Clausula detection
@@ -185,21 +223,49 @@ class PhoneticRhymePairAnalyzer(IRhymePairAnalyzer):
         return parts
 
     def _suffix_aligned_score(self, r_a: str, r_b: str) -> float:
-        """Compare rhyme parts aligned by suffix.
+        """Score two rhyme parts by Levenshtein similarity over the full IPA.
 
-        When stress is uncertain the longer rhyme part may capture too
-        much of the word.  Trimming both parts to the length of the
-        shorter one (from the right) before comparing gives a fairer
-        score while still relying on the injected similarity metric.
+        Both inputs already start at the stressed vowel, so a fair
+        comparison aligns them from the *left* and uses the full length
+        as the normalisation base. Length disparity (e.g. 8-char vs
+        4-char rhyme parts from words with stress at different depths)
+        therefore lowers the score, as it should — a real rhyme requires
+        the post-stress sequences to roughly coincide. Stress uncertainty
+        is handled separately by `_rhyme_candidates`, which offers the
+        resolved and the penultimate stress positions as alternatives.
         """
         if not r_a or not r_b:
             return 0.0
-        min_len = min(len(r_a), len(r_b))
-        trimmed_a = r_a[-min_len:]
-        trimmed_b = r_b[-min_len:]
-        return self._similarity.similarity(trimmed_a, trimmed_b)
+        return self._similarity.similarity(r_a, r_b)
 
 
 def _extract_channel(ipa: str, *, vowels: bool) -> str:
     """Extract only vowels or only consonants from an IPA string."""
     return "".join(ch for ch in ipa if (ch in _IPA_VOWELS) == vowels)
+
+
+def _stressed_vowel(rhyme_part: str) -> str:
+    """First IPA vowel in the rhyme part — the stressed vowel itself."""
+    return next((c for c in rhyme_part if c in _IPA_VOWELS), "")
+
+
+def _stressed_syllable_consonants(rhyme_part: str) -> str:
+    """IPA consonants framing the stressed vowel.
+
+    For polysyllabic clausulas this is the cluster between the stressed
+    vowel and the next vowel (coda of the stressed syllable + onset of
+    the next). For masculine clausulas (no following vowel) it is the
+    full post-stress coda. Returns "" when no stressed vowel exists.
+    """
+    if not rhyme_part:
+        return ""
+    first_vowel_idx = next(
+        (i for i, c in enumerate(rhyme_part) if c in _IPA_VOWELS), -1,
+    )
+    if first_vowel_idx == -1:
+        return ""
+    rest = rhyme_part[first_vowel_idx + 1:]
+    next_vowel_idx = next(
+        (i for i, c in enumerate(rest) if c in _IPA_VOWELS), -1,
+    )
+    return rest if next_vowel_idx == -1 else rest[:next_vowel_idx]

@@ -1,10 +1,14 @@
 """Meter/rhyme detection API route."""
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 
 from src.domain.ports.validation import IMeterValidator
-from src.handlers.api.dependencies import get_detection_service, get_poetry_service
+from src.handlers.api.dependencies import (
+    get_detection_service,
+    get_meter_validator,
+    get_poetry_service,
+)
 from src.handlers.api.schemas import (
     DetectionRequestSchema,
     DetectionResultSchema,
@@ -22,10 +26,10 @@ router = APIRouter(prefix="/poems", tags=["poems"])
 
 @router.post("/detect", response_model=DetectionResultSchema)
 def detect_poem_endpoint(
-    request: Request,
     body: DetectionRequestSchema,
     service: DetectionService = Depends(get_detection_service),
     poetry: PoetryService = Depends(get_poetry_service),
+    meter_validator: IMeterValidator = Depends(get_meter_validator),
 ) -> DetectionResultSchema:
     """Auto-detect meter and rhyme scheme of a poem.
 
@@ -33,7 +37,6 @@ def detect_poem_endpoint(
     segments plus stanza-level accuracy — everything an SPA needs to render
     the same highlighted UI the HTML handler produces.
     """
-    meter_validator: IMeterValidator = request.app.state.container.meter_validator()
     ctx = detect_poem(
         poem_text=body.poem_text,
         want_meter=body.detect_meter,

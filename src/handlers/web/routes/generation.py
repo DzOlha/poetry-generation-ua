@@ -52,11 +52,11 @@ def validate_form(request: Request) -> HTMLResponse:
 @router.post("/generate", response_class=HTMLResponse)
 def generate_web(
     request: Request,
-    theme: str = Form(..., min_length=1),
+    theme: str = Form(..., min_length=1, max_length=200),
     meter: str = Form("ямб"),
-    feet: int = Form(4, ge=1, le=8),
+    feet: int = Form(4, ge=1, le=6),
     scheme: str = Form("ABAB"),
-    stanzas: int = Form(4, ge=1, le=10),
+    stanzas: int = Form(4, ge=1, le=5),
     iterations: int = Form(3, ge=0, le=3),
     service: PoetryService = Depends(get_poetry_service),
     formatter: IFeedbackFormatter = Depends(get_feedback_formatter),
@@ -94,6 +94,8 @@ def generate_web(
             duration_sec=s.duration_sec,
             raw_llm_response=s.raw_llm_response,
             sanitized_llm_response=s.sanitized_llm_response,
+            input_tokens=s.input_tokens,
+            output_tokens=s.output_tokens,
         )
         for s in result.iteration_history
     ]
@@ -147,9 +149,9 @@ def generate_web(
 @router.post("/validate-web", response_class=HTMLResponse)
 def validate_web(
     request: Request,
-    poem_text: str = Form(..., min_length=1),
+    poem_text: str = Form(..., min_length=1, max_length=5000),
     meter: str = Form("ямб"),
-    feet: int = Form(4, ge=1, le=8),
+    feet: int = Form(4, ge=1, le=6),
     scheme: str = Form("ABAB"),
     service: PoetryService = Depends(get_poetry_service),
     formatter: IFeedbackFormatter = Depends(get_feedback_formatter),

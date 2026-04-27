@@ -38,6 +38,13 @@ class BruteForceMeterDetector(IMeterDetector):
 
     def detect(self, text: str) -> MeterDetection | None:
         best: MeterDetection | None = None
+        # Rank by (accuracy, -total_errors): when two meters tie on accuracy
+        # (e.g. dactyl 2-foot vs iamb 2-foot both at 1.00 — iamb only sneaks
+        # in via the +2 trailing-unstressed length tolerance plus exactly
+        # `allowed_mismatches` errors per line), prefer the candidate whose
+        # lines accumulate fewer real error positions. Without this the
+        # iteration order silently picks iamb over dactyl.
+        best_key: tuple[float, int] = (-1.0, 1)
 
         for meter in _CANONICAL_METERS:
             for feet in range(self._feet_min, self._feet_max + 1):
@@ -45,7 +52,12 @@ class BruteForceMeterDetector(IMeterDetector):
                 result = self._validator.validate(text, spec)
                 if result.accuracy < self._min_accuracy:
                     continue
-                if best is None or result.accuracy > best.accuracy:
+                total_errors = sum(
+                    len(line.error_positions) for line in result.line_results
+                )
+                key = (result.accuracy, -total_errors)
+                if key > best_key:
+                    best_key = key
                     best = MeterDetection(
                         meter=meter.value,
                         foot_count=feet,

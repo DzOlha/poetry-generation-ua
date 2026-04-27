@@ -34,12 +34,42 @@ from src.domain.scenarios import EvaluationScenario
 from src.handlers.shared.line_displays import line_displays
 
 # ---------------------------------------------------------------------------
+# System metadata
+# ---------------------------------------------------------------------------
+
+class LLMInfoSchema(BaseModel):
+    """Active LLM provider/model + readiness flag.
+
+    Mirrors `LLMInfo` so SPAs can render the same "provider · model" badge
+    and "Generation unavailable: <error>" banner the HTML form pages show
+    (`generate.html`, `evaluate.html`). The `ready` flag is what the
+    server-side handler checks before letting a generation request reach
+    the pipeline; SPAs should mirror that behaviour and disable their
+    submit button when `ready` is False.
+    """
+
+    provider: str
+    model: str
+    ready: bool
+    error: str | None = None
+
+    @classmethod
+    def from_domain(cls, info: LLMInfo) -> LLMInfoSchema:
+        return cls(
+            provider=info.provider,
+            model=info.model,
+            ready=info.ready,
+            error=info.error,
+        )
+
+
+# ---------------------------------------------------------------------------
 # Nested schema components
 # ---------------------------------------------------------------------------
 
 class MeterSpecSchema(BaseModel):
     name: str = Field(default="ямб")
-    foot_count: int = Field(default=4, ge=1, le=8)
+    foot_count: int = Field(default=4, ge=1, le=6)
 
     def to_domain(self) -> MeterSpec:
         return MeterSpec(name=self.name, foot_count=self.foot_count)
@@ -61,7 +91,7 @@ class RhymeSchemeSchema(BaseModel):
 
 
 class PoemStructureSchema(BaseModel):
-    stanza_count: int = Field(default=4, ge=1, le=10)
+    stanza_count: int = Field(default=4, ge=1, le=5)
     lines_per_stanza: Literal[4] = 4
 
     def to_domain(self) -> PoemStructure:
@@ -77,7 +107,7 @@ class PoemStructureSchema(BaseModel):
 # ---------------------------------------------------------------------------
 
 class GenerationRequestSchema(BaseModel):
-    theme: str = Field(..., min_length=1)
+    theme: str = Field(..., min_length=1, max_length=200)
     meter: MeterSpecSchema = Field(default_factory=MeterSpecSchema)
     rhyme: RhymeSchemeSchema = Field(default_factory=RhymeSchemeSchema)
     structure: PoemStructureSchema = Field(default_factory=PoemStructureSchema)
@@ -98,7 +128,7 @@ class GenerationRequestSchema(BaseModel):
 
 
 class ValidationRequestSchema(BaseModel):
-    poem_text: str = Field(..., min_length=1)
+    poem_text: str = Field(..., min_length=1, max_length=5000)
     meter: MeterSpecSchema = Field(default_factory=MeterSpecSchema)
     rhyme: RhymeSchemeSchema = Field(default_factory=RhymeSchemeSchema)
 
@@ -203,7 +233,7 @@ class ValidationResultSchema(BaseModel):
 # ---------------------------------------------------------------------------
 
 class DetectionRequestSchema(BaseModel):
-    poem_text: str = Field(..., min_length=1)
+    poem_text: str = Field(..., min_length=1, max_length=5000)
     sample_lines: int | None = Field(default=4, ge=4, le=4)
     # Mirror the web form — let SPAs pick which aspect(s) to detect. Both
     # default to true, matching the existing sole-purpose JSON endpoint.

@@ -197,6 +197,61 @@ class TestEvaluationRouter:
 
 
 @pytest.mark.integration
+class TestSystemRouter:
+    def test_llm_info_exposes_provider_model_and_ready_flag(self, client: TestClient):
+        # Closes the web↔API parity gap: HTML form pages get LLMInfo through
+        # the template context, the SPA had no way to query it. Now it does.
+        response = client.get("/system/llm-info")
+        assert response.status_code == 200
+        data = response.json()
+        assert {"provider", "model", "ready", "error"} == set(data)
+        # The integration fixture forces llm_provider="mock", so it's ready.
+        assert data["provider"] == "mock"
+        assert data["ready"] is True
+
+
+@pytest.mark.integration
+class TestEvaluationScenariosByCategory:
+    def test_groups_scenarios_into_normal_edge_corner(self, client: TestClient):
+        response = client.get("/evaluation/scenarios/by-category")
+        assert response.status_code == 200
+        data = response.json()
+        assert {"normal", "edge", "corner"} == set(data)
+        # Each bucket is a list of full scenario records.
+        for bucket in data.values():
+            assert isinstance(bucket, list)
+            for scenario in bucket:
+                assert {
+                    "id", "name", "category",
+                    "theme", "meter", "foot_count", "rhyme_scheme",
+                    "stanza_count", "lines_per_stanza",
+                } <= set(scenario)
+        # Sanity: every scenario tags itself with its bucket's category.
+        for category, bucket in data.items():
+            for scenario in bucket:
+                assert scenario["category"] == category
+
+
+@pytest.mark.integration
+class TestAblationReportEndpoint:
+    def test_returns_404_when_no_batch_artifacts_exist(
+        self, tmp_path, monkeypatch,
+    ) -> None:
+        # Build an isolated app pointed at an empty results dir so no batch
+        # is found. We can't reuse the module-scoped client because it owns
+        # the real `results/` folder which may or may not contain batches.
+        cfg = replace(AppConfig.from_env(), offline_embedder=True, llm_provider="mock")
+        app = create_app(cfg)
+        with TestClient(app) as fresh_client:
+            # Override the results_dir on app.state so the dependency picks
+            # up the empty tmp_path before the route runs.
+            fresh_client.app.state.results_dir = tmp_path  # type: ignore[attr-defined]
+            response = fresh_client.get("/evaluation/ablation-report")
+        assert response.status_code == 404
+        assert "ablation" in response.json()["detail"].lower()
+
+
+@pytest.mark.integration
 class TestLLMReadinessGuard:
     """When no API key is configured and the provider auto-falls-back to
     mock, endpoints that touch the LLM must fail fast with 503 so API

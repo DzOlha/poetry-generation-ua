@@ -5,7 +5,6 @@ meter and rhyme scheme from its raw text.
 """
 from __future__ import annotations
 
-from src.config import DetectionConfig
 from src.domain.detection import DetectionResult
 from src.domain.ports.detection import (
     IDetectionService,
@@ -24,13 +23,13 @@ class DetectionService(IDetectionService):
         sampler: IStanzaSampler,
         meter_detector: IMeterDetector,
         rhyme_detector: IRhymeDetector,
-        config: DetectionConfig,
+        default_sample_lines: int,
         logger: ILogger,
     ) -> None:
         self._sampler = sampler
         self._meter = meter_detector
         self._rhyme = rhyme_detector
-        self._default_sample_lines = config.sample_lines
+        self._default_sample_lines = default_sample_lines
         self._logger = logger
 
     def detect(self, poem_text: str, sample_lines: int | None = None) -> DetectionResult:

@@ -417,7 +417,7 @@ def build_detection_service(
         sampler=c.stanza_sampler(),
         meter_detector=c.meter_detector(),
         rhyme_detector=c.rhyme_detector(),
-        config=c.config.detection,
+        default_sample_lines=c.config.detection.sample_lines,
         logger=c.logger,
     )
 

@@ -17,7 +17,7 @@
                     Текст вірша
                     <span class="field-help" tabindex="0" data-tip="Поетичний текст українською. Рядки розділяються переносом, строфи — порожнім рядком. Підтримуються лише чотирирядкові строфи (катрени).">&#9432;</span>
                 </label>
-                <textarea id="poem_text" name="poem_text" rows="8" required
+                <textarea id="poem_text" name="poem_text" rows="8" required maxlength="5000"
                           placeholder="Вставте вірш для перевірки…"></textarea>
             </div>
             <div class="row">
@@ -39,7 +39,7 @@
                         Стопи
                         <span class="field-help" tabindex="0" data-tip="Стопа — мінімальна одиниця ритму: група з 2–3 складів. Кількість стоп визначає довжину рядка: 4-стопний ямб = 8 складів.">&#9432;</span>
                     </label>
-                    <input id="val-feet" name="feet" type="number" value="4" min="1" max="8" required>
+                    <input id="val-feet" name="feet" type="number" value="4" min="1" max="6" required>
                 </div>
                 <div class="field">
                     <label for="val-scheme">

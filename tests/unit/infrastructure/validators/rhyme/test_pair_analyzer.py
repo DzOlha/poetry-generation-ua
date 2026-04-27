@@ -42,15 +42,29 @@ class TestPhoneticRhymePairAnalyzer:
     def test_non_rhyming_pair_low_score(
         self, stress_dict: IStressDictionary,
     ) -> None:
+        # «ліс» (1 syll, stressed `i`) and «вітер» (2 syll, stressed `i`,
+        # then unstressed `er`) share only the stressed vowel — different
+        # word lengths, different post-stress consonants. The score must
+        # be well below the validator's 0.55 acceptance threshold; using
+        # 0.7 (the docs' historical threshold) was lenient enough that a
+        # broken implementation returning ~0.5 would still pass.
         analysis = _make(stress_dict).analyze("ліс", "вітер")
-        assert analysis.score < 0.7
+        assert analysis.score < 0.4
 
-    def test_rhyme_parts_are_strings(
+    def test_rhyme_part_starts_at_stressed_vowel(
         self, stress_dict: IStressDictionary,
     ) -> None:
-        analysis = _make(stress_dict).analyze("день", "тінь")
-        assert isinstance(analysis.rhyme_part_a, str)
-        assert isinstance(analysis.rhyme_part_b, str)
+        # Per the contract documented in rhyme_validation.md, the rhyme
+        # part is the IPA suffix from the stressed vowel onward. For
+        # «ліс» (single syllable, stressed `і` → IPA `i`) the rhyme part
+        # must START with `i`. A type-only check would pass for any
+        # string, including a broken implementation returning the full
+        # word or an empty string.
+        analysis = _make(stress_dict).analyze("ліс", "ріс")
+        assert analysis.rhyme_part_a.startswith("i")
+        assert analysis.rhyme_part_b.startswith("i")
+        # Single-syllable rhymes can't be longer than the word itself.
+        assert 1 <= len(analysis.rhyme_part_a) <= 3
 
 
 class TestClausulaDetection:
@@ -81,12 +95,16 @@ class TestClausulaDetection:
         analysis = _make(stress_dict).analyze("золото", "молоко")
         assert analysis.clausula_a == ClausulaType.DACTYLIC
 
-    def test_clausula_fields_present(
+    def test_unknown_for_empty_input(
         self, stress_dict: IStressDictionary,
     ) -> None:
-        analysis = _make(stress_dict).analyze("день", "тінь")
-        assert isinstance(analysis.clausula_a, ClausulaType)
-        assert isinstance(analysis.clausula_b, ClausulaType)
+        # The docstring of `_detect_clausula` promises UNKNOWN for empty /
+        # syllable-less input. Keep the type-existence check here too —
+        # but assert a *specific* value so a regression (e.g. silently
+        # returning MASCULINE for empty) would fail.
+        analysis = _make(stress_dict).analyze("", "")
+        assert analysis.clausula_a == ClausulaType.UNKNOWN
+        assert analysis.clausula_b == ClausulaType.UNKNOWN
 
 
 class TestRhymePrecision:
@@ -106,15 +124,60 @@ class TestRhymePrecision:
         analysis = _make(stress_dict).analyze("ліс", "ріс")
         assert analysis.precision == RhymePrecision.EXACT
 
-    def test_non_rhyming_pair_none_or_inexact(
+    def test_pair_with_different_stressed_vowels_and_consonants_is_none(
         self, stress_dict: IStressDictionary,
     ) -> None:
-        """Completely different words should not be exact."""
-        analysis = _make(stress_dict).analyze("ліс", "вітер")
-        assert analysis.precision != RhymePrecision.EXACT
+        # «ліс» (stressed vowel `i`, post-stress `s`) vs «сон» (stressed
+        # vowel `o`, post-stress `n`). Stressed vowels differ AND
+        # post-stress consonants differ — the stressed-vowel gate must
+        # reject the pair as NONE. A regression that classified this as
+        # INEXACT (returning a small leaked similarity) would mean the
+        # gate is bypassed.
+        analysis = _make(stress_dict).analyze("ліс", "сон")
+        assert analysis.precision == RhymePrecision.NONE
+        assert analysis.score == 0.0
 
-    def test_precision_field_present(
+
+class TestStressedVowelGate:
+    """Reject pairs that share only an unstressed grammatical suffix."""
+
+    def test_shared_unstressed_suffix_drops_below_threshold(
         self, stress_dict: IStressDictionary,
     ) -> None:
-        analysis = _make(stress_dict).analyze("день", "тінь")
-        assert isinstance(analysis.precision, RhymePrecision)
+        # «шибочках» / «кутиках»: post-stress sequences «-bɔtʃkax»
+        # and «-kax» have very different lengths, so full-length
+        # Levenshtein keeps similarity well below the 0.55 default
+        # validator threshold. The pair must NOT pass as a rhyme.
+        from src.config import ValidationConfig
+        analysis = _make(stress_dict).analyze("шибочках", "кутиках")
+        assert analysis.score < ValidationConfig().rhyme_threshold
+
+    def test_matching_stressed_vowel_still_rhymes(
+        self, stress_dict: IStressDictionary,
+    ) -> None:
+        # Stressed vowels coincide (-і-) → gate must not reject.
+        analysis = _make(stress_dict).analyze("ліс", "ріс")
+        assert analysis.score > 0.0
+        assert analysis.precision != RhymePrecision.NONE
+
+    def test_gate_rejects_when_stressed_vowel_and_consonants_differ(
+        self, stress_dict: IStressDictionary,
+    ) -> None:
+        from src.infrastructure.text import LevenshteinSimilarity
+        from src.infrastructure.validators.rhyme.pair_analyzer import (
+            PhoneticRhymePairAnalyzer,
+        )
+
+        analyzer = PhoneticRhymePairAnalyzer(
+            stress_resolver=None,  # type: ignore[arg-type]
+            transcriber=None,  # type: ignore[arg-type]
+            string_similarity=LevenshteinSimilarity(),
+        )
+        # «ebo» vs «olo»: stressed vowels e ≠ o; stressed-syllable
+        # consonants «b» vs «l» do not match → gate rejects.
+        assert analyzer._stressed_syllables_align("ebo", "olo") is False
+        # «ebo» vs «obo»: stressed vowels e ≠ o but consonants «b» = «b»
+        # (consonance pattern «по́лем / до́лом») → gate accepts.
+        assert analyzer._stressed_syllables_align("ebo", "obo") is True
+        # Equal stressed vowels → gate accepts unconditionally.
+        assert analyzer._stressed_syllables_align("olo", "oro") is True

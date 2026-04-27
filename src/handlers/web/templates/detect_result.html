@@ -55,11 +55,17 @@
             {% if want_meter %}
                 {% if meter %}
                 <div class="metric">
-                    <span class="metric-label">Метр</span>
+                    <span class="metric-label">
+                        Метр
+                        <span class="field-help" tabindex="0" data-tip="Найкращий кандидат із 5 канонічних метрів × 1–6 стоп. Обирається той, що пасує по всіх рядках; за рівних accuracy виграє кандидат із меншою сумою помилок наголосу.">&#9432;</span>
+                    </span>
                     <span class="metric-value ok">{{ meter.meter }}, {{ meter.foot_count }}-стопний</span>
                 </div>
                 <div class="metric">
-                    <span class="metric-label">Точність метру</span>
+                    <span class="metric-label">
+                        Точність метру
+                        <span class="field-help" tabindex="0" data-tip="Частка рядків, що пройшли валідацію вибраним метром. Поріг прийняття детекції — 85%. Стрес-резолвер може помилятись на рідкісних / коротких словах, тому 90–100% — типовий діапазон навіть для класиків.">&#9432;</span>
+                    </span>
                     <span class="metric-value {% if meter.accuracy >= 0.8 %}ok{% else %}fail{% endif %}">
                         {{ "%.0f"|format(meter.accuracy * 100) }}%
                     </span>
@@ -75,11 +81,17 @@
             {% if want_rhyme %}
                 {% if rhyme %}
                 <div class="metric">
-                    <span class="metric-label">Схема рим</span>
+                    <span class="metric-label">
+                        Схема рим
+                        <span class="field-help" tabindex="0" data-tip="Найкращий кандидат із ABAB / AABB / ABBA / AAAA — той, що дав найвищу частку римованих пар у строфі.">&#9432;</span>
+                    </span>
                     <span class="metric-value ok">{{ rhyme.scheme }}</span>
                 </div>
                 <div class="metric">
-                    <span class="metric-label">Точність рими</span>
+                    <span class="metric-label">
+                        Точність рими
+                        <span class="field-help" tabindex="0" data-tip="Частка пар рядків, що пройшли фонетичний поріг (≥ 55% подібності IPA). Поріг детекції більш ліберальний за валідацію (50%) — щоб не відкидати асонансні рими класиків.">&#9432;</span>
+                    </span>
                     <span class="metric-value {% if rhyme.accuracy >= 0.8 %}ok{% else %}fail{% endif %}">
                         {{ "%.0f"|format(rhyme.accuracy * 100) }}%
                     </span>

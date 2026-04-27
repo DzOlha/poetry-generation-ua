@@ -5,7 +5,7 @@
 {% block content %}
 <div class="page-title">
     <h1>Розширені конфігурації (абляції)</h1>
-    <p class="subtitle">Запустіть сценарій через один із конфігів A–E та перегляньте повний трейс пайплайну</p>
+    <p class="subtitle">Запустіть сценарій через один із конфігів A–H та перегляньте повний трейс пайплайну</p>
 </div>
 
 {% if error %}
@@ -31,11 +31,13 @@
             <div class="field">
                 <label for="config_label">
                     Конфіг абляції
-                    <span class="field-help" tabindex="0" data-tip="Варіант пайплайну — які стадії увімкнено. A — baseline (лише LLM). E — повна система з RAG, валідацією та фідбек-циклом. B, C, D — проміжні комбінації для порівняння внеску кожної стадії.">&#9432;</span>
+                    <span class="field-help" tabindex="0" data-tip="Варіант пайплайну — які стадії увімкнено. A — baseline (лише LLM + валідація, без RAG, без feedback). B, C, D — проміжні з feedback. E — повна система (RAG + metric examples + feedback) — рекомендована для типового використання. F, G, H — ті ж збагачення, що C/D/E, але без feedback — суто для досліджень raw-внеску компонентів у перший драфт.">&#9432;</span>
                 </label>
                 <select id="config_label" name="config_label">
                     {% for cfg in ablation_configs %}
-                    <option value="{{ cfg.label }}">{{ cfg.label }}: {{ cfg.description }}</option>
+                    <option value="{{ cfg.label }}"{% if cfg.label == "A" %} selected{% endif %}>
+                        {{ cfg.label }}: {{ cfg.description }}{% if cfg.label == "E" %} ★ рекомендовано{% endif %}
+                    </option>
                     {% endfor %}
                 </select>
             </div>
@@ -48,17 +50,17 @@
                 <select id="scenario_id" name="scenario_id">
                     <optgroup label="Normal">
                         {% for s in scenarios_by_cat.normal %}
-                        <option value="{{ s.id }}">{{ s.id }}: {{ s.theme }} ({{ s.meter }}, {{ s.rhyme_scheme }})</option>
+                        <option value="{{ s.id }}">{{ s.id }}: {{ s.theme }} ({{ s.meter }}, {{ s.foot_count }} ст., {{ s.rhyme_scheme }})</option>
                         {% endfor %}
                     </optgroup>
                     <optgroup label="Edge">
                         {% for s in scenarios_by_cat.edge %}
-                        <option value="{{ s.id }}">{{ s.id }}: {{ s.theme }} ({{ s.meter }}, {{ s.rhyme_scheme }})</option>
+                        <option value="{{ s.id }}">{{ s.id }}: {{ s.theme }} ({{ s.meter }}, {{ s.foot_count }} ст., {{ s.rhyme_scheme }})</option>
                         {% endfor %}
                     </optgroup>
                     <optgroup label="Corner">
                         {% for s in scenarios_by_cat.corner %}
-                        <option value="{{ s.id }}">{{ s.id }}: {{ s.theme }} ({{ s.meter }}, {{ s.rhyme_scheme }})</option>
+                        <option value="{{ s.id }}">{{ s.id }}: {{ s.theme }} ({{ s.meter }}, {{ s.foot_count }} ст., {{ s.rhyme_scheme }})</option>
                         {% endfor %}
                     </optgroup>
                 </select>
@@ -73,8 +75,10 @@
             </div>
 
             <div class="info-box">
-                <strong>&#9432;</strong> 18 передзаданих сценаріїв (Normal / Edge / Corner) × 5 абляційних конфігів (A–E).
-                Результат — повний трейс із метриками на кожній стадії пайплайну.
+                <strong>&#9432;</strong> 18 передзаданих сценаріїв (Normal / Edge / Corner) × 8 абляційних конфігів (A–H).
+                A–E — варіанти з feedback-циклом; F–H — ті ж збагачення (RAG / metric examples) без feedback,
+                щоб ізолювати їхній чистий внесок у перший драфт. Результат — повний трейс із метриками
+                на кожній стадії пайплайну.
             </div>
 
             <div class="form-actions">
@@ -89,8 +93,7 @@
             </div>
             <div class="form-hint">
                 <span class="form-hint-icon">⏱</span>
-                Процес може зайняти до 1 хвилини — пайплайн запускає LLM для початкової генерації,
-                а потім ітеративно її виправляє.
+                Зазвичай — до 2 хвилин. У рідкісних випадках (повторні спроби після таймауту LLM) — до ~4 хв.
             </div>
             <div class="form-warning hidden" id="eval-warning" role="status" aria-live="polite">
                 <strong>&#9432;</strong> Триває довше ніж очікувалось. LLM (reasoning-модель)

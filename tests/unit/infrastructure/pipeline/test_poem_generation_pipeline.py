@@ -1,6 +1,9 @@
 """Tests for DefaultPoemGenerationPipeline."""
 from __future__ import annotations
 
+import pytest
+
+from src.domain.errors import LLMError, LLMQuotaExceededError
 from src.domain.evaluation import IterationRecord
 from src.domain.models import (
     GenerationRequest,
@@ -124,3 +127,36 @@ class TestDefaultPoemGenerationPipeline:
         result = service.build(_request())
         assert result.validation.meter.ok is False
         assert result.validation.rhyme.ok is False
+
+
+class TestAbortPropagation:
+    """A stage that catches a DomainError and marks `state.aborted=True`
+    must surface that to the caller — otherwise /generate silently returns
+    an empty poem with 0% metrics (the C05 quota / CoT-only failure UX).
+    """
+
+    def test_aborted_run_reraises_original_exception(self):
+        original = LLMQuotaExceededError("Daily limit of 250 requests reached.")
+
+        class _AbortingPipeline(IPipeline):
+            def run(self, state: PipelineState) -> None:
+                state.abort("generation failed: quota", exception=original)
+
+        service = DefaultPoemGenerationPipeline(
+            pipeline=_AbortingPipeline(), logger=NullLogger(),
+        )
+        with pytest.raises(LLMQuotaExceededError) as exc_info:
+            service.build(_request())
+        assert exc_info.value is original  # exact instance preserved
+
+    def test_aborted_run_without_exception_raises_llm_error_with_reason(self):
+        class _AbortingPipeline(IPipeline):
+            def run(self, state: PipelineState) -> None:
+                state.abort("safety filter blocked output")
+
+        service = DefaultPoemGenerationPipeline(
+            pipeline=_AbortingPipeline(), logger=NullLogger(),
+        )
+        with pytest.raises(LLMError) as exc_info:
+            service.build(_request())
+        assert "safety filter" in str(exc_info.value)
