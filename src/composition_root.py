@@ -28,6 +28,8 @@ if TYPE_CHECKING:
 
 from src.config import AppConfig
 from src.domain.ports import (
+    IClock,
+    IDelayer,
     IEmbedder,
     IEvaluationAggregator,
     IFeedbackCycle,
@@ -134,6 +136,12 @@ class Container:
     # ------------------------------------------------------------------
     # Primitives delegation
     # ------------------------------------------------------------------
+
+    def clock(self) -> IClock:
+        return self.primitives.clock()
+
+    def delayer(self) -> IDelayer:
+        return self.primitives.delayer()
 
     def text_processor(self) -> ITextProcessor:
         return self.primitives.text_processor()
@@ -369,6 +377,7 @@ def build_evaluation_service(
         logger=c.logger,
         scenario_registry=c.scenario_registry(),
         ablation_configs=ABLATION_CONFIGS,
+        clock=c.clock(),
     )
 
 

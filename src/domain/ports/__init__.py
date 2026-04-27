@@ -6,6 +6,7 @@ follows ISP: small, focused, easy to implement and mock.
 
 Organised into focused modules:
 
+  ports.clock       — IClock, IDelayer
   ports.corpus      — ParsedPoem, ICorpusParser
   ports.detection   — IStanzaSampler, IMeterDetector, IRhymeDetector, IDetectionService
   ports.logging     — ILogger
@@ -35,9 +36,11 @@ All names are re-exported here so ``from src.domain.ports import X``
 continues to work unchanged.
 """
 
+# -- Clock --
 # -- Corpus --
 # -- Feedback utility (lives in domain.models.feedback, re-exported for convenience) --
 from src.domain.models.feedback import format_all_feedback  # noqa: E402
+from src.domain.ports.clock import IClock, IDelayer
 from src.domain.ports.corpus import ICorpusParser, ParsedPoem
 
 # -- Data plane --
@@ -169,6 +172,9 @@ from src.domain.ports.validation import (
 from src.domain.value_objects import ClausulaType, RhymePrecision
 
 __all__ = [
+    # Clock
+    "IClock",
+    "IDelayer",
     # Corpus
     "ParsedPoem",
     "ICorpusParser",

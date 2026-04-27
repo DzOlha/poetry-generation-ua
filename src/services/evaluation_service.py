@@ -14,7 +14,6 @@ its own port).
 """
 from __future__ import annotations
 
-import time
 from collections.abc import Iterable
 
 from src.domain.errors import UnsupportedConfigError
@@ -26,6 +25,7 @@ from src.domain.evaluation import (
 from src.domain.models import GenerationRequest, MeterSpec, PoemStructure, RhymeScheme
 from src.domain.pipeline_context import PipelineState
 from src.domain.ports import (
+    IClock,
     ILogger,
     IPipeline,
     IScenarioRegistry,
@@ -44,12 +44,14 @@ class EvaluationService:
         logger: ILogger,
         scenario_registry: IScenarioRegistry,
         ablation_configs: Iterable[AblationConfig],
+        clock: IClock,
     ) -> None:
         self._pipeline = pipeline
         self._tracer_factory = tracer_factory
         self._logger: ILogger = logger
         self._scenarios = scenario_registry
         self._ablation_configs: tuple[AblationConfig, ...] = tuple(ablation_configs)
+        self._clock = clock
 
     # ------------------------------------------------------------------
     # Public API
@@ -96,9 +98,9 @@ class EvaluationService:
             scenario=scenario,
         )
 
-        t_global = time.perf_counter()
+        t_global = self._clock.now()
         self._pipeline.run(state)
-        tracer.set_total_duration(time.perf_counter() - t_global)
+        tracer.set_total_duration(self._clock.now() - t_global)
         return tracer.get_trace()
 
     def run_matrix(

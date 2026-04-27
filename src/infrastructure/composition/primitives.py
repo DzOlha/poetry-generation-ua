@@ -12,6 +12,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from src.domain.ports import (
+    IClock,
+    IDelayer,
     ILineFeedbackBuilder,
     IMeterCanonicalizer,
     IPhoneticTranscriber,
@@ -27,6 +29,7 @@ from src.domain.ports.prosody import (
     ISyllableFlagStrategy,
     IWeakStressLexicon,
 )
+from src.infrastructure.clock import SystemClock, SystemDelayer
 from src.infrastructure.composition.cache_keys import CacheKey
 from src.infrastructure.meter import (
     DefaultSyllableFlagStrategy,
@@ -55,6 +58,12 @@ class PrimitivesSubContainer:
 
     def __init__(self, parent: Container) -> None:
         self._parent = parent
+
+    def clock(self) -> IClock:
+        return self._parent._get(CacheKey.CLOCK, SystemClock)
+
+    def delayer(self) -> IDelayer:
+        return self._parent._get(CacheKey.DELAYER, SystemDelayer)
 
     def text_processor(self) -> ITextProcessor:
         return self._parent._get(CacheKey.TEXT_PROCESSOR, UkrainianTextProcessor)

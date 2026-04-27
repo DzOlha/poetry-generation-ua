@@ -78,3 +78,7 @@ class CacheKey(str, Enum):
     STANZA_SAMPLER = "stanza_sampler"
     METER_DETECTOR = "meter_detector"
     RHYME_DETECTOR = "rhyme_detector"
+
+    # System primitives
+    CLOCK = "clock"
+    DELAYER = "delayer"
