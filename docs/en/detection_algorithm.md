@@ -107,14 +107,14 @@ Both meters reach accuracy = 1.00 — iamb only sneaks in via the permissive len
 
 ### 1.4 Empirical verification
 
-The script [`scripts/diagnose_meter_detector.py`](../../scripts/diagnose_meter_detector.py) (run via `make diagnose-meter-detector`) sweeps both strategies — legacy (`accuracy` only) and current (`(accuracy, -total_errors)`) — across the 193-entry `uk_metric-rhyme_reference_corpus.json` and compares against the corpus annotation. At the time the tie-break was introduced:
+The tie-break logic was introduced after sweeping both strategies — legacy (`accuracy` only) and current (`(accuracy, -total_errors)`) — across the 193-entry [`uk_metric-rhyme_reference_corpus.json`](../../corpus/uk_metric-rhyme_reference_corpus.json) and comparing against the corpus annotation. At the time the tie-break was introduced:
 
 | Strategy | `meter+feet` matches corpus | No detection |
 |----------|------------------------------|--------------|
 | legacy | 161/193 (83%) | 19 |
 | **current (tie-break)** | **170/193 (88%)** | 19 |
 
-9 net wins, 0 regressions. The remaining 23 mismatches are unchanged — a separate question (stress resolver on longer meters, the 0.85 threshold, 18th-c. syllabotonic inconsistency — see the output of `make diagnose-meter-detector`).
+9 net wins, 0 regressions. The remaining 23 mismatches are unchanged — a separate question (stress resolver on longer meters, the 0.85 threshold, 18th-c. syllabotonic inconsistency).
 
 ### 1.5 Line-length tolerance
 
@@ -183,7 +183,7 @@ Incomplete trailing stanza is ignored.
 
 ### 3.1 Resolution hierarchy
 
-1. **Dictionary** (`ukrainian-word-stress`): stanza neural model for Ukrainian stress
+1. **Dictionary** (`ukrainian-word-stress`): Stanford NLP's Stanza pipeline (Ukrainian models, ~500 MB) for morphological analysis + stress lookup
 2. **Heuristic** (fallback): when the dictionary returns `None`
 
 ### 3.2 Stress heuristic
@@ -204,8 +204,9 @@ Accuracy on test sample: ~79%.
 
 **File:** `src/infrastructure/stress/ukrainian.py`
 
-The stanza model (~1 GB) is cached at module level (thread-safe singleton)
-so that multiple composition containers do not duplicate it in memory.
+The Stanza models (~500 MB on first download) are cached at module level
+(thread-safe singleton) so that multiple composition containers do not
+duplicate them in memory.
 
 ---
 

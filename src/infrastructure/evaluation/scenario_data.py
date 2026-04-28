@@ -26,11 +26,11 @@ NORMAL_SCENARIOS: tuple[EvaluationScenario, ...] = (
         tags=("love", "trochee", "paired-rhyme"),
     ),
     EvaluationScenario(
-        id="N03", name="Батьківщина (дактиль, 6 стоп, ABBA)", category=ScenarioCategory.NORMAL,
+        id="N03", name="Батьківщина (дактиль, 4 стопи, ABBA)", category=ScenarioCategory.NORMAL,
         theme="рідна земля, Україна, патріотизм",
         meter="дактиль", foot_count=4, rhyme_scheme="ABBA",
-        description="5-foot iamb with enclosing rhyme — Shevchenko-style patriotic verse.",
-        tags=("patriotic", "iamb", "enclosing-rhyme"),
+        description="4-foot dactyl with enclosing rhyme — patriotic verse in a ternary metre.",
+        tags=("patriotic", "dactyl", "enclosing-rhyme"),
     ),
     EvaluationScenario(
         id="N04", name="Самотність (амфібрахій, 4 стопи, ABAB)", category=ScenarioCategory.NORMAL,
@@ -45,8 +45,8 @@ NORMAL_SCENARIOS: tuple[EvaluationScenario, ...] = (
         theme="нічне місто, вогні, відчуження серед натовпу",
         meter="анапест", foot_count=4, rhyme_scheme="AABB",
         stanza_count=2,
-        description="Dactyl with paired rhyme — modern urban theme.",
-        tags=("urban", "dactyl", "paired-rhyme"),
+        description="Anapest with paired rhyme — modern urban theme.",
+        tags=("urban", "anapest", "paired-rhyme"),
     ),
 )
 
@@ -77,14 +77,14 @@ EDGE_SCENARIOS: tuple[EvaluationScenario, ...] = (
         theme="дощ, нескінченний дощ за вікном",
         meter="амфібрахій", foot_count=5, rhyme_scheme="AAAA",
         description="All four lines must rhyme — hardest rhyme constraint for the validator.",
-        tags=("monorhyme", "trochee", "rain"),
+        tags=("monorhyme", "amphibrach", "rain"),
     ),
     EvaluationScenario(
         id="E05", name="Абстрактна тема (дактиль, 5 стоп, ABAB)", category=ScenarioCategory.EDGE,
         theme="час як безкінечна спіраль",
         meter="дактиль", foot_count=5, rhyme_scheme="ABAB",
         description="Abstract philosophical theme — tests retrieval with no close corpus match.",
-        tags=("abstract", "iamb", "philosophy"),
+        tags=("abstract", "dactyl", "philosophy"),
     ),
 )
 
@@ -144,7 +144,7 @@ CORNER_SCENARIOS: tuple[EvaluationScenario, ...] = (
         expected_to_succeed=True,
     ),
     EvaluationScenario(
-        id="C07", name="Змішана тема (укр + рус) (ямб, 4 стопи, AАAА)", category=ScenarioCategory.CORNER,
+        id="C07", name="Змішана тема (укр + рус) (ямб, 4 стопи, ABAB)", category=ScenarioCategory.CORNER,
         theme="весна красивая, цвіти розпускаються",
         meter="ямб", foot_count=4, rhyme_scheme="ABAB",
         description="Mixed Ukrainian/Russian — tests that output stays in Ukrainian.",

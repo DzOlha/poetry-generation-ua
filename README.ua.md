@@ -174,7 +174,7 @@ LLM відповідає за **зміст**; модулі на правилах
   - Рима — власний транскриптор «українська → IPA» + відстань Левенштейна по римовій частині (від наголошеної голосної і далі) + класифікатор (точна / асонанс / консонанс / неточна / немає)
 - **RAG**: мультимовні sentence-embedding-и LaBSE (`sentence-transformers`)
 - **Надійність**: типізований стек декораторів retry / timeout / sanitization зі структурованим маппінгом `DomainError` → HTTP
-- **Quality gate**: 1131 тест (unit + integration + component), 91% покриття, ruff (lint), mypy (typecheck) — усе ганяється через `make ci`
+- **Quality gate**: 1131 тест (1058 unit + 71 integration + 2 component), 91% покриття, ruff (lint), mypy (typecheck) — усе ганяється через `make ci`
 - **Відтворюваність**: усе працює в Docker; `Makefile` — єдина точка входу
 
 ---
@@ -245,7 +245,7 @@ src/
 docs/                  # двомовна документація
 data/                  # сирі .txt-файли віршів — джерело корпусу
 corpus/                # зібрані й закомічені тематичний + метричний корпуси (JSON)
-tests/                 # unit (1019) + integration (107) + component (5) тести
+tests/                 # unit (1058) + integration (71) + component (2) тести
 results/               # вивід batch-прогонів (gitignored)
 ```
 
@@ -264,7 +264,6 @@ results/               # вивід batch-прогонів (gitignored)
 | `make ablation` | Запустити 18 × 8 × 3 = 432 абляційних прогони (~\$25–50 на Gemini Flash) |
 | `make ablation-cheap` | Те саме, що `ablation`, але `SEEDS=1` (~\$8–15, ~90% сигналу)            |
 | `make ablation-report RUNS=results/batch_…/runs.csv` | Згенерувати PNG-графіки + дані для дашборду                              |
-| `make diagnose-meter-detector` | Перевірити метричний детектор на референсному корпусі (193 записи)       |
 | `make build-theme-corpus-with-embeddings` | Перебудувати тематичний RAG-корпус із сирих `data/`                      |
 
 Повний довідник з Makefile: `make help` (або просто відкрийте `Makefile` — він докладно прокоментований).
@@ -288,7 +287,7 @@ results/               # вивід batch-прогонів (gitignored)
 
 ## Поточний стан
 
-- ✅ **1131 тест** (1019 unit + 107 integration + 5 component) — `make ci` зелений
+- ✅ **1131 тест** (1058 unit + 71 integration + 2 component) — `make ci` зелений
 - ✅ **91% покриття рядків**, 84% покриття гілок
 - ✅ **Без помилок типізації** (mypy strict на `src/` і `tests/`)
 - ✅ **Відтворюваність**: Docker + Poetry lock + детермінований офлайн-замінник ембедера

@@ -146,7 +146,7 @@ Each run is captured in JSON + Markdown reports, with per-config comparison tabl
 **Can:**
 - Generate correct Ukrainian poems on arbitrary themes (given a Gemini API key).
 - Validate metre and rhyme of any supplied poem (without generation).
-- Auto-detect metre and rhyme of a pasted poem (brute-force sweep across all 25 metre × foot-count combinations and all 4 rhyme schemes).
+- Auto-detect metre and rhyme of a pasted poem (brute-force sweep across all 30 metre × foot-count combinations — 5 metres × foot counts 1..6 — and all 4 rhyme schemes).
 - Display a full trace: which examples were retrieved, what the model said first, after each iteration, what scores came out.
 - Run without an API key in mock mode for pipeline testing.
 

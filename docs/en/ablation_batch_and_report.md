@@ -2,14 +2,14 @@
 
 > The full research pipeline that turns *"is component X actually useful?"* into a **statistically defensible answer**. Three stages: run the matrix → compute paired-Δ contributions → render a dashboard. Each stage is invoked separately so a quota outage in stage 1 does not lose stage-2 work.
 
-This document picks up where [evaluation_harness.md](./evaluation_harness.md) leaves off. The harness is the *ablation engine* (one matrix pass = 18 scenarios × 5 configs = 90 runs). The **batch** flow on this page extends that engine with multiple seeds per cell, paired-Δ statistics across configs, and a dashboard that turns the raw numbers into a verdict.
+This document picks up where [evaluation_harness.md](./evaluation_harness.md) leaves off. The harness is the *ablation engine* (one matrix pass = 18 scenarios × 8 configs = 144 runs). The **batch** flow on this page extends that engine with multiple seeds per cell, paired-Δ statistics across configs, and a dashboard that turns the raw numbers into a verdict.
 
 ## Three-stage pipeline at a glance
 
 ```
 ┌──────────────────────────────────────────────────────────┐
 │ Stage 1:  make ablation       (scripts/run_batch_evaluation.py)
-│           18 × 5 × seeds = N runs through the LLM
+│           18 × 8 × seeds = N runs through the LLM
 │           ───►  results/batch_<ts>/runs.csv
 ├──────────────────────────────────────────────────────────┤
 │ Stage 2:  make ablation-report RUNS=<runs.csv>
@@ -79,7 +79,7 @@ Columns map directly to `BatchRunRow`:
 | `scenario_name` | str | Human-readable name |
 | `category` | str | `normal` / `edge` / `corner` |
 | `meter`, `foot_count`, `rhyme_scheme` | str/int/str | Echoed from the scenario for downstream filtering |
-| `config_label` | str | `A`–`E` |
+| `config_label` | str | `A`–`H` |
 | `config_description` | str | Echoed from `AblationConfig.description` |
 | `seed` | int | 0..seeds-1 |
 | `meter_accuracy`, `rhyme_accuracy` | float | `[0, 1]` — the headline structural metrics |

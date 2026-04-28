@@ -86,11 +86,15 @@ Not env vars but in-code constants. Edited via `ValidationConfig` / `DetectionCo
 
 | Parameter | File | Purpose |
 |-----------|------|---------|
-| `RHYME_THRESHOLD` | `ValidationConfig` | Minimum similarity for a pair to count as rhyming. Default `0.5`. |
-| `CLAUSULA_MAX_CONSONANT_EDITS` | `ValidationConfig` | Allowed consonant edits in the clausula. |
-| `STANZA_SAMPLE_LINES` | `DetectionConfig` | How many lines to sample from a poem in brute-force detection. |
-| `FEET_MIN_MAX` | `DetectionConfig` | Range for foot_count sweep. |
-| `_MIN_CYR_LETTERS` / `_MIN_CYR_LETTERS_PUNCT` | `aggregates.py` | Minimum Cyrillic letters for a valid line (without/with punctuation). |
+| `rhyme_threshold` | `ValidationConfig` ([`config.py`](../../src/config.py)) | Minimum normalised Levenshtein similarity for a pair to count as rhyming. Default `0.55`. |
+| `meter_allowed_mismatches` | `ValidationConfig` | Maximum non-tolerated stress mismatches per line before the line is flagged. Default `2`. |
+| `bsp_score_threshold` | `ValidationConfig` | Score floor for the optional `BSPMeterValidator` strategy. Default `0.6`. (Production wires `PatternMeterValidator`; BSP is opt-in.) |
+| `bsp_alternation_weight` / `bsp_variation_weight` / `bsp_stability_weight` / `bsp_balance_weight` | `ValidationConfig` | Weights for the BSP score components. Defaults `0.50 / 0.20 / 0.15 / 0.15`. |
+| `meter_min_accuracy` | `DetectionConfig` ([`config.py`](../../src/config.py)) | Lower bound for accepting a meter detection candidate. Default `0.85`. |
+| `rhyme_min_accuracy` | `DetectionConfig` | Lower bound for accepting a rhyme scheme. Default `0.5` — looser than validation because a quatrain has only 2 pairs (accuracy ∈ {0.0, 0.5, 1.0}). |
+| `sample_lines` | `DetectionConfig` | Lines required before detection runs (precondition). Fixed at `4` — the only stanza size the rhyme scheme extractor currently supports. |
+| `feet_min` / `feet_max` | `DetectionConfig` | Foot count sweep range used by `BruteForceMeterDetector`. Defaults `1` / `6`, matching generation/validation. |
+| `_MIN_CYR_LETTERS` / `_MIN_CYR_LETTERS_PUNCT` | [`src/domain/models/aggregates.py`](../../src/domain/models/aggregates.py) | Minimum Cyrillic letters for `Poem._is_poem_line` to accept a line (5 by default; 2 when the line ends with sentence-final punctuation). |
 
 ## Docker + env_file
 

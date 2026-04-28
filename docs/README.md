@@ -31,7 +31,7 @@ Every document is available in two languages: Ukrainian in [`ua/`](./ua/) and En
 - [**llm_decorator_stack.md**](./ua/llm_decorator_stack.md) — 5-шаровий decorator-стек (Logging → Retry → Timeout → Sanitizing → Extracting → Gemini).
 
 ### Дослідження та експлуатація
-- [**evaluation_harness.md**](./ua/evaluation_harness.md) — 18 сценаріїв × 5 абляційних конфігів = 90 запусків. Метрики, агрегація, інтерпретація.
+- [**evaluation_harness.md**](./ua/evaluation_harness.md) — 18 сценаріїв × 8 абляційних конфігів = 144 запуски. Метрики, агрегація, інтерпретація.
 - [**ablation_batch_and_report.md**](./ua/ablation_batch_and_report.md) — повний batch-конвеєр: `make ablation` → `runs.csv` → paired-Δ + bootstrap CI → дашборд (HTML + JSON).
 - [**reliability_and_config.md**](./ua/reliability_and_config.md) — env-змінні, timeout / retry, reasoning-моделі, типові збої.
 

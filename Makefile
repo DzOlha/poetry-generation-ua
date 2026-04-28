@@ -125,7 +125,7 @@ demo:
 
 # ── Evaluation (configurable via variables) ──────────────────────────────────
 #
-#   make evaluate                                  — all scenarios × all configs (90 runs)
+#   make evaluate                                  — all 18 scenarios × 8 configs = 144 runs
 #   make evaluate SCENARIO=N01                     — one scenario, all configs
 #   make evaluate SCENARIO=N01 CONFIG=E            — one scenario, full system
 #   make evaluate CONFIG=E                         — all scenarios, full system
@@ -188,10 +188,6 @@ evaluate:
 #
 # Output: $(BATCH_DIR)/runs.csv — one row per run, consumed by
 # analyze_contributions (Stage 2) and the /ablation-report web page (Stage 3).
-#
-# To check whether SEEDS should be increased, use `make diagnose-seed-variance`
-# against an existing runs.csv: it reports how many cells actually diverge
-# across seeds vs. the ~10% edge scenarios.
 
 SEEDS           ?= 3
 DELAY           ?= 3
@@ -224,18 +220,10 @@ ablation:
 		"poetry run python scripts/preload_stanza.py && poetry run python scripts/run_batch_evaluation.py $(_ABL_ARGS)"
 
 # Pilot variant: one seed per cell. ~144 runs instead of 432, ~30% of
-# the time and cost. Good for a hypothesis-preview pass — ~90% of cells
-# return the same answer regardless of seed (verified empirically on
-# existing batches via `make diagnose-seed-variance`). If an interesting
-# effect shows up, re-run with full SEEDS=3 for statistics.
+# the time and cost. Good for a hypothesis-preview pass. If an
+# interesting effect shows up, re-run with full SEEDS=3 for statistics.
 ablation-cheap:
 	$(MAKE) ablation SEEDS=1
-
-# Diagnostic: how much runs actually vary across seeds on existing
-# batches. Helps decide whether SEEDS=3 is worth the burn.
-diagnose-seed-variance:
-	docker compose -f docker/docker-compose.yml run --rm poetry \
-		poetry run python scripts/analyze_seed_variance.py
 
 # ── Ablation report (component contributions + PNG charts) ───────────────────
 #
@@ -308,20 +296,6 @@ build-metric-corpus:
 		  --data-dir $(DATA_DIR) \
 		  --out $(METRIC_OUT) \
 		  $(if $(SAMPLE_LINES),--sample-lines $(SAMPLE_LINES),)"
-
-# ── Diagnostics ──────────────────────────────────────────────────────────────
-#
-#   make diagnose-meter-detector
-#     — run the current meter detector over uk_metric-rhyme_reference_corpus.json,
-#       compare legacy (accuracy-only ranking) vs. current (tie-break by
-#       error count), and report where the result disagrees with the corpus
-#       annotation. The corpus is not modified. Use this when tuning the
-#       tie-break logic or the stress resolver.
-
-diagnose-meter-detector:
-	docker compose -f docker/docker-compose.yml run --rm poetry bash -c \
-		"poetry run python scripts/preload_stanza.py && \
-		 poetry run python scripts/diagnose_meter_detector.py"
 
 # Rebuild the image without cache
 rebuild:

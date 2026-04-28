@@ -698,9 +698,10 @@ Computed per line. `1.0` = every line follows the metre.
 
 ## 9. Component 8 — Rhyme validator
 
-**Files:** `src/infrastructure/validators/rhyme/phonetic_validator.py`, `src/infrastructure/validators/rhyme/pair_analyzer.py`, `src/infrastructure/validators/rhyme/scheme_extractor.py`, `src/infrastructure/validators/rhyme/precision_classifier.py`
+**Files:** `src/infrastructure/validators/rhyme/phonetic_validator.py`, `src/infrastructure/validators/rhyme/pair_analyzer.py`, `src/infrastructure/validators/rhyme/scheme_extractor.py`
 **Port:** `src/domain/ports/rhyme.py` → `IRhymeValidator`, `IRhymePairAnalyzer`, `IRhymeSchemeExtractor`
 **Phonetics:** `src/infrastructure/phonetics/ukrainian_ipa_transcriber.py` → `IPhoneticTranscriber`
+**Precision enum:** `src/domain/value_objects.py` → `RhymePrecision`
 
 ### Rhyme schemes
 
@@ -766,7 +767,8 @@ Levenshtein distance counts the minimum number of edits (insertions, deletions, 
 
 ### Rhyme precision classification (`RhymePrecision`)
 
-**File:** `src/infrastructure/validators/rhyme/precision_classifier.py`
+**Enum:** `src/domain/value_objects.py` (`RhymePrecision`)
+**Computed in:** `src/infrastructure/validators/rhyme/pair_analyzer.py` → `PhoneticRhymePairAnalyzer._classify(...)`
 
 | Level | Description |
 |-------|-------------|
@@ -788,7 +790,7 @@ For ABAB with 4 lines — 2 pairs: (0,2) and (1,3). If one pair rhymes — `0.5`
 
 ## 10. Generation and regeneration cycle (Feedback Loop)
 
-**Files:** `src/infrastructure/regeneration/feedback_cycle.py` (ValidationFeedbackCycle), `src/infrastructure/regeneration/validating_feedback_iterator.py` (ValidatingFeedbackIterator), `src/infrastructure/regeneration/iteration_stop_policy.py` (MaxIterationsOrValidStopPolicy), `src/infrastructure/regeneration/line_index_merger.py` (LineIndexMerger)
+**Files:** `src/infrastructure/regeneration/feedback_cycle.py` (ValidationFeedbackCycle), `src/infrastructure/regeneration/feedback_iterator.py` (ValidatingFeedbackIterator), `src/infrastructure/regeneration/iteration_stop_policy.py` (MaxIterationsOrValidStopPolicy), `src/infrastructure/regeneration/line_index_merger.py` (LineIndexMerger)
 **Ports:** `src/domain/ports/pipeline.py` → `IFeedbackCycle`, `IFeedbackIterator`, `IIterationStopPolicy`
 
 ### Step-by-step process
@@ -1072,7 +1074,7 @@ make evaluate SCENARIO=N01 CONFIG=E VERBOSE=1
 # All normal scenarios, config C (no RAG)
 make evaluate CATEGORY=normal CONFIG=C
 
-# All scenarios × all configs (90 runs)
+# All scenarios × all configs (18 × 8 = 144 runs)
 make evaluate
 
 # With a custom corpus and specific output path
@@ -1126,32 +1128,32 @@ These values flow automatically into `RagPromptBuilder.build()` and define the g
 |----|-------|-------|-------|-----------------|---------|
 | N01 | Spring in a forest | iamb, 4-foot | ABAB | 1×4 (4 lines) | most common form |
 | N02 | Love | trochee, 4-foot | AABB | 1×4 (4 lines) | folk-song tradition |
-| N03 | Homeland | iamb, 5-foot | ABBA | 1×4 (4 lines) | Shevchenko style |
-| N04 | Loneliness | amphibrach, 3-foot | ABAB | 2×4 (8 lines) | less common metre |
-| N05 | City at night | dactyl, 3-foot | AABB | 2×4 (8 lines) | urban theme |
+| N03 | Homeland (Ukraine) | dactyl, 4-foot | ABBA | 1×4 (4 lines) | ternary metre with enclosing rhyme |
+| N04 | Loneliness | amphibrach, 4-foot | ABAB | 2×4 (8 lines) | less common ternary metre |
+| N05 | City at night | anapest, 4-foot | AABB | 2×4 (8 lines) | urban theme, anapestic rhythm |
 
 ### EDGE (E01–E05) — boundary but valid
 
 | ID | Particular | What it tests |
 |----|-----------|---------------|
-| E01 | 2-foot iamb | minimal line length |
-| E02 | 6-foot iamb (alexandrine) | maximum length |
-| E03 | anapest | ternary metre |
-| E04 | monorhyme AAAA | strictest rhyme |
-| E05 | abstract theme | retrieval without nearby vectors |
+| E01 | 2-foot iamb, AABB | minimal line length |
+| E02 | 6-foot iamb (alexandrine), ABAB | maximum line length |
+| E03 | 6-foot anapest, ABBA | rare metre + scheme combination |
+| E04 | 5-foot amphibrach, AAAA (monorhyme) | strictest rhyme constraint |
+| E05 | 5-foot dactyl, ABAB, abstract theme | retrieval without nearby vectors |
 
 ### CORNER (C01–C08) — adversarial inputs
 
 | ID | Input | What it tests |
 |----|-------|---------------|
-| C01 | minimal theme `"тиша"` | graceful handling of minimal input |
-| C02 | theme > 200 chars | long prompt |
-| C03 | English theme | cross-language retrieval |
-| C04 | metre `"гекзаметр"` (unknown) | validator error |
-| C05 | `foot_count=1` | extreme minimum |
-| C06 | emoji + HTML in theme | sanitization |
-| C07 | Ukrainian+Russian mix | output language consistency |
-| C08 | `foot_count=0` | degenerate input |
+| C01 | minimal theme `"тиша"` (trochee, 6-foot, ABAB) | graceful handling of minimal input |
+| C02 | theme > 200 chars (iamb, 5-foot, ABAB) | long prompt |
+| C03 | English theme (dactyl, 3-foot, ABAB) | cross-language retrieval |
+| C04 | metre `"гекзаметр"` (4-foot, ABAB) — unknown metre | validator error (`expected_to_succeed=False`) |
+| C05 | `foot_count=1` (anapest, ABAB) | extreme minimum line length |
+| C06 | emoji + HTML in theme (amphibrach, 6-foot, AABB) | input sanitisation |
+| C07 | Ukrainian + Russian mix (iamb, 4-foot, ABAB) | output language consistency |
+| C08 | `foot_count=0` (trochee, ABAB) — degenerate | crash safety (`expected_to_succeed=False`) |
 
 ---
 

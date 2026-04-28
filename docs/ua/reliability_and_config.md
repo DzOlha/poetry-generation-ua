@@ -86,11 +86,15 @@ Fast-формы (`/validate`, `/detect`) не мають Cancel — нативн
 
 | Параметр | Файл | Опис |
 |----------|------|------|
-| `RHYME_THRESHOLD` | `ValidationConfig` | Мінімальна similarity для пари щоб рахуватися римою. `0.5` дефолт. |
-| `CLAUSULA_MAX_CONSONANT_EDITS` | `ValidationConfig` | Допустимі правки приголосних у клаузулі. |
-| `STANZA_SAMPLE_LINES` | `DetectionConfig` | Скільки рядків брати з поеми у brute-force detection. |
-| `FEET_MIN_MAX` | `DetectionConfig` | Діапазон перебору foot_count. |
-| `_MIN_CYR_LETTERS` / `_MIN_CYR_LETTERS_PUNCT` | `aggregates.py` | Мінімум кирилічних літер для валідного рядка (з/без пунктуації). |
+| `rhyme_threshold` | `ValidationConfig` ([`config.py`](../../src/config.py)) | Мінімальна нормалізована схожість Левенштейна, щоб пара рахувалась римою. Дефолт `0.55`. |
+| `meter_allowed_mismatches` | `ValidationConfig` | Максимум нетолерованих неспівпадінь наголосу на рядок до того як рядок маркується невалідним. Дефолт `2`. |
+| `bsp_score_threshold` | `ValidationConfig` | Поріг скору для опціонального `BSPMeterValidator`. Дефолт `0.6`. (Продакшн запроваджує `PatternMeterValidator`; BSP — opt-in.) |
+| `bsp_alternation_weight` / `bsp_variation_weight` / `bsp_stability_weight` / `bsp_balance_weight` | `ValidationConfig` | Ваги компонент BSP-скору. Дефолти `0.50 / 0.20 / 0.15 / 0.15`. |
+| `meter_min_accuracy` | `DetectionConfig` ([`config.py`](../../src/config.py)) | Нижня межа для прийняття кандидата на детекцію метра. Дефолт `0.85`. |
+| `rhyme_min_accuracy` | `DetectionConfig` | Нижня межа для прийняття схеми рими. Дефолт `0.5` — м'якше за валідацію, бо в катрені лише 2 пари (accuracy ∈ {0.0, 0.5, 1.0}). |
+| `sample_lines` | `DetectionConfig` | Кількість рядків, потрібна для запуску детекції (передумова). Фіксовано `4` — єдиний розмір строфи, який підтримує rhyme-scheme extractor. |
+| `feet_min` / `feet_max` | `DetectionConfig` | Діапазон перебору `foot_count` у `BruteForceMeterDetector`. Дефолти `1` / `6`, синхронні з генерацією/валідацією. |
+| `_MIN_CYR_LETTERS` / `_MIN_CYR_LETTERS_PUNCT` | [`src/domain/models/aggregates.py`](../../src/domain/models/aggregates.py) | Мінімум кирилічних літер, щоб `Poem._is_poem_line` прийняв рядок (5 за замовчуванням; 2, якщо рядок завершується кінцевою пунктуацією). |
 
 ## Docker + env_file
 

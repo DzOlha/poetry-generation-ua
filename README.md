@@ -174,7 +174,7 @@ LLMs handle **content**; rule-based modules handle **form**. Validation is deter
   - Rhyme — custom Ukrainian → IPA transcriber + Levenshtein on the rhyme part (from the stressed vowel onward) + classifier (exact / assonance / consonance / inexact / none)
 - **RAG**: LaBSE multilingual sentence embeddings (`sentence-transformers`)
 - **Reliability**: typed retry / timeout / sanitization decorator stack with structured `DomainError` → HTTP mapping
-- **Quality gate**: 1131 tests (unit + integration + component), 91% coverage, ruff (lint), mypy (typecheck) — all gated in `make ci`
+- **Quality gate**: 1131 tests (1058 unit + 71 integration + 2 component), 91% coverage, ruff (lint), mypy (typecheck) — all gated in `make ci`
 - **Reproducibility**: everything runs in Docker; `Makefile` is the single entry point
 
 ---
@@ -245,7 +245,7 @@ src/
 docs/                  # bilingual documentation
 data/                  # raw .txt poems (corpus source)
 corpus/                # built-and-versioned theme + metric corpora (JSON)
-tests/                 # unit (1019) + integration (107) + component (5) tests
+tests/                 # unit (1058) + integration (71) + component (2) tests
 results/               # batch run outputs (gitignored)
 ```
 
@@ -261,10 +261,9 @@ Clean-architecture layers; the inner layers (`domain`, `services`) have no infra
 | `make test` | Run all tests in Docker |
 | `make ci` | Lint + typecheck + tests (the full CI gate) |
 | `make demo` | Run a default scenario through the full pipeline, print trace |
-| `make ablation` | Run 18 × 8 × 3 = 432 ablation prog (~\$25–50 on Gemini Flash) |
+| `make ablation` | Run 18 × 8 × 3 = 432 ablation runs (~\$25–50 on Gemini Flash) |
 | `make ablation-cheap` | Same as `ablation` but `SEEDS=1` (~\$8–15, ~90% of the signal) |
 | `make ablation-report RUNS=results/batch_…/runs.csv` | Build PNG plots + dashboard data |
-| `make diagnose-meter-detector` | Sanity-check the meter detector on a 193-entry reference corpus |
 | `make build-theme-corpus-with-embeddings` | Rebuild the theme RAG corpus from raw `data/` |
 
 Full Makefile reference: `make help` (or just open `Makefile` — it's heavily commented).
@@ -288,7 +287,7 @@ Full table + reasoning-model caveats: [`docs/en/reliability_and_config.md`](./do
 
 ## Status
 
-- ✅ **1131 tests** (1019 unit + 107 integration + 5 component) — `make ci` green
+- ✅ **1131 tests** (1058 unit + 71 integration + 2 component) — `make ci` green
 - ✅ **91% line coverage**, 84% branch coverage
 - ✅ **No type errors** (mypy strict on `src/` and `tests/`)
 - ✅ **Reproducible**: Docker + Poetry lock + deterministic offline embedder fallback

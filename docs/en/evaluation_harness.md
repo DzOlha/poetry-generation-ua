@@ -134,7 +134,7 @@ The Makefile recipe wraps [`scripts/run_evaluation.py`](../../scripts/run_evalua
 | Variable | Purpose | Default |
 |----------|---------|---------|
 | `SCENARIO` | Single scenario id (e.g. `N05`) | unset = all scenarios |
-| `CONFIG` | Single ablation label (`A`–`E`) | unset = all configs |
+| `CONFIG` | Single ablation label (`A`–`H`) | unset = all configs |
 | `CATEGORY` | `normal` / `edge` / `corner` | unset = all categories |
 | `STANZAS` | Override stanza count | 2 |
 | `LINES_PER_STANZA` | Override lines per stanza | 4 |

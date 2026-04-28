@@ -107,14 +107,14 @@ class DetectionService(IDetectionService):
 
 ### 1.4 Емпірична верифікація
 
-Скрипт [`scripts/diagnose_meter_detector.py`](../../scripts/diagnose_meter_detector.py) (через `make diagnose-meter-detector`) прогоняє обидві стратегії — legacy (тільки `accuracy`) та current (`(accuracy, -total_errors)`) — по 193-записному корпусу `uk_metric-rhyme_reference_corpus.json` і порівнює з анотацією. На момент впровадження tie-break:
+Логіку tie-break запровадили після того, як обидві стратегії — legacy (тільки `accuracy`) та current (`(accuracy, -total_errors)`) — прогнали по 193-записному корпусу [`uk_metric-rhyme_reference_corpus.json`](../../corpus/uk_metric-rhyme_reference_corpus.json) і порівняли з анотацією. На момент впровадження tie-break:
 
 | Стратегія | `meter+feet` збігається з корпусом | Без детекції |
 |-----------|-------------------------------------|--------------|
 | legacy | 161/193 (83%) | 19 |
 | **current (tie-break)** | **170/193 (88%)** | 19 |
 
-9 чистих виграшів, 0 регресій. Решта 23 розбіжностей залишаються як були — це окреме питання (стрес-резолвер на довгих метрах, поріг 0.85, силабо-тонічна непослідовність XVIII ст. — див. вивід `make diagnose-meter-detector`).
+9 чистих виграшів, 0 регресій. Решта 23 розбіжностей залишаються як були — це окреме питання (стрес-резолвер на довгих метрах, поріг 0.85, силабо-тонічна непослідовність XVIII ст.).
 
 ### 1.5 Толерантність довжини рядка
 
@@ -183,7 +183,7 @@ class DetectionService(IDetectionService):
 
 ### 3.1 Ієрархія
 
-1. **Словник** (`ukrainian-word-stress`): нейронна модель stanza для українських наголосів
+1. **Словник** (`ukrainian-word-stress`): пайплайн Stanza від Stanford NLP (українські моделі, ~500 МБ) — морфологічний аналіз + пошук наголосу
 2. **Евристика** (fallback): якщо словник повертає `None`
 
 ### 3.2 Евристика наголосу
@@ -204,8 +204,8 @@ class DetectionService(IDetectionService):
 
 **Файл:** `src/infrastructure/stress/ukrainian.py`
 
-Модель stanza (~1 ГБ) кешується на рівні модуля (thread-safe singleton),
-щоб кілька контейнерів не дублювали її в пам'яті.
+Моделі Stanza (~500 МБ при першому завантаженні) кешуються на рівні модуля
+(thread-safe singleton), щоб кілька контейнерів не дублювали їх у пам'яті.
 
 ---
 
