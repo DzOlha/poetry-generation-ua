@@ -297,6 +297,54 @@ build-metric-corpus:
 		  --out $(METRIC_OUT) \
 		  $(if $(SAMPLE_LINES),--sample-lines $(SAMPLE_LINES),)"
 
+# ── Aggregate batch runs.csv into Markdown summary tables ───────────────────
+#
+#   make aggregate-runs RUNS=results/batch_20260426_220040/runs.csv
+#     — write TWO combined reports for ALL ablation configs (A–H present in
+#       runs.csv): UA captions to <batch_dir>/aggregates.ua.md and EN
+#       captions to <batch_dir>/aggregates.en.md.  Suitable for committing
+#       alongside the runs and for pasting into chapter 4 of the thesis.
+#
+#   make aggregate-runs RUNS=... CONFIG=A
+#     — render ONLY one config and print to stdout (no file written).
+#       Add LANG=en to switch captions to English (default: ua).
+#
+#   make aggregate-runs RUNS=... LANG=en
+#     — produce only the English file.  LANG=ua produces only the Ukrainian.
+
+AGG_OUT ?=
+LANG    ?=
+
+aggregate-runs:
+	@if [ -z "$(RUNS)" ]; then \
+		echo "RUNS is required. Example: make aggregate-runs RUNS=results/batch_.../runs.csv"; \
+		exit 1; \
+	fi
+	@if [ -n "$(CONFIG)" ]; then \
+		LANG_ARG="$(if $(LANG),$(LANG),ua)"; \
+		docker compose -f docker/docker-compose.yml run --rm poetry \
+		  poetry run python scripts/aggregate_runs.py \
+		    --runs $(RUNS) --config $(CONFIG) --lang $$LANG_ARG; \
+	elif [ "$(LANG)" = "ua" ]; then \
+		OUT="$(if $(AGG_OUT),$(AGG_OUT),$(dir $(RUNS))aggregates.ua.md)"; \
+		docker compose -f docker/docker-compose.yml run --rm poetry \
+		  poetry run python scripts/aggregate_runs.py \
+		    --runs $(RUNS) --lang ua --output $$OUT; \
+	elif [ "$(LANG)" = "en" ]; then \
+		OUT="$(if $(AGG_OUT),$(AGG_OUT),$(dir $(RUNS))aggregates.en.md)"; \
+		docker compose -f docker/docker-compose.yml run --rm poetry \
+		  poetry run python scripts/aggregate_runs.py \
+		    --runs $(RUNS) --lang en --output $$OUT; \
+	else \
+		UA_OUT="$(dir $(RUNS))aggregates.ua.md"; \
+		EN_OUT="$(dir $(RUNS))aggregates.en.md"; \
+		docker compose -f docker/docker-compose.yml run --rm poetry bash -c " \
+		  poetry run python scripts/aggregate_runs.py \
+		    --runs $(RUNS) --lang ua --output $$UA_OUT && \
+		  poetry run python scripts/aggregate_runs.py \
+		    --runs $(RUNS) --lang en --output $$EN_OUT"; \
+	fi
+
 # Rebuild the image without cache
 rebuild:
 	docker compose -f docker/docker-compose.yml build --no-cache
