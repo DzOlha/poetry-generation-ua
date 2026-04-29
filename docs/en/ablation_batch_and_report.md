@@ -265,6 +265,30 @@ The bullets returned by these analysers contain inline HTML markup (`<code>`, `<
 - **`component_lines`** — one bullet per (component, metric) pair on `meter_accuracy` and `rhyme_accuracy`, with mean, CI, verdict (`статистично покращує` / `статистично погіршує` / `ефект непостійний`), and a CSS tone tag (`positive` / `negative` / `neutral`) for styling.
 - **`cost_lines`** — short summaries built from `metadata["cost"]`: total spend, average per cell, the most expensive config.
 
+### Dashboard at a glance
+
+The dashboard UI is Ukrainian-only. The screenshots below are taken from a real `make ablation-report` run (`batch_20260426_220040`, 144 runs, 1 seed, $13.72 total) and follow the page top-to-bottom.
+
+![Header + glossary toggle + per-component bullets — for each (component, metric) pair: mean Δ, 95 % CI, verdict (статистично покращує / статистично погіршує / ефект непостійний)](../img/ablation-report-1.png)
+
+![Forest plot — paired Δ ± 95 % bootstrap CI per component for the four headline metrics (meter_accuracy, rhyme_accuracy, regeneration_success, semantic_relevance). Green = significant positive, red = significant negative, grey = CI crosses zero](../img/ablation-report-2.png)
+
+![Forest plot, num_iterations panel + auto-generated narrative ("X of N components have a proven positive effect, …")](../img/ablation-report-3.png)
+
+![Box plot — distribution of each metric across the 8 ablation configs A–H (A–E with feedback, F–H without). Surfaces variance and outliers behind the headline averages](../img/ablation-report-4.png)
+
+![Box plot, num_iterations panel + auto-generated analysis: per-config median + IQR, "noisy" vs "stable" labelling, best / worst by median](../img/ablation-report-5.png)
+
+![Heatmap — `(config × scenario)` mean per metric. Green = high, red = low; for `regeneration_success` a diverging palette centred at 0. Red columns = scenarios no config solves; red rows = bad configs](../img/ablation-report-6.png)
+
+![Per-category bar plots — same paired-Δ + CI as the forest plot, split by `normal` / `edge` / `corner`. Common pattern: components are nearly neutral on `normal` but help on `edge` / `corner`](../img/ablation-report-7.png)
+
+![Per-category, num_iterations panel + analysis ("category corner: most useful component is X (Δ +0.800); …"). Reads the contributions_by_cat.csv rows](../img/ablation-report-8.png)
+
+![Cost summary — token totals + per-config breakdown (input / output / total tokens, $ cost, $ per run). Built from `_cost_summary` in the analyser](../img/ablation-report-9.png)
+
+![Run metadata block — `batch_id`, total runs, error count, seeds, scenarios, configs, metrics list, bootstrap N, CI level. Mirrors the contents of `report.json`](../img/ablation-report-10.png)
+
 ### Dashboard URL contracts
 
 The PNG URLs returned by `_plot_urls(batch_dir, metadata)` are served by the FastAPI app's `/results` static mount (configured in [`src/handlers/api/app.py`](../../src/handlers/api/app.py)). Both the HTML page and the JSON consumer can render the images directly without re-uploading them.

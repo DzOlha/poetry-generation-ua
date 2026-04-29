@@ -6,6 +6,14 @@
 
 > Генеруйте, валідуйте та аналізуйте українську класичну поезію — LLM відповідає за слова, а лінгвістичні модулі на основі правил стежать за метром і римою.
 
+<p align="center">
+  <a href="./docs/ua/user_guide.md">
+    <img src="./docs/img/homepage_hero.png" alt="Генератор української поезії — головна сторінка з чотирма інструментами: генерація, перевірка, детекція, розширені конфігурації" width="820">
+  </a>
+  <br>
+  <em>Чотири інструменти, одна сторінка — натисніть, щоб перейти до <a href="./docs/ua/user_guide.md">документації користувача</a>.</em>
+</p>
+
 [![tests](https://img.shields.io/badge/tests-1131%20passing-brightgreen)]() [![coverage](https://img.shields.io/badge/coverage-91%25-brightgreen)]() [![python](https://img.shields.io/badge/python-3.13-blue)]() [![docker](https://img.shields.io/badge/runs%20in-Docker-2496ED)]()
 
 ```text

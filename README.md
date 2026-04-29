@@ -6,6 +6,14 @@
 
 > Generate, validate, and analyse Ukrainian classical poetry — with an LLM handling the words and rule-based linguistics enforcing the meter and rhyme.
 
+<p align="center">
+  <a href="./docs/en/user_guide.md">
+    <img src="./docs/img/homepage_hero.png" alt="Ukrainian Poetry Generator — landing page with the four tools: generate, validate, detect, advanced configurations" width="820">
+  </a>
+  <br>
+  <em>Four tools, one page — click through to the <a href="./docs/en/user_guide.md">user guide</a>.</em>
+</p>
+
 [![tests](https://img.shields.io/badge/tests-1131%20passing-brightgreen)]() [![coverage](https://img.shields.io/badge/coverage-91%25-brightgreen)]() [![python](https://img.shields.io/badge/python-3.13-blue)]() [![docker](https://img.shields.io/badge/runs%20in-Docker-2496ED)]()
 
 ```text
