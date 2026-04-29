@@ -17,13 +17,13 @@
 [![tests](https://img.shields.io/badge/tests-1131%20passing-brightgreen)]() [![coverage](https://img.shields.io/badge/coverage-91%25-brightgreen)]() [![python](https://img.shields.io/badge/python-3.13-blue)]() [![docker](https://img.shields.io/badge/runs%20in-Docker-2496ED)]()
 
 ```text
-Theme: «весна у лісі, пробудження природи»
-Meter: ямб, 4 стопи · Rhyme: ABAB · Stanzas: 1
+Theme: «тріумф»
+Meter: амфібрахій, 4 стопи · Rhyme: ABAB · Stanzas: 1
 
-→ Весна прийшла у ліс зелений,
-  Де тінь і світло гомонить.
-  Мов сни, пливуть думки натхненні,
-  І серце в тиші стукотить.
+→ Нарешті здобуто жаданий вінець,
+  і зникли холодні тумани осінні.
+  Скінчились тривоги, радіє борець,
+  і сяють вершини ясні та нетлінні.
 
 ✓ meter 100% · ✓ rhyme 100% · 2 LLM attempts · \$0.02
 ```
