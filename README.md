@@ -12,6 +12,8 @@
   </a>
   <br>
   <em>Four tools, one page — click through to the <a href="./docs/en/user_guide.md">user guide</a>.</em>
+  <br><br>
+  <a href="https://youtu.be/9-8JHxPXHLE">▶ Watch the demo video</a>
 </p>
 
 [![tests](https://img.shields.io/badge/tests-1131%20passing-brightgreen)]() [![coverage](https://img.shields.io/badge/coverage-91%25-brightgreen)]() [![python](https://img.shields.io/badge/python-3.13-blue)]() [![docker](https://img.shields.io/badge/runs%20in-Docker-2496ED)]()

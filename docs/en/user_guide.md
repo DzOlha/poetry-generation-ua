@@ -17,7 +17,13 @@ The system generates, validates, and analyses Ukrainian poetry written in classi
 
 ---
 
-## 2. How to launch
+## 2. Demo video
+
+[![Watch the demo](https://img.youtube.com/vi/9-8JHxPXHLE/hqdefault.jpg)](https://youtu.be/9-8JHxPXHLE)
+
+---
+
+## 3. How to launch
 
 The simplest way is Docker:
 
@@ -34,7 +40,7 @@ For the full env-var reference, see [`README.md` § Environment Variables](../..
 
 ---
 
-## 3. Web UI pages
+## 4. Web UI pages
 
 | URL | What it does | Needs LLM? |
 |------|---------------|--------------|
@@ -50,7 +56,7 @@ For the full env-var reference, see [`README.md` § Environment Variables](../..
 
 > The UI is Ukrainian-only (the system targets Ukrainian poetry); the screenshots above are illustrative.
 
-### 3.1 Generation
+### 4.1 Generation
 
 Form fields:
 
@@ -67,19 +73,19 @@ Output: one or more quatrains in Ukrainian with stress markers. Result-page metr
 
 ![Generation form — left: parameters; right: example result with meter / rhyme accuracy and per-iteration breakdown](../img/generate_form.png)
 
-### 3.2 Validation
+### 4.2 Validation
 
 Inputs: poem text (1–**5000** chars), expected meter, foot count (1–6), rhyme scheme. Output: per-character stress overlay (expected / actual / matches), violation flags, accuracy in %.
 
 ![Validation form — left: poem text + expected parameters; right: stress overlay (expected / actual / match) with meter and rhyme accuracy](../img/validate_form.png)
 
-### 3.3 Detection
+### 4.3 Detection
 
 Inputs: poem text only (1–5000 chars) + checkboxes ("detect meter / scheme"). The algorithm sweeps 5 canonical meters × 1–6 feet for meter and 4 canonical schemes (ABAB / AABB / ABBA / AAAA) for rhyme. Acceptance threshold: 85% accuracy for meter, ~50% for rhyme. **Cannot detect**: non-classical / syllabic / free verse; 18th-c. poetry with irregular accentuation; rare dialect forms (stress resolver weakness).
 
 ![Detection form — left: poem text + "what to detect" checkboxes; right: detected meter (e.g. amphibrach 4) and rhyme scheme (ABAB) with confidence](../img/detect_form.png)
 
-### 3.4 Advanced configurations (ablations)
+### 4.4 Advanced configurations (ablations)
 
 A page for **researchers**. 18 preset scenarios (Normal / Edge / Corner) × 8 pipeline configs (A–H):
 
@@ -91,7 +97,7 @@ Runs one scenario through the chosen config and returns a full pipeline trace wi
 
 ![Evaluate form — pick an ablation config (A–H) and a preset scenario; right: full per-stage pipeline trace (retrieval → metric_examples → prompt_construction → initial_generation → validation → feedback_loop)](../img/evaluate_form.png)
 
-### 3.5 Quality analytics
+### 4.5 Quality analytics
 
 Dashboard with results of ablation runs (typically 18 scenarios × 8 configs × 3 seeds = 432 runs). It shows:
 
@@ -106,7 +112,7 @@ The report is **not generated automatically** — run `make ablation` (432 LLM c
 
 ---
 
-## 4. Input limits (summary)
+## 5. Input limits (summary)
 
 The system validates input at three layers: HTML form, FastAPI Form / Query, Pydantic schema. All limits match — no way to slip past one and hit another.
 
@@ -124,7 +130,7 @@ Exceeding these → HTTP 422 (`Unprocessable Entity`) with the offending field n
 
 ---
 
-## 5. Time and money
+## 6. Time and money
 
 ### Time
 
@@ -188,7 +194,7 @@ GEMINI_MODEL=gemini-2.5-flash
 
 ---
 
-## 6. Reading result metrics
+## 7. Reading result metrics
 
 | Metric | Meaning | Healthy range |
 |---------|----------|------------------|
@@ -204,11 +210,11 @@ Hover the "ⓘ" icon next to a metric on the result page for an inline tooltip e
 
 ---
 
-## 7. Errors and how to read them
+## 8. Errors and how to read them
 
 | Code | Name | Meaning | What to do |
 |-------|-------|----------|--------------|
-| **422** | Validation Error | Input is out of bounds (e.g. 7 feet, 6 stanzas, empty theme) | Adjust to the limits in §4 |
+| **422** | Validation Error | Input is out of bounds (e.g. 7 feet, 6 stanzas, empty theme) | Adjust to the limits in §5 |
 | **429** | Too Many Requests | Gemini API daily quota hit | Wait until the displayed time (~22 h typically) or switch key / model |
 | **502** | Bad Gateway | LLM failed to generate — network glitch, transient Google server failure, safety filter | Retry; if it persists — change theme / parameters |
 | **503** | Service Unavailable | LLM not configured (`GEMINI_API_KEY` missing) | Add the key to `.env` and restart `make serve` |
@@ -218,7 +224,7 @@ User-facing errors (422, 429) are rendered in Ukrainian with specifics. Infrastr
 
 ---
 
-## 8. What the system does NOT do
+## 9. What the system does NOT do
 
 An honest list:
 
@@ -232,7 +238,7 @@ An honest list:
 
 ---
 
-## 9. JSON API
+## 10. JSON API
 
 If you need programmatic integration, there is a JSON API. Documentation: [`/docs`](http://localhost:8000/docs) (Swagger UI).
 
@@ -253,7 +259,7 @@ All endpoints return JSON. Errors use standard HTTP codes (422 / 429 / 502 / 503
 
 ---
 
-## 10. FAQ
+## 11. FAQ
 
 **Q: My theme produced a poem totally unrelated to it. Why?**
 A: Check "Semantic relevance" — if it's < 30%, the LLM drifted. Try rephrasing the theme more concretely: "spring in the forest" instead of just "spring".
