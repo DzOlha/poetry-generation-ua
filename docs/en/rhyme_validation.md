@@ -106,15 +106,17 @@ For *«Ворушаться тіні чужо́го»*:
 - Last word: "чужо́го", stress on "о́" in "-жо-" (position 1 of 3).
 - Clausula: `жо́го` (2 syllables — **feminine**).
 
-Clausula classification (the [`ClausulaType`](../../src/domain/value_objects.py) enum) by unstressed count after stress:
+Clausula classification (the [`ClausulaType`](../../src/domain/value_objects.py) enum) by **number of unstressed syllables after the stressed one** (not by total word length):
 
 | Enum value | Unstressed after | Examples |
 |------------|------------------|----------|
-| `MASCULINE` (чоловіча) | 0 | біль, світ |
-| `FEMININE` (жіноча) | 1 | ходок, книга |
-| `DACTYLIC` (дактилічна) | 2 | розум, молодого |
-| `HYPERDACTYLIC` (гіпердактилічна) | 3+ | розумі́ється |
+| `MASCULINE` (чоловіча) | 0 | «бі́ль», «сві́т», «ходо́к» (хо-**до́**), «весна́» (вес-**на́**) |
+| `FEMININE` (жіноча) | 1 | «кни́га» (**кни́**-га), «во́ля» (**во́**-ля), «ро́зум» (**ро́**-зум), «приро́да» (при-**ро́**-да), «молодо́го» (мо-ло-**до́**-го) |
+| `DACTYLIC` (дактилічна) | 2 | «зро́блено» (**зро́**-бле-но), «ма́тери» (**ма́**-те-ри), «найкра́щої» (най-**кра́**-що-ї) |
+| `HYPERDACTYLIC` (гіпердактилічна) | 3+ | «приголо́мшуючи» (при-го-**ло́м**-шу-ю-чи) |
 | `UNKNOWN` | — | empty / unstressable input |
+
+> Common pitfall: «ходо́к» is masculine (no unstressed vowel after `о́`), and «ро́зум» / «молодо́го» are feminine (only `у` and `о` respectively follow the stress). What matters is post-stress vowels, not total word length.
 
 Implementation: [`PhoneticRhymePairAnalyzer._detect_clausula(word)`](../../src/infrastructure/validators/rhyme/pair_analyzer.py) — counts syllables via the injected `ISyllableCounter` and uses `IStressResolver` to locate the stressed syllable. The rhyme part itself is built by [`UkrainianIpaTranscriber.rhyme_part(word, stress_idx)`](../../src/infrastructure/phonetics/ukrainian_ipa_transcriber.py).
 

@@ -1,9 +1,4 @@
 """Semantic retriever — cosine similarity between theme embedding and corpus.
-
-Previously lived in `src.services.retrieval_service` as `RetrievalService`.
-Moved here and behind the `IRetriever` port so PoetryService and pipeline
-stages depend on the abstraction, not the concrete class (the audit flagged
-this as a critical DIP violation).
 """
 from __future__ import annotations
 

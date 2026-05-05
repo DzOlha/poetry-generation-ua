@@ -35,16 +35,18 @@ In addition to the lexicon, **any monosyllabic word** on a "weak" position is to
 
 ### Why feminine / dactylic clausulae and catalexis are allowed
 
-A **clausula** is the line ending from the last stressed syllable onward. Canonical typology:
+A **clausula** is the line ending from the last stressed syllable onward. The classification counts how many **unstressed syllables follow the stressed one** (not the total syllables of the word):
 
-| Type | Unstressed syllables after the stress | Example |
-|------|----------------------------------------|---------|
-| Masculine (oxytonic) | 0 | «бі́ль», «сві́т» |
-| Feminine (paroxytonic) | 1 | «кни́га», «ходо́к» |
-| Dactylic | 2 | «ро́зум», «молодо́го» |
-| Hyperdactylic | 3+ | «розумі́ється» |
+| Type | Unstressed syllables after the stress | Examples |
+|------|----------------------------------------|----------|
+| Masculine (oxytonic) | 0 | «бі́ль», «сві́т», «ходо́к» (хо-**до́**), «весна́» (вес-**на́**) |
+| Feminine (paroxytonic) | 1 | «кни́га» (**кни́**-га), «во́ля» (**во́**-ля), «ро́зум» (**ро́**-зум), «приро́да» (при-**ро́**-да), «молодо́го» (мо-ло-**до́**-го) |
+| Dactylic | 2 | «зро́блено» (**зро́**-бле-но), «ма́тери» (**ма́**-те-ри), «найкра́щої» (най-**кра́**-що-ї) |
+| Hyperdactylic | 3+ | «приголо́мшуючи» (при-го-**ло́м**-шу-ю-чи) |
 
-A 4-foot iamb (8 syllables) may end on +1 unstressed syllable (feminine clausula, 9 syllables) or +2 (dactylic, 10 syllables). These are **not extra syllables** — they are canonical line endings, described in Kachurovsky and every Ukrainian metrics primer since. Likewise, **catalexis** (a chopped trailing unstressed) is a standard variation.
+> Common pitfall: «ходо́к» is masculine (no unstressed vowel after `о́`), and «ро́зум» / «молодо́го» are feminine (only `у` and `о` respectively follow the stress). What matters is post-stress vowels, not total word length.
+
+A 4-foot iamb (8 syllables) may end on +1 unstressed syllable (feminine clausula, 9 syllables, e.g. line closing on «во́ля») or +2 (dactylic, 10 syllables, e.g. line closing on «зро́блено»). These are **not extra syllables** — they are canonical line endings, described in Kachurovsky and every Ukrainian metrics primer since. Likewise, **catalexis** (a chopped trailing unstressed) is a standard variation: it produces a masculine ending where the strict pattern would have closed on `u`.
 
 That is why `line_length_ok` accepts `+1 u`, `+2 uu`, and `-N u` catalexis, while rejecting everything else (extra stressed syllables = a different foot count = a real error).
 
@@ -61,11 +63,11 @@ In short: the system **does not invent its own metric** — it **formalises** ru
 
 | Metre | Single-foot template | Example |
 |-------|---------------------|---------|
-| Iamb | `u —` | Vit*ER* po*VIV* |
-| Trochee | `— u` | *SA*dok *VYSH*nevyi |
-| Dactyl | `— u u` | *PA*da lys*TOK* ty*KHEN*ko |
-| Amphibrach | `u — u` | za*SYA*yaly *ZO*ry |
-| Anapest | `u u —` | yak na *MYT*' zaby*LOS'* sertse |
+| Iamb | `u —` | «Лети́ть весна́» — ле-**ТИ́ТЬ** вес-**НА́** (`u — u —`, 2-foot) |
+| Trochee | `— u` | «Зо́рі ся́ють» — **ЗО́**-рі **СЯ́**-ють (`— u — u`, 2-foot) |
+| Dactyl | `— u u` | «Ра́дісно сни́лися» — **РА́**-діс-но **СНИ́**-ли-ся (`— u u — u u`, 2-foot) |
+| Amphibrach | `u — u` | «Бере́зи зеле́ні» — бе-**РЕ́**-зи зе-**ЛЕ́**-ні (`u — u u — u`, 2-foot) |
+| Anapest | `u u —` | «Запалі́ла зоря́» — за-па-**ЛІ́**-ла зо-**РЯ́** (`u u — u u —`, 2-foot) |
 
 Line length is measured in **feet** — how many times the template repeats in a row. 4-foot iamb = `u — u — u — u —` (8 syllables).
 
@@ -119,9 +121,9 @@ Algorithm of [`PatternMeterValidator._validate_line(line, meter)`](../../src/inf
 [`UkrainianProsodyAnalyzer.line_length_ok(actual, expected)`](../../src/infrastructure/validators/meter/prosody.py) compares the lengths of expected vs actual patterns:
 
 - **Exact match** → OK.
-- **Actual is 1 syllable longer**, last is `u` → OK (**feminine clausula**).
-- **Actual is 2 syllables longer**, last two are `uu` → OK (**dactylic clausula**).
-- **Actual is shorter**, dropped positions all `u` and the gap is smaller than one foot → OK (**catalexis**). A truncation that drops a `—` position is rejected — that would silently swallow a missing stress.
+- **Actual is 1 syllable longer**, last is `u` → OK (**feminine clausula** — line ends on a paroxytone like «во́ля», «кни́га»).
+- **Actual is 2 syllables longer**, last two are `uu` → OK (**dactylic clausula** — line ends on «зро́блено», «ма́тери»).
+- **Actual is shorter**, dropped positions all `u` and the gap is smaller than one foot → OK (**catalexis** — the unstressed tail of the last foot is cut, producing a masculine close on «бі́ль», «сві́т»). A truncation that drops a `—` position is rejected — that would silently swallow a missing stress.
 - **Anything else** → not OK.
 
 This captures the classical prosodic deviations recognised by literary tradition as acceptable.
@@ -139,31 +141,46 @@ This captures the classical prosodic deviations recognised by literary tradition
 
 ## Tolerated cases with examples
 
-### Pyrrhic
+Each line below comes from the test suite — they are real classical lines that the validator accepts. The walk-through shows position-by-position **why**.
 
-«Садок вишневий коло хати.» — 4-foot iamb:
-- Expected: `u — u — u — u —` (8 syllables)
-- Actual:   `u — u — u u u —` (positions 5-6 = «коло» — weak-stress word, skipped).
+### Pyrrhic — Kotlyarevsky's «Еней був парубок моторний» (4-foot iamb, feminine clausula)
 
-Pyrrhic = an expected-stress position covered by an unstressed weak word. Tolerated → line OK.
+```
+position:  1   2   3   4   5   6   7   8   9
+syllable:  Е   не́й був па́  ру  бок мо  то́р ний
+expected:  u   —   u   —   u   —   u   —   u   ← 4-foot iamb + feminine
+actual:    u   —   —   —   u   u   u   —   u
+```
 
-### Spondee
+Two real mismatches:
+- **Position 3** «був» — `expected=u`, `actual=—`. «був» is a stressed 1-syllable word; a monosyllable always carries its own stress, so finding it on a weak metric position is **spondee**, tolerated.
+- **Position 6** «бок» (last syllable of «па́рубок») — `expected=—`, `actual=u`. The strong position is filled by an unstressed syllable of a polysyllabic content word — that is a **classical pyrrhic**.
 
-«Стій! Час йти!» — 2-foot iamb:
-- Expected: `u — u —`
-- Actual:   `— — — —` (all words — stressed monosyllables)
+The pyrrhic at position 6 is **not** caught by the per-position tolerance (it triggers only for monosyllables and weak words like «та», «в», «і»). It is absorbed by the line-level slack: `allowed_mismatches = 2` lets the line keep up to two real errors.
 
-Raw divergence at every position. But every mismatching word is a monosyllable → `is_tolerated_mismatch` returns True → after filtering 0 errors → line OK.
+If the same position 6 had been filled by a function word — e.g. «Еней був добрий, та моторний» with «та» on position 6 — the per-position branch would fire: flag `(monosyllabic=True, weak=True)` ⇒ tolerated outright, no slack consumed.
 
-### Catalexis
+### Spondee — Lesya Ukrainka's «Ні я хочу крізь сльози сміятись» (3-foot anapest, feminine clausula)
 
-«Летять літа.» — 2-foot iamb (4 expected syllables):
-- Expected: `u — u —`
-- Actual:   `u — u`    (3 syllables)
+```
+position:  1   2   3   4   5    6    7   8   9   10
+syllable:  Ні  я   хо́  чу  крізь сльо́ зи  смі я́  тись
+expected:  u   u   —   u   u    —    u   u   —   u   ← 3-foot anapest + feminine
+actual:    u   u   —   u   —    —    u   u   —   u
+```
 
-Delta -1, the dropped position is unstressed in the expected pattern. `line_length_ok` permits this — "dropped an unstressed closing position — that's catalexis." Tolerated → OK. (If the dropped position had been `—`, the line would be rejected as a missing-stress error.)
+Mismatch at position 5: «крізь» is a 1-syllable preposition, **but it is not in the weak-stress lexicon** — it is a stressed monosyllable. So `actual=—` while `expected=u`. The flag is `(monosyllabic=True, weak=False)`. The spondee branch fires on the `monosyllabic=True` half — the line passes with **zero** real errors after filtering.
 
-Exact semantics for `—`/`u` at the dropped position — see [`prosody.py`](../../src/infrastructure/validators/meter/prosody.py).
+### Catalexis — Sosyura's «Любіть Україну як сонце любіть» (4-foot amphibrach)
+
+```
+position:  1   2    3   4   5   6   7   8    9   10  11   (12)
+syllable:  Лю  бі́ть У   кра ї́  ну  як  со́н  це  лю  бі́ть   ·
+expected:  u   —    u   u   —   u   u   —    u   u   —    u
+actual:    u   —    u   u   —   u   u   —    u   u   —    ·
+```
+
+The line has **11 syllables** where strict 4-foot amphibrach would give 12. The dropped position (the final `u` of the expected pattern) is unstressed and the gap is one syllable — smaller than the foot size of 3. `line_length_ok` accepts the truncation as **catalexis**, and the line ends on a masculine clausula («любі́ть») instead of the strict `... — u` cadence. If the dropped position had been `—`, the line would have been rejected as a missing stress.
 
 ## Key constants
 
@@ -172,18 +189,15 @@ Exact semantics for `—`/`u` at the dropped position — see [`prosody.py`](../
 | `allowed_mismatches` | `2` | [`BaseMeterValidator.__init__`](../../src/infrastructure/validators/meter/base.py) |
 | Allowed length delta | `±2` syllables per rules | [`prosody.py`](../../src/infrastructure/validators/meter/prosody.py) |
 
-## Prosody ports (Interface Segregation)
+## Prosody ports
 
-`UkrainianProsodyAnalyzer` is a single concrete class but it satisfies four narrow ports defined in [`src/domain/ports/prosody.py`](../../src/domain/ports/prosody.py):
+`UkrainianProsodyAnalyzer` is a single concrete class that satisfies three narrow ports defined in [`src/domain/ports/prosody.py`](../../src/domain/ports/prosody.py):
 
 | Port | Responsibility |
 |------|----------------|
 | `IStressPatternAnalyzer` | Build the actual realised stress pattern + per-syllable flags from a tokenised line |
 | `IExpectedMeterBuilder` | Build the canonical expected stress pattern for `meter × foot_count` |
 | `IMismatchTolerance` | Decide which mismatches are tolerated (pyrrhic / spondee / clausula / catalexis) |
-| `IProsodyAnalyzer` | Facade union of the three above — **deprecated for new code** |
-
-The audit flagged `IProsodyAnalyzer` as an Interface Segregation smell: most callers only need one of the sub-ports, but depending on the union forces them to know about (and mock) the whole surface. `PatternMeterValidator` and `DefaultLineFeedbackBuilder` continue to depend on the union for backward compatibility, but **new code must depend on the narrowest port that satisfies its actual contract**. The deprecation note lives in the docstring of `IProsodyAnalyzer`.
 
 `UkrainianProsodyAnalyzer` itself composes three injected collaborators — `IMeterTemplateProvider`, `ISyllableFlagStrategy`, `IStressResolver`, plus an `IWeakStressLexicon` — so any of them can be replaced without touching the analyser.
 
@@ -193,7 +207,7 @@ The audit flagged `IProsodyAnalyzer` as an Interface Segregation smell: most cal
 - [`src/infrastructure/validators/meter/base.py`](../../src/infrastructure/validators/meter/base.py) — `BaseMeterValidator` template method
 - [`src/infrastructure/validators/meter/prosody.py`](../../src/infrastructure/validators/meter/prosody.py) — `UkrainianProsodyAnalyzer` + length tolerance
 - [`src/infrastructure/validators/meter/feedback_builder.py`](../../src/infrastructure/validators/meter/feedback_builder.py) — `DefaultLineFeedbackBuilder`
-- [`src/domain/ports/prosody.py`](../../src/domain/ports/prosody.py) — narrow prosody ports + deprecated facade
+- [`src/domain/ports/prosody.py`](../../src/domain/ports/prosody.py) — narrow prosody ports
 - [`src/domain/models/feedback.py`](../../src/domain/models/feedback.py) — `LineFeedback` DTO (note: moved from `src/domain/feedback.py`)
 - [`src/infrastructure/meter/ukrainian_meter_templates.py`](../../src/infrastructure/meter/ukrainian_meter_templates.py) — `UkrainianMeterTemplateProvider` (5 canonical meters)
 - [`src/infrastructure/meter/syllable_flag_strategy.py`](../../src/infrastructure/meter/syllable_flag_strategy.py) — `DefaultSyllableFlagStrategy`

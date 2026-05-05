@@ -147,6 +147,173 @@ For each (component, metric) pair the analyzer reports:
 - **`p_value`** — two-sided **Wilcoxon signed-rank** p-value. Non-parametric, robust to non-normal Δ distributions (LLM outputs are heavy-tailed). Returns 1.0 if the test is undefined (all Δ zero).
 - **`significant`** — derived flag: **CI does not cross zero**. We use this rather than the p-value because at small *n* the bootstrap CI is the more honest signal; the p-value is reported for completeness but does not drive the dashboard's verdicts.
 
+### How the statistics are actually computed — worked example
+
+> The steps below mirror the code in [`scripts/analyze_contributions.py`](../../scripts/analyze_contributions.py). Expand each section as needed.
+
+A typical batch runs with **`SEEDS = 1`** (one run per `(scenario, config)` cell). The pivot index `(scenario_id, seed)` then collapses to `scenario_id`, and each paired Δ is one scenario under two configs. With 18 scenarios and no errors, **`n = 18`**. With `SEEDS = 3` the formula is unchanged — the Δ vector just gathers 3 rows per scenario, so `n = 54`. Everything downstream depends only on the Δ vector, not on how it was assembled.
+
+<details>
+<summary><b>Step 0 · sample data (seeds = 1, 6 scenarios)</b></summary>
+
+A slice of `runs.csv` for the metric `meter_accuracy` and configs `A` (baseline) and `B` (baseline + feedback):
+
+| `scenario_id` | `seed` | `config_label` | `meter_accuracy` |
+|---|---|---|---|
+| N01 | 1 | A | 0.72 |
+| N01 | 1 | B | 0.80 |
+| N02 | 1 | A | 0.68 |
+| N02 | 1 | B | 0.80 |
+| E02 | 1 | A | 0.40 |
+| E02 | 1 | B | 0.50 |
+| E03 | 1 | A | 0.49 |
+| E03 | 1 | B | 0.55 |
+| C04 | 1 | A | 0.60 |
+| C04 | 1 | B | 0.56 |
+| C06 | 1 | A | 0.60 |
+| C06 | 1 | B | 0.65 |
+
+We want the effect of the `feedback_loop` component (comparison `B − A`).
+
+</details>
+
+<details>
+<summary><b>Step 1 · pivot → paired-Δ vector</b></summary>
+
+`df.pivot_table(index=["scenario_id","seed"], columns="config_label", values="meter_accuracy")`:
+
+| (`scenario_id`, `seed`) | A | B | **Δ = B − A** |
+|---|---|---|---|
+| (N01, 1) | 0.72 | 0.80 | **+0.08** |
+| (N02, 1) | 0.68 | 0.80 | **+0.12** |
+| (E02, 1) | 0.40 | 0.50 | **+0.10** |
+| (E03, 1) | 0.49 | 0.55 | **+0.06** |
+| (C04, 1) | 0.60 | 0.56 | **−0.04** |
+| (C06, 1) | 0.60 | 0.65 | **+0.05** |
+
+**Δ vector:** `[+0.08, +0.12, +0.10, +0.06, −0.04, +0.05]`, `n = 6`.
+
+```
+mean_delta = (0.08 + 0.12 + 0.10 + 0.06 − 0.04 + 0.05) / 6 = 0.37 / 6 ≈ +0.0617
+```
+
+**Why this beats `mean(B) − mean(A)`?** Here both numbers happen to coincide because the sample is balanced. But imagine that `A` ran only on easy scenarios (mean ≈ 0.70) and `B` only on hard ones (mean ≈ 0.55): the naive `mean(B) − mean(A) = −0.15` would say "B makes things worse" while in fact we compared different problems. Pairing kills the confound — every Δ is measured on the **same scenario under the same seed**, so scenario difficulty is paired out.
+
+</details>
+
+<details>
+<summary><b>Step 2 · bootstrap CI (95 % percentile)</b></summary>
+
+`n = 6` is too small for a normal-approximation t-CI, and Δ distributions of LLM metrics are usually non-normal anyway (heavy tails, sometimes bimodal). Bootstrap makes no distributional assumption — it just asks: *"if my Δ vector is representative of the population, what would the mean look like under another set of 6 observations?"*
+
+Algorithm:
+
+1. Draw `n = 6` Δs from the existing vector **with replacement** (some Δ may appear twice, others may be skipped). One resample could be `[+0.10, +0.08, +0.10, +0.05, +0.08, +0.12]` → mean = `+0.0883`.
+2. Repeat **10 000 times** → a vector `boot_means` of length 10 000 ("possible means").
+3. Sort `boot_means` and take the **2.5th percentile** (`ci_low`) and **97.5th percentile** (`ci_high`). 95 % of plausible means fall between them.
+
+For our Δ vector the bootstrap returns roughly `CI ≈ [+0.02, +0.10]`. Exact numbers vary across runs; production code seeds the RNG (`RNG_SEED = 42`) so the report is reproducible byte-for-byte. The CI **does not cross zero** → `significant = True`. Had it come out `[−0.02, +0.13]` — still positive mean, but crosses zero → `significant = False`, the effect could be zero within variation.
+
+NumPy vectorisation runs the 10 000 iterations for each of the ~25 (component × metric) pairs in fractions of a second:
+
+```python
+# bootstrap_ci in scripts/analyze_contributions.py
+idx = rng.integers(0, n, size=(n_boot, n))     # 10000×6 matrix of random indices
+boot_means = samples[idx].mean(axis=1)         # 10000 means in one pass
+ci_low  = np.percentile(boot_means, 2.5)
+ci_high = np.percentile(boot_means, 97.5)
+```
+
+</details>
+
+<details>
+<summary><b>Step 3 · Wilcoxon signed-rank → p-value</b></summary>
+
+The parametric t-test assumes the Δs are normal. For LLM metrics this often fails, so we use the non-parametric **Wilcoxon signed-rank** instead — it only requires the Δs to be continuous and symmetric around their median.
+
+Algorithm:
+
+1. Take the **absolute values** of Δ and rank them (smallest |Δ| = rank 1, next = 2 …).
+2. Split the ranks into two sums: `W+` — sum of ranks where Δ > 0, `W−` — sum where Δ < 0.
+3. Test statistic `W = min(W+, W−)`. The smaller `W`, the stronger the deviation from H₀ (median Δ = 0).
+4. The p-value is the probability of seeing this `W` or more extreme **if the true median Δ were zero**.
+
+On our Δ vector `[+0.08, +0.12, +0.10, +0.06, −0.04, +0.05]`:
+
+| `abs(Δ)` | rank | sign |
+|---|---|---|
+| 0.04 | 1 | − |
+| 0.05 | 2 | + |
+| 0.06 | 3 | + |
+| 0.08 | 4 | + |
+| 0.10 | 5 | + |
+| 0.12 | 6 | + |
+
+```
+W+ = 2 + 3 + 4 + 5 + 6 = 20
+W− = 1
+W  = 1
+```
+
+5 of 6 Δs are positive and all sizeable — intuitively "the component helps". Yet at `n = 6` even this split yields a **two-sided p ≈ 0.06–0.12** (exact value from `scipy.stats.wilcoxon`). That **fails** the conventional `α = 0.05` threshold despite the visually unambiguous pattern — the small-*n* limitation of p-values in action.
+
+> On a real batch (`n = 18` scenarios at `SEEDS = 1`) the situation is somewhat better, but p-values still hover near 0.05 for effects the CI confidently flags as stable. That is why **the dashboard reads the CI, not the p-value**.
+
+```python
+# wilcoxon_p in scripts/analyze_contributions.py
+nonzero = deltas[deltas != 0]                  # zero_method="wilcox" drops zero Δs
+return stats.wilcoxon(nonzero, zero_method="wilcox").pvalue
+```
+
+</details>
+
+<details>
+<summary><b>Step 4 · interaction <code>E − C − D + B</code> — where the formula comes from</b></summary>
+
+Four cells of a 2×2 factorial design (all on top of baseline-feedback `B`):
+
+|  | semantic_rag OFF | semantic_rag ON |
+|---|---|---|
+| **metric_examples OFF** | B | C |
+| **metric_examples ON**  | D | E |
+
+The "simple" individual contributions: `C − B` (semantic RAG on top of feedback) and `D − B` (metric examples on top of feedback). If the effects **just add up**:
+
+```
+E (predicted) = B + (C − B) + (D − B) = C + D − B
+```
+
+The "residual" — what we **measured in E** minus this prediction:
+
+```
+Δ_interaction = E − (C + D − B) = E − C − D + B
+```
+
+| Sign | Interpretation |
+|---|---|
+| `> 0` | **Synergy** — the two components together exceed the sum of their individual contributions. Signal: "turn on both". |
+| `≈ 0` | Effects **just add** — components are independent. |
+| `< 0` | **Competition** — one suppresses the other (fighting for prompt budget; one mixing the signal of the other). |
+
+The same formula is also applied to the feedback-OFF half of the matrix: `H − F − G + A` gives an interaction **with feedback-loop excluded** — so you can tell whether the synergy of the two RAG variants is intrinsic, or whether the feedback loop creates it.
+
+</details>
+
+<details>
+<summary><b>Why this set of methods</b></summary>
+
+| Alternative | Why not |
+|---|---|
+| Independent samples instead of pairing | Scenario difficulty is the biggest confound; pairing eliminates it with a single subtraction |
+| t-CI instead of bootstrap CI | t-CI assumes Δ is normal; LLM metrics are often bimodal or heavy-tailed |
+| t-test instead of Wilcoxon | Same normality assumption |
+| P-value as the main verdict | At `n = 18` (typical at `SEEDS = 1`) p-values are unstable; the CI shows **both magnitude and uncertainty** in one number |
+| Higher CI level (99 %) | 95 % is the reporting standard; 99 % would widen every CI and almost nothing would look "significant" at our sample sizes |
+
+> **How to raise statistical power:** increase `SEEDS`. At `SEEDS = 3` (typical research-mode) `n = 54`, the CI shrinks ~1.7× (by √3), and weak components that hide in noise at `SEEDS = 1` become visible. The cost: tokens and time — the batch takes 3× as long and 3× more spend.
+
+</details>
+
 ### `contributions.csv` columns
 
 ```

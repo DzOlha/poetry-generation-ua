@@ -9,6 +9,7 @@
 > - Algorithms: [stress and syllables](./stress_and_syllables.md), [metre validation](./meter_validation.md), [rhyme validation](./rhyme_validation.md), [detection](./detection_algorithm.md)
 > - RAG and prompts: [semantic retrieval](./semantic_retrieval.md), [prompt construction](./prompt_construction.md)
 > - Feedback loop + LLM integration: [feedback loop](./feedback_loop.md), [sanitization](./sanitization_pipeline.md), [LLM decorator stack](./llm_decorator_stack.md), [reliability & config](./reliability_and_config.md)
+> - **Numbers in one place:** [thresholds reference](./thresholds_reference.md) — every cutoff, weight, and default that drives behaviour, with rationale
 > - Research: [evaluation harness](./evaluation_harness.md) — 18 scenarios × 8 ablation configs
 
 ---
@@ -60,13 +61,14 @@ src/
 │   ├── llm/             ← GeminiProvider, MockLLMProvider, decorator stack (5 tiers)
 │   ├── http/            ← DefaultHttpErrorMapper (polymorphic dispatch on DomainError)
 │   ├── sanitization/    ← SentinelPoemExtractor, RegexPoemOutputSanitizer
-│   ├── validators/      ← Meter (Pattern), Rhyme (Phonetic), Composite
+│   ├── validators/      ← Meter (Pattern + BSP), Rhyme (Phonetic), Composite
 │   ├── stages/          ← Pipeline stages
 │   ├── pipeline/        ← SequentialPipeline, StageFactory
 │   ├── reporting/       ← MarkdownReporter façade + TableFormatter / TraceFormatter
 │   │                      / CostCalculator / MarkdownDocumentBuilder collaborators
 │   ├── tracing/         ← PipelineTracer, InMemoryLLMCallRecorder (for UI tracing)
-│   └── ...              ← embeddings, retrieval, repositories, prompts, metrics, ...
+│   ├── detection/       ← BruteForceMeterDetector, BruteForceRhymeDetector, FirstLinesStanzaSampler
+│   └── ...              ← embeddings, retrieval, repositories, prompts, regeneration, metrics, ...
 ├── handlers/            ← Transport adapters (FastAPI, Web UI)
 ├── runners/             ← IRunner implementations for scripts
 ├── shared/              ← Cross-cutting pure utilities
@@ -108,9 +110,13 @@ service.generate(request)  # a single GenerationRequest object
 | `IRetriever` | `SemanticRetriever` (LaBSE cosine similarity) |
 | `IPromptBuilder` | `RagPromptBuilder` |
 | `IRegenerationPromptBuilder` | `NumberedLinesRegenerationPromptBuilder` |
-| `IMeterValidator` | `PatternMeterValidator` |
+| `IMeterValidator` | `PatternMeterValidator` (production), `BSPMeterValidator` (alternative scoring strategy, opt-in) |
 | `IRhymeValidator` | `PhoneticRhymeValidator` |
 | `IPoemValidator` | `CompositePoemValidator` (metre + rhyme) |
+| `IMeterDetector` | `BruteForceMeterDetector` (sweeps metres × foot counts to classify a poem) |
+| `IRhymeDetector` | `BruteForceRhymeDetector` (scores ABAB/AABB/ABBA/AAAA against a sample) |
+| `IStanzaSampler` | `FirstLinesStanzaSampler` (extracts the first quatrain for detection) |
+| `IDetectionService` | `DetectionService` (combines sampler + detectors into a single classification call) |
 | `ILLMProvider` | `GeminiProvider`, `MockLLMProvider` + decorator stack (Logging → Retry → Timeout → Sanitizing → Extracting) |
 | `IPoemExtractor` | `SentinelPoemExtractor` (`<POEM>…</POEM>` extraction) |
 | `IPoemOutputSanitizer` | `RegexPoemOutputSanitizer` (allowlist sanitization) |
@@ -125,7 +131,7 @@ service.generate(request)  # a single GenerationRequest object
 
 | Pattern | Where applied |
 |---------|---------------|
-| **Strategy** | `IMeterValidator` (Pattern), `IRhymeValidator`, `IStageSkipPolicy` |
+| **Strategy** | `IMeterValidator` (`PatternMeterValidator` — default; `BSPMeterValidator` — alternative), `IRhymeValidator`, `IStageSkipPolicy` |
 | **Repository** | `IThemeRepository`, `IMetricRepository` |
 | **Factory** | `ILLMProviderFactory`, `IStageFactory`, `ITracerFactory` |
 | **Dependency Injection** | Constructor injection; `composition_root.Container` |
@@ -217,11 +223,11 @@ class CorpusEntry(TypedDict, total=False):
 
 ### Corpus sources
 
-| Class / Function | Source | Purpose |
-|---|---|---|
-| `JsonThemeRepository` | `CORPUS_PATH` env → default `corpus/uk_theme_reference_corpus.json` | Theme corpus (153 poems) + LaBSE embeddings |
-| `DemoThemeRepository` | hard-coded poems in code | Fallback when the file is missing |
-| `JsonMetricRepository` | `METRIC_EXAMPLES_PATH` env → `corpus/uk_metric-rhyme_reference_corpus.json` | Metre + rhyme reference examples (38 verified records) |
+| Class / Function | Source | Purpose                                                 |
+|---|---|---------------------------------------------------------|
+| `JsonThemeRepository` | `CORPUS_PATH` env → default `corpus/uk_theme_reference_corpus.json` | Theme corpus (153 poems) + LaBSE embeddings             |
+| `DemoThemeRepository` | hard-coded poems in code | Fallback when the file is missing                       |
+| `JsonMetricRepository` | `METRIC_EXAMPLES_PATH` env → `corpus/uk_metric-rhyme_reference_corpus.json` | Metre + rhyme reference examples (193 verified records) |
 
 ### Loading the corpus
 
@@ -303,17 +309,19 @@ Because vectors are L2-normalised (`normalize_embeddings=True`), `norm_a = norm_
 
 ### Fallback without LaBSE — `OfflineDeterministicEmbedder`
 
-**File:** `src/infrastructure/embeddings/offline.py`
+**File:** `src/infrastructure/embeddings/labse.py` (defined alongside `LaBSEEmbedder`; there is intentionally no separate `offline.py`).
 
-When the model fails to load or `OFFLINE_EMBEDDER=true`:
+Selected by composition when `OFFLINE_EMBEDDER=true` (or via `CompositeEmbedder` when LaBSE fails to load):
 
 ```python
-# Deterministic pseudo-random vector based on text hash
-rng = random.Random(abs(hash(text)) % (2**32))
-return [rng.gauss(0.0, 1.0) for _ in range(768)]
+# Deterministic pseudo-random unit vector based on text hash
+rng = random.Random(abs(hash(text)) % (2 ** 32))
+vec = [rng.gauss(0.0, 1.0) for _ in range(self._dim)]   # _dim defaults to 768
+norm = math.sqrt(sum(x * x for x in vec))
+return [x / norm for x in vec] if norm else vec
 ```
 
-The same text always yields the same vector, but there's **no semantic meaning** — intended for tests without API access.
+The same text always yields the same vector, but there's **no semantic meaning** — intended for tests without API access. The "retrieval is not meaningful" warning is emitted lazily on the first `encode()` call so construction stays side-effect-free.
 
 `CompositeEmbedder` (`src/infrastructure/embeddings/composite.py`) implements the Composite Pattern: tries primary (`LaBSEEmbedder`), falls back on error (`OfflineDeterministicEmbedder`).
 
@@ -358,33 +366,38 @@ Contains reference poems with explicit metre, foot, and rhyme scheme annotations
 | amphibrach | Sosyura (4-foot, ABAB) |
 | anapest | Lesya Ukrainka, Kostenko (3-foot, ABAB) |
 
-### `JsonMetricRepository.query()` algorithm
+### `JsonMetricRepository.find()` algorithm
+
+The repository takes a single `MetricQuery` value object (`src/domain/models/entities.py`) bundling `meter`, `feet`, `scheme`, `top_k`, and `verified_only`:
 
 ```python
 class JsonMetricRepository(IMetricRepository):
-    def query(self, meter: str, feet: int, scheme: str,
-              top_k: int = 3) -> list[MetricExample]:
-        # 1. Normalise metre name via MeterCanonicalizer
+    def find(self, query: MetricQuery) -> list[MetricExample]:
+        all_examples = self._load()
+        # 1. Normalise the requested metre name via MeterCanonicalizer
         #    "iamb" → "ямб", "trochee" → "хорей", ...
-        meter_ua = self._canonicalizer.canonicalize(meter)
+        target_meter = self._canonicalizer.canonicalize(query.meter)
 
-        # 2. Exact-match filter: meter + feet + scheme
-        matched = [e for e in self._entries if
-                   e.meter.lower() == meter_ua and
-                   e.feet == feet and
-                   e.scheme.upper() == scheme.upper()]
+        # 2. Exact-match filter: canonical meter + feet + scheme + verified flag
+        def matches(ex: MetricExample) -> bool:
+            return (
+                self._canonicalizer.canonicalize(ex.meter) == target_meter
+                and ex.feet == query.feet
+                and ex.scheme.upper() == query.scheme.upper()
+                and ((not query.verified_only) or ex.verified)
+            )
 
-        # 3. Verified examples first
-        matched = sorted(matched, key=lambda e: (not e.verified,))
-
-        return matched[:top_k]
+        results = [ex for ex in all_examples if matches(ex)]
+        # 3. Verified examples first, then slice top_k
+        results.sort(key=lambda ex: (not ex.verified,))
+        return results[: query.top_k]
 ```
 
 **Key properties:**
-- Returns `[]` if the file is missing (doesn't throw)
-- English aliases supported: `iamb/trochee/dactyl/amphibrach/anapest`
-- `verified_only=True` — returns only manually verified examples
-- Verified examples are sorted before unverified ones
+- Raises `RepositoryError` if the file is missing or invalid JSON (does **not** silently return `[]`).
+- Both sides of the comparison are passed through `MeterCanonicalizer`, so corpus rows written in English (`iamb`) match a request written in Ukrainian (`ямб`) and vice versa.
+- `MetricQuery.verified_only=True` — returns only manually verified examples.
+- Verified examples are sorted before unverified ones, then truncated to `top_k`.
 
 ---
 
@@ -393,33 +406,36 @@ class JsonMetricRepository(IMetricRepository):
 **File:** `src/infrastructure/prompts/rag_prompt_builder.py`
 **Port:** `src/domain/ports/prompts.py` → `IPromptBuilder`
 
-`RagPromptBuilder` implements `IPromptBuilder` and assembles a prompt from thematic examples (from `SemanticRetriever`), metric references (from `JsonMetricRepository`), and form parameters (from `GenerationRequest`). It runs through `PipelineState`:
+`RagPromptBuilder` implements `IPromptBuilder` and assembles a prompt from thematic examples (from `SemanticRetriever`), metric references (from `JsonMetricRepository`), and form parameters (from `GenerationRequest`):
 
 ```python
 class RagPromptBuilder(IPromptBuilder):
-    def build(self, state: PipelineState) -> str:
-        excerpts = "\n".join(item.text.strip() for item in state.retrieved)
-        total_lines = state.request.structure.stanza_count * state.request.structure.lines_per_stanza
-        structure = (
-            f"{state.request.structure.stanza_count} stanza(s) "
-            f"of {state.request.structure.lines_per_stanza} lines each ({total_lines} lines total)"
-        )
-        metric_section = ""
-        if state.metric_examples:
-            examples_text = "\n\n".join(e.text.strip() for e in state.metric_examples)
-            metric_section = (
-                f"\nUse these verified examples as METER and RHYME reference "
-                f"(they demonstrate {meter} meter with {rhyme_scheme} rhyme scheme — "
-                f"follow this rhythm and rhyme pattern exactly):\n"
-                f"{examples_text}\n"
-            )
+    def build(
+        self,
+        request: GenerationRequest,
+        retrieved: list[RetrievedExcerpt],
+        examples: list[MetricExample],
+    ) -> str:
+        excerpts_section = self._format_excerpts(retrieved)
+        metric_section = self._format_metric_section(request, examples)
+        structure_desc = self._format_structure(request)
         return (
             "Use the following poetic excerpts as thematic inspiration (do not copy):\n"
-            f"{excerpts}\n{metric_section}\n"
-            f"Theme: {theme}\nMeter: {meter}\nRhyme scheme: {rhyme_scheme}\n"
-            f"Structure: {structure}\nGenerate a Ukrainian poem with exactly {total_lines} lines."
+            f"{excerpts_section}\n"
+            f"{metric_section}\n"
+            f"Theme: {request.theme}\n"
+            f"Meter: {request.meter.name}\n"
+            f"Rhyme scheme: {request.rhyme.pattern}\n"
+            f"Structure: {structure_desc}\n"
+            f"Generate a Ukrainian poem with exactly {request.structure.total_lines} lines.\n"
+            "\n"
+            "OUTPUT ENVELOPE (mandatory):\n"
+            "Wrap your FINAL poem between the literal tags <POEM> and </POEM>.\n"
+            "...STRICT FORMAT RULES — see rag_prompt_builder.py for the full block..."
         )
 ```
+
+The metric section is added only when `examples` is non-empty; the envelope and the strict-format rule block are appended unconditionally so every prompt carries the same anti-CoT-leakage guard.
 
 ### Prompt structure (with metric examples)
 
@@ -472,27 +488,35 @@ This gives the LLM a clear role context and suppresses extraneous output (commen
 
 ```python
 class ILLMProvider(ABC):
-    def generate(self, prompt: str, max_tokens: int) -> str: ...
+    def generate(self, prompt: str) -> str: ...
+    def regenerate_lines(self, poem: str, feedback: list[str]) -> str: ...
 ```
 
-A single `generate` operation that produces text from a prompt. Initial generation uses the RAG prompt; regeneration uses the feedback prompt with the violation list.
+Two operations: `generate` produces a brand-new poem from the RAG prompt; `regenerate_lines` takes an existing poem plus a list of validator feedback messages and returns a corrected version (the regeneration prompt is built inside the provider via the injected `IRegenerationPromptBuilder`). Token budget and temperature are configured once on the provider, not per-call.
 
 ### `GeminiProvider` — the real provider
 
 Uses the **new `google.genai` SDK** (not the deprecated `google.generativeai`):
 
 ```python
-client = genai.Client(api_key=api_key)
-response = client.models.generate_content(
-    model="gemini-3.1-pro-preview",
+# GeminiProvider.__init__ stores: model, temperature, max_output_tokens, disable_thinking
+self._client = genai.Client(api_key=api_key)
+
+# GeminiProvider._call(prompt, system_instruction=...)
+config = self._types.GenerateContentConfig(
+    temperature=self._temperature,             # default 0.9
+    max_output_tokens=self._max_output_tokens, # AppConfig wires 8192
+    system_instruction=system_instruction,
+    thinking_config=self._build_thinking_config(),  # None unless disable_thinking=True
+)
+response = self._client.models.generate_content(
+    model=self._model_name,                    # default "gemini-3.1-pro-preview"
     contents=prompt,
-    config=types.GenerateContentConfig(
-        temperature=0.9,          # high: more creativity
-        max_output_tokens=8192,   # ≥ 8192 is mandatory for reasoning models
-        system_instruction=...,
-    ),
+    config=config,
 )
 ```
+
+The class default for `max_output_tokens` in [`GeminiProvider.__init__`](../../src/infrastructure/llm/gemini.py) is `4096`; production composition overrides it from `AppConfig.gemini_max_tokens` (8192) so reasoning models have headroom for CoT plus the `<POEM>` envelope.
 
 **Parameters (current defaults):**
 - `temperature=0.9` — relatively high so the generation is varied and doesn't repeat identical lines. For reasoning models (Gemini 2.5+ / 3.x Pro) reducing to `0.3` is recommended — it curbs CoT leakage into the output.
@@ -518,7 +542,7 @@ LoggingLLMProvider              ← structured log per call + duration
 ```
 
 - **`LoggingLLMProvider`** — structured INFO/ERROR logs; sees the original arguments and the final result (post-retry).
-- **`RetryingLLMProvider`** — retries on `LLMError`. A timeout is an `LLMError`, so it is retried (often pointlessly — the model stays equally slow).
+- **`RetryingLLMProvider`** — retries on `LLMError` per the injected `IRetryPolicy`. The default `ExponentialBackoffRetry` excludes `LLMQuotaExceededError` (HTTP 429: the quota window won't reset within the retry budget). Timeout is a plain `LLMError`, so it is retried — often pointlessly for timeouts (the model takes just as long again), but the same branch covers transient 5xx / rate-limit responses where retry does help.
 - **`TimeoutLLMProvider`** — runs the inner call in a daemon thread; on `timeout_sec` overrun raises `LLMError`. **The thread is not killed** — Python can't force-terminate one; the actual HTTP call to Gemini keeps running.
 - **`SanitizingLLMProvider`** — feeds output through `IPoemOutputSanitizer`. An empty result (all garbage) raises `LLMError`, giving the retry layer another shot. Writes sanitized text to `ILLMCallRecorder` for UI tracing.
 - **`ExtractingLLMProvider`** — extracts the content between `<POEM>…</POEM>` via `IPoemExtractor`. Missing tags → passes input through (sanitizer will salvage). Writes raw and extracted text to `ILLMCallRecorder`.
@@ -569,17 +593,19 @@ To validate metre we need to know **which syllable carries the stress in each wo
 
 ```python
 class UkrainianStressDict(IStressDictionary):
-    on_ambiguity: str = "first"   # what to do with homographs: "first" / "random"
-
-    def __post_init__(self):
-        from ukrainian_word_stress import Stressifier, StressSymbol
-        self._stressify = Stressifier(
-            stress_symbol=StressSymbol.CombiningAcuteAccent,
-            on_ambiguity=self.on_ambiguity,
-        )
+    def __init__(self, logger: ILogger, on_ambiguity: str = "first") -> None:
+        self.on_ambiguity = on_ambiguity        # 'first' | 'last' | 'random'
+        self._accent = "́"                 # combining acute
+        self._logger = logger
+        self._stressify = _get_stressifier(on_ambiguity)
+        if self._stressify is None:
+            self._logger.warning(
+                "ukrainian-word-stress backend unavailable; "
+                "falling back to heuristic",
+            )
 ```
 
-The `ukrainian-word-stress` library uses **Stanza NLP** (Stanford NLP Group) for morphological analysis, which downloads ~500 MB of models on first run.
+The heavy `Stressifier` instance (which loads a ~500MB Stanza neural model) is **cached at module level** via `_get_stressifier(on_ambiguity)`, so multiple `UkrainianStressDict` instances across composition containers share one backend rather than duplicating it in memory. If the backend can't be loaded, `get_stress_index` returns `None` and the injected `IStressResolver` applies the penultimate-vowel fallback.
 
 ### `get_stress_index(word) → int | None`
 
@@ -604,8 +630,12 @@ Implements `ISyllableCounter`. Counts vowels in a word to determine syllable cou
 
 ## 8. Component 7 — Metre validator
 
-**Files:** `src/infrastructure/validators/meter/pattern_validator.py`
+**Files:** `src/infrastructure/validators/meter/pattern_validator.py` (production), `src/infrastructure/validators/meter/bsp_validator.py` + `bsp_algorithm.py` (alternative scoring strategy), `src/infrastructure/validators/meter/base.py` (shared `BaseMeterValidator`), `src/infrastructure/validators/meter/feedback_builder.py`
 **Port:** `src/domain/ports/validation.py` → `IMeterValidator`
+
+### Strategy choice
+
+Two implementations are wired through `Container.meter_validator()` (default — `PatternMeterValidator`) and `Container.bsp_meter_validator()` (opt-in). The production pipeline calls only the pattern strategy; BSP exists as an empirical alternative scored on its own thresholds (`AppConfig.validation.bsp_*`). Both share `BaseMeterValidator` so a future strategy can plug in without touching the pipeline.
 
 ### Supported metres
 
@@ -871,37 +901,43 @@ Rewrite line 3 keeping the meaning and meter.
 class GenerationResult:
     poem: str                         # final poem text
     validation: ValidationResult      # metre + rhyme validation result
+    iteration_history: tuple[IterationSnapshot, ...] = ()  # per-iteration trace for UI
 
 @dataclass(frozen=True)
 class ValidationResult:
     meter: MeterResult                # ok, accuracy, feedback per line
     rhyme: RhymeResult                # ok, accuracy, feedback per pair
-    iterations: int                   # feedback-loop iterations consumed
+    iterations: int = 0               # feedback-loop iterations consumed
+    # is_valid / feedback are read-only properties combining meter + rhyme
 
 @dataclass(frozen=True)
 class MeterResult:
     ok: bool                          # every line follows the metre
     accuracy: float                   # fraction of valid lines [0,1]
-    feedback: tuple[LineFeedback, ...]  # per-line issues
+    feedback: tuple[LineFeedback, ...] = ()         # per-line issues
+    line_results: tuple[LineMeterResult, ...] = ()  # raw per-line check (compare=False)
 
 @dataclass(frozen=True)
 class RhymeResult:
     ok: bool                          # every pair rhymes correctly
     accuracy: float                   # fraction of valid pairs [0,1]
-    feedback: tuple[PairFeedback, ...]  # per-pair issues
+    feedback: tuple[PairFeedback, ...] = ()         # per-pair issues
+    pair_results: tuple[RhymePairResult, ...] = ()  # raw per-pair check (compare=False)
 ```
+
+`IterationSnapshot` carries the per-iteration `poem`, `meter_accuracy`, `rhyme_accuracy`, `feedback`, `duration_sec`, `raw_llm_response`, `sanitized_llm_response`, and `input_tokens`/`output_tokens` (`src/domain/models/results.py`). Handlers render it on the generation page so reviewers can see what each feedback-loop pass produced.
 
 ---
 
 ## 11. Quality metrics — formulas and rationale
 
-**Files:** `src/infrastructure/metrics/` (meter_accuracy, rhyme_accuracy, semantic_relevance, regeneration_success, iteration_metrics, line_count, registry)
+**Files:** `src/infrastructure/metrics/` (meter_accuracy, rhyme_accuracy, semantic_relevance, regeneration_success, iteration_metrics, line_count, token_usage, registry)
 
 Every metric implements the `IMetricCalculator` port and registers with `DefaultMetricCalculatorRegistry`. `FinalMetricsStage` runs the whole registry at the end of the pipeline and populates `context.final_metrics` — keys exactly match `IMetricCalculator.name`.
 
 **Composition.** `MetricsSubContainer` is itself a thin façade composing two focused sub-containers: `CalculatorRegistrySubContainer` (registry + calculators + final stage) and `ReportingSubContainer` (reporter, results writers, tracer factory, HTTP error mapper, evaluation aggregator). Each lives in its own module under `src/infrastructure/composition/` so a new metric or a new writer touches one focused file rather than the broader metrics container.
 
-**Metric registry (8 calculators):**
+**Metric registry (12 calculators):**
 
 | Key | Class | File | Value | Zero when |
 |-----|-------|------|-------|-----------|
@@ -913,6 +949,10 @@ Every metric implements the `IMetricCalculator` port and registers with `Default
 | `rhyme_improvement` | `RhymeImprovementCalculator` | `iteration_metrics.py` | `final.rhyme_accuracy − initial.rhyme_accuracy` | iterations < 2 |
 | `feedback_iterations` | `FeedbackIterationsCalculator` | `iteration_metrics.py` | feedback-loop iterations (excludes initial validation) | always defined |
 | `num_lines` | `LineCountCalculator` | `line_count.py` | non-empty line count in the final poem | empty poem |
+| `input_tokens` | `InputTokensCalculator` | `token_usage.py` | sum of `IterationRecord.input_tokens` across the run | no iterations recorded tokens |
+| `output_tokens` | `OutputTokensCalculator` | `token_usage.py` | sum of `IterationRecord.output_tokens` across the run (includes reasoning tokens) | no iterations recorded tokens |
+| `total_tokens` | `TotalTokensCalculator` | `token_usage.py` | input + output tokens for the full run | no iterations recorded tokens |
+| `estimated_cost_usd` | `EstimatedCostCalculator` | `token_usage.py` | `(input · in_price + output · out_price) / 1e6` using `AppConfig.gemini_*_price_per_m` | tokens are zero |
 
 ### 11.1 Meter Accuracy
 
@@ -954,25 +994,32 @@ Measures **how semantically close the final poem is to the requested theme**. Us
 
 **Why:** independent of `meter_accuracy` / `rhyme_accuracy` — **formal correctness** ≠ **thematic fidelity**. A poem can hold iamb + ABAB perfectly yet write about potato chips instead of "spring in a forest".
 
-### 11.4 Regeneration Success (delta accuracy)
+### 11.4 Regeneration Success (violation-coverage ratio)
 
 ```python
 # src/infrastructure/metrics/regeneration_success.py
 initial = iterations[0]        # iteration 0 (initial-generation result)
 final   = iterations[-1]       # last iteration (after every feedback pass)
-regeneration_success = ((final.meter_accuracy - initial.meter_accuracy)
-                      + (final.rhyme_accuracy - initial.rhyme_accuracy)) / 2.0
+
+initial_violations = (1.0 - initial.meter_accuracy) + (1.0 - initial.rhyme_accuracy)
+final_violations   = (1.0 - final.meter_accuracy)   + (1.0 - final.rhyme_accuracy)
+
+if initial_violations <= 0.0:
+    regeneration_success = 1.0       # nothing to repair → vacuously successful
+else:
+    regeneration_success = 1.0 - final_violations / initial_violations
 ```
 
-**Range:** `[-1, 1]`. Negative values are returned **as-is** (not clamped) — degradation is intentional to surface in reports as a signal of prompt / model trouble.
+**Interpretation:** "what fraction of the *initial* violation budget did the feedback loop resolve?". Range `(-∞, 1]`, in practice clustered in `[-1, 1]`. Negative values are returned **as-is** (not clamped) — they signal that regeneration *increased* the violation total.
 
-- `+0.3` — the feedback loop lifted mean accuracy by 30%.
-- `0.0` — nothing changed (either it was perfect from the start, or the feedback didn't help).
-- `-0.2` — **the model made the poem worse** while trying to fix it — an alarm bell.
+- `1.0` — every initial violation fixed (or there were none to start with).
+- `+0.3` — the feedback loop closed 30% of the violation gap.
+- `0.0` — no progress; either nothing changed or what was fixed was offset by what broke.
+- `-0.5` — **the model made the poem worse** while trying to fix it — an alarm bell.
 
 **Zero when `len(iterations) < 2`:** the feedback loop didn't run (either `max_iterations=0` or the poem was valid on the first try).
 
-**Why:** separates **correction effectiveness** from raw quality. A system with baseline 50% + feedback 80% is better than one with baseline 75% without feedback.
+**Why coverage rather than a raw delta average:** a metric that was already at the ceiling (e.g. rhyme=100%) cannot contribute to improvement; averaging the two raw deltas would let an already-perfect channel drag the score down. The coverage form normalises against the actual room for improvement.
 
 ### 11.5 Meter / Rhyme Improvement (separate deltas)
 
@@ -1046,12 +1093,15 @@ Not averaged — used as a per-run diagnostic.
 ### Evaluation matrix
 
 ```python
-run_evaluation_matrix(
+# src/services/evaluation_service.py
+service.run_matrix(
     scenarios=[...],    # N scenarios
-    configs=[...],      # M configs
+    configs=[...],      # M ablation configs
 )
-# → N × M traces + summary tables
+# → N × M PipelineTrace records + an EvaluationSummary aggregate
 ```
+
+`EvaluationService` exposes both `run_scenario(scenario, config)` for a single cell and `run_matrix(scenarios, configs)` for the full sweep. Runners under `src/runners/` (e.g. `EvaluationRunner`, `BatchEvaluationRunner`) drive these methods from CLI / Makefile entry points.
 
 ### Quick run (demo)
 
@@ -1183,14 +1233,19 @@ PipelineTrace
 │   ├── poem_text                 # full poem text at this iteration
 │   ├── meter_accuracy            # [0,1]
 │   ├── rhyme_accuracy            # [0,1]
-│   └── feedback                  # messages sent to the LLM
+│   ├── feedback                  # messages sent to the LLM
+│   ├── input_tokens              # prompt tokens billed for this LLM call
+│   └── output_tokens             # completion tokens (CoT + envelope)
 ├── final_poem: str               # final poem
-├── final_metrics: dict           # meter_accuracy, rhyme_accuracy, feedback_iterations, num_lines, ...
+├── final_metrics: dict           # meter_accuracy, rhyme_accuracy, feedback_iterations,
+│                                 # num_lines, input/output/total_tokens, estimated_cost_usd, ...
 ├── total_duration_sec: float
 └── error: str | None
 ```
 
 The trace serialises to JSON via `trace.to_dict()` and persists when `--output results/eval.json` is passed. Alongside the JSON, a `.md` report is auto-generated with a per-scenario config comparison table and the final poems from each setup (`format_markdown_report()` in `runner.py`).
+
+**Batch runs add a row-level summary.** `BatchEvaluationService` writes a `BatchRunRow` per (scenario × config) pair (`src/domain/evaluation.py`) that aggregates each `PipelineTrace`. It carries the run's `input_tokens` / `output_tokens` / `total_tokens` / `estimated_cost_usd` plus a serialized per-iteration breakdown (`iteration_tokens`) so a CSV reader can recover the cost shape of every retry without reopening the JSON trace.
 
 ---
 
@@ -1205,6 +1260,8 @@ The trace serialises to JSON via `trace.to_dict()` and persists when `--output r
 | `GEMINI_TEMPERATURE` | `0.9` | `[0, 2]`. Lowering to `0.3` on reasoning models reduces CoT leakage |
 | `GEMINI_MAX_TOKENS` | `8192` | Max output tokens. Must be ≥ 8192 on reasoning models (otherwise `<POEM>` never emitted) |
 | `GEMINI_DISABLE_THINKING` | `false` | `true` → pass `ThinkingConfig(thinking_budget=0)`. Supported only by Gemini 2.5; Pro-preview returns 400 |
+| `GEMINI_INPUT_PRICE_PER_M` | `2.0` | USD per 1M input tokens. Used by `EstimatedCostCalculator` to convert token counts into the `estimated_cost_usd` metric. Override when switching to a Flash-tier model |
+| `GEMINI_OUTPUT_PRICE_PER_M` | `12.0` | USD per 1M output tokens (incl. reasoning). Same calculator |
 | `LLM_TIMEOUT_SEC` | `120` | Hard per-call timeout. 120 s for Pro; drop to 20 s for flash |
 | `LLM_RETRY_MAX_ATTEMPTS` | `2` | Retry attempts on `LLMError`. Timeout retries are usually futile but cover 5xx / rate-limit |
 | `LLM_PROVIDER` | `""` (auto) | Force provider: `gemini`, `mock`, or empty for auto-detect |
@@ -1219,6 +1276,17 @@ The trace serialises to JSON via `trace.to_dict()` and persists when `--output r
 **Heads up:** **do not write inline comments** in `.env` — docker-compose's `env_file` parser reads them as part of the value. Put every explanation on its own line before the variable. `AppConfig.from_env` has a defensive `_str()` helper that strips a trailing `# comment`, but avoid the pattern anyway.
 
 Detailed reference for every knob, reasoning-model tuning, and a common-failure table: [`reliability_and_config.md`](./reliability_and_config.md) ([UA](../ua/reliability_and_config.md)).
+
+### Detection knobs (hardcoded in `DetectionConfig`)
+
+`AppConfig.detection: DetectionConfig` (`src/config.py`) carries the brute-force meter/rhyme detector thresholds. They are intentionally **not** exposed as env vars — the UI and the API contract assume fixed values:
+
+| Field | Default | Why |
+|-------|---------|-----|
+| `meter_min_accuracy` | `0.85` | Strict cutoff so a returned classification is reliable rather than the closest noisy match |
+| `rhyme_min_accuracy` | `0.5` | Looser than generation/validation: a 4-line sample yields only 0.0 / 0.5 / 1.0, so 0.5 admits one solid pair |
+| `sample_lines` | `4` | Quatrain — the only stanza size the rhyme scheme extractor currently supports |
+| `feet_min` / `feet_max` | `1` / `6` | Detection sweep matches the production generation/validation foot range so the system can recognise what it can produce |
 
 ### Corpus management (Makefile)
 

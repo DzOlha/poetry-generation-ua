@@ -37,7 +37,7 @@ Top-down, each layer sees the output of the inner one. Only processed errors (`L
 ## Interaction: what sees what
 
 - `LoggingLLMProvider` **does not see** inner retries — it only observes the final success / failure.
-- `RetryingLLMProvider` retries only when the inner layer raises `LLMError`. Timeout counts as `LLMError` so it retries (often pointlessly — the model will likely take just as long again).
+- `RetryingLLMProvider` retries only when the inner layer raises `LLMError` **and** the injected policy permits it. The default `ExponentialBackoffRetry.should_retry` deliberately short-circuits on `LLMQuotaExceededError`: once a daily quota is exhausted, retrying within the same window just adds latency before the same error (HTTP 429). Every other `LLMError` is retried, including timeout — for timeouts this is often pointless (the model takes just as long again), but the same branch covers transient model failures (5xx, rate-limit) where retrying does help.
 - `SanitizingLLMProvider` can raise `LLMError` on empty output — the one case where retry gets a chance to fix "model produced CoT only".
 - `ExtractingLLMProvider` **always** writes to `ILLMCallRecorder` even on inner failure. Full trace for UI / debug.
 

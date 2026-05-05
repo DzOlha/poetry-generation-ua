@@ -70,12 +70,13 @@ Algorithm of `resolve(word) -> int`:
 ## Examples
 
 ```
-"сон"      → 0 (1 syllable)
-"весна"    → 1 (2 syllables, hard ending → last)
-"книжка"   → 0 (2 syllables, soft ending → penultimate)
-"україна"  → 2 (4 syllables; dictionary → "і")
-"прапор"   → 0 (2 syllables; dictionary knows "пра́пор")
-"работа"   → 2 (3 syllables; -ота suffix rule → last)
+"сон"      → 0 (1 syllable → always 0)
+"урок"     → 1 (2 syllables; dictionary knows «уро́к»; the heuristic agrees — hard «к» → last)
+"книжка"   → 0 (2 syllables; dictionary knows «кни́жка»; the heuristic agrees — soft «а» → penultimate)
+"україна"  → 2 (4 syllables; dictionary → «Украї́на»)
+"прапор"   → 0 (2 syllables; dictionary knows «пра́пор». Without it the heuristic would return 1 — hard «р» → last)
+"пустота"  → 2 (3 syllables; «-ота» suffix rule → last syllable)
+"весна"    → 1 (2 syllables; dictionary knows «весна́». Without it the heuristic would return 0 — soft «а» → penultimate — which would be wrong)
 ```
 
 ## Ports (Dependency Inversion)

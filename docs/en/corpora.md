@@ -135,7 +135,6 @@ When the user requests *"iamb, 4 feet, ABAB"*, the LLM benefits from seeing a co
 - Most cells carry **at least 2 examples** so the few-shot prompt has a choice of register; popular cells have many more (`ямб 5ст ABAB`: 14, `анапест 3ст ABAB`: 12, `ямб 4ст ABAB`: 7).
 - **77 of 193** records carry an explicit author (Леся Українка, Сосюра, Шевченко, Тичина, Костенко, Сковорода, Чумак, Антонич, Симоненко, Олесь, Філянський, Бажан, …); the remaining 116 are **synthetic / re-combined balanced examples** added by hand to fill cells the classical sources did not cover.
 - **151 of 193** carry a free-text `note` explaining the scansion or the rhyme classification.
-- **35 of 193** carry an explicit `stress_pattern` (binary string `010101…`) — kept where the metre is non-obvious and the editor wanted to lock the canonical reading.
 
 #### Coverage by metre × scheme
 
@@ -164,24 +163,22 @@ The 1-foot row is sparse on purpose — 1-foot anapest exists in `corpus/uk_metr
 
 ```json
 {
-  "id":             "iamb_3_ABAB",
-  "meter":          "ямб",
-  "feet":           3,
-  "scheme":         "ABAB",
-  "stress_pattern": "010101",
-  "verified":       true,
-  "source":         "Василь Чумак, перший катрен вірша «Заквіт осінній сум»",
-  "author":         "Василь Чумак",
-  "title":          "Заквіт осінній сум",
-  "note":           "Скандування: за-КВІТ-о-СІН-ній-СУМ = UÚ UÚ UÚ → ямб 3ст. Рима ABAB: …",
-  "text":           "Заквіт осінній сум,\nОсінній сум заквіт.\nНа віях я несу\nГаптований привіт."
+  "id":       "iamb_3_ABAB",
+  "meter":    "ямб",
+  "feet":     3,
+  "scheme":   "ABAB",
+  "verified": true,
+  "source":   "Василь Чумак, перший катрен вірша «Заквіт осінній сум»",
+  "author":   "Василь Чумак",
+  "title":    "Заквіт осінній сум",
+  "note":     "Скандування: за-КВІТ-о-СІН-ній-СУМ = UÚ UÚ UÚ → ямб 3ст. Рима ABAB: …",
+  "text":     "Заквіт осінній сум,\nОсінній сум заквіт.\nНа віях я несу\nГаптований привіт."
 }
 ```
 
 - `id` follows the pattern `<metre>_<feet>_<scheme>[_<author>_<file>_<idx>]` — the bare prefix is reserved for the canonical "first example" of each cell.
-- `stress_pattern` is the binary canonical pattern (`0` = unstressed, `1` = stressed) without weak-stress / pyrrhic exceptions; used for fast lookup, not full validation.
 - `note` is intentionally informal — it is editor commentary the dashboard does not render but reviewers consult.
-- The shape is enforced by the `MetricCorpusEntry` `TypedDict` in [`src/domain/models/metric_corpus_entry.py`](../../src/domain/models/metric_corpus_entry.py).
+- The shape is enforced by the `MetricCorpusEntry` `TypedDict` in [`src/domain/models/metric_corpus_entry.py`](../../src/domain/models/metric_corpus_entry.py). The binary `stress_pattern` field is no longer present — it used to record the canonical `010101…` template for some ambiguous cells, but `PatternMeterValidator` already reconstructs the expected pattern from `(meter, feet)`, so the field was redundant and was removed from the curated corpus.
 
 ### How it was constructed
 
@@ -241,7 +238,7 @@ Three fields differ from the curated schema:
 
 - `meter_accuracy` and `rhyme_accuracy` are present (auto-detection is graded, not binary).
 - `verified` is `false`.
-- `note` and `stress_pattern` are absent (no editor commentary).
+- `note` is absent (no editor commentary).
 
 ---
 
