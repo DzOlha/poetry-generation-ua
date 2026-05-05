@@ -2,6 +2,8 @@
 
 > The full research pipeline that turns *"is component X actually useful?"* into a **statistically defensible answer**. Three stages: run the matrix → compute paired-Δ contributions → render a dashboard. Each stage is invoked separately so a quota outage in stage 1 does not lose stage-2 work.
 
+> **For a plain-language overview**, with no code or formulas, start with [`ablation_explained.md`](./ablation_explained.md): a school-exam analogy tied to our 18 scenarios.
+
 This document picks up where [evaluation_harness.md](./evaluation_harness.md) leaves off. The harness is the *ablation engine* (one matrix pass = 18 scenarios × 8 configs = 144 runs). The **batch** flow on this page extends that engine with multiple seeds per cell, paired-Δ statistics across configs, and a dashboard that turns the raw numbers into a verdict.
 
 ## Three-stage pipeline at a glance
@@ -264,6 +266,10 @@ W  = 1
 nonzero = deltas[deltas != 0]                  # zero_method="wilcox" drops zero Δs
 return stats.wilcoxon(nonzero, zero_method="wilcox").pvalue
 ```
+
+**So why is the p-value still kept in `contributions.csv`?** The Wilcoxon test answers a different inferential question than the bootstrap CI: it checks how compatible the observed Δ vector is with a null hypothesis of zero effect, whereas the interval estimates the range in which the true mean lies with 95 % probability. The two procedures rest on different assumptions — a rank-based test versus resampling — so their agreement effectively functions as a cross-validation: a systematic disagreement between CI and p-value flags a Δ vector that warrants manual inspection for structural artefacts (sample degeneracy, duplicates, systematic NaNs). Computing the test is a single `scipy.stats.wilcoxon(...)` call (~20 µs per Δ vector), so retention has zero engineering cost.
+
+The p-value does **not** drive the dashboard verdict because of the well-known conservativeness of the signed-rank test at small *n*: at the typical sample size `n = 18` (`SEEDS = 1`) the test has low statistical power and routinely leaves real effects above `p > 0.05` despite consistent Δ signs (Conover, *Practical Nonparametric Statistics*, 3rd ed., §5.7). The bootstrap percentile CI on the same data yields an interval whose width is the stated uncertainty, so the verdict "the component reliably improves the metric" is taken from the CI, with the p-value retained as a supplementary diagnostic in the CSV.
 
 </details>
 

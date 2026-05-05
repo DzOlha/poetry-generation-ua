@@ -10,7 +10,7 @@
 > - RAG і промпти: [семантичний пошук](./semantic_retrieval.md), [побудова промптів](./prompt_construction.md)
 > - Цикл корекції: [feedback loop](./feedback_loop.md), [санітизація](./sanitization_pipeline.md), [LLM decorator stack](./llm_decorator_stack.md), [конфігурація](./reliability_and_config.md)
 > - **Усі числа в одному місці:** [пороги та дефолти](./thresholds_reference.md) — кожен поріг, вага й дефолт, що керують поведінкою, з обґрунтуванням
-> - Дослідження: [evaluation harness](./evaluation_harness.md) — 18 сценаріїв × 8 абляцій
+> - Дослідження: [evaluation harness](./evaluation_harness.md) — 18 сценаріїв × 8 абляцій; [абляційні звіти простими словами](./ablation_explained.md) — без коду й формул
 
 ---
 

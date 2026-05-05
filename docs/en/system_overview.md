@@ -10,7 +10,7 @@
 > - RAG and prompts: [semantic retrieval](./semantic_retrieval.md), [prompt construction](./prompt_construction.md)
 > - Feedback loop + LLM integration: [feedback loop](./feedback_loop.md), [sanitization](./sanitization_pipeline.md), [LLM decorator stack](./llm_decorator_stack.md), [reliability & config](./reliability_and_config.md)
 > - **Numbers in one place:** [thresholds reference](./thresholds_reference.md) — every cutoff, weight, and default that drives behaviour, with rationale
-> - Research: [evaluation harness](./evaluation_harness.md) — 18 scenarios × 8 ablation configs
+> - Research: [evaluation harness](./evaluation_harness.md) — 18 scenarios × 8 ablation configs; [ablation reports in plain language](./ablation_explained.md) — no code or formulas
 
 ---
 
