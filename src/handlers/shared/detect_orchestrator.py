@@ -14,7 +14,7 @@ from typing import Any
 from src.domain.detection import MeterDetection, RhymeDetection
 from src.domain.errors import DomainError
 from src.domain.models import MeterSpec, RhymeScheme, ValidationRequest
-from src.domain.ports.validation import IMeterValidator
+from src.domain.ports.validation import IMeterValidator, IRhymeValidator
 from src.domain.values import MeterName
 from src.handlers.shared.line_displays import line_displays
 from src.services.detection_service import DetectionService
@@ -129,6 +129,47 @@ def _detect_meter_for_stanza(
     return _best_guess_meter(stanza_text, meter_validator)
 
 
+def _stanza_rhyme_fits(
+    stanza_text: str,
+    rhyme: RhymeDetection,
+    rhyme_validator: IRhymeValidator,
+    threshold: float,
+) -> bool:
+    try:
+        result = rhyme_validator.validate(
+            stanza_text, RhymeScheme(pattern=rhyme.scheme),
+        )
+    except DomainError:
+        return False
+    return result.accuracy >= threshold
+
+
+def _resolve_stanza_rhyme(
+    stanza_text: str,
+    full_rhyme: RhymeDetection | None,
+    service: DetectionService,
+    rhyme_validator: IRhymeValidator,
+    rhyme_min_accuracy: float,
+) -> RhymeDetection | None:
+    """Pick the rhyme scheme for a stanza.
+
+    Re-detects on the stanza when the inherited full-poem scheme scores
+    below `rhyme_min_accuracy` for it — handles poems whose stanzas use
+    different schemes (e.g. ABAB throughout but one AABB couplet stanza).
+    """
+    if full_rhyme is not None and _stanza_rhyme_fits(
+        stanza_text, full_rhyme, rhyme_validator, rhyme_min_accuracy,
+    ):
+        return full_rhyme
+    try:
+        sr = service.detect(stanza_text, sample_lines=STANZA_SIZE)
+        if sr.rhyme is not None:
+            return sr.rhyme
+    except DomainError:
+        pass
+    return full_rhyme
+
+
 def _validate_stanza(
     stanza_text: str,
     meter: MeterSpec,
@@ -170,6 +211,8 @@ def detect_poem(
     service: DetectionService,
     poetry: PoetryService,
     meter_validator: IMeterValidator,
+    rhyme_validator: IRhymeValidator,
+    rhyme_min_accuracy: float,
 ) -> DetectionContext:
     """Run the full detection flow and return a structured context.
 
@@ -242,13 +285,10 @@ def detect_poem(
                 stanza_text, full_meter, service, meter_validator,
             )
         if want_rhyme:
-            rhyme_det = full_rhyme
-            if rhyme_det is None:
-                try:
-                    sr = service.detect(stanza_text, sample_lines=STANZA_SIZE)
-                    rhyme_det = sr.rhyme
-                except DomainError:
-                    pass
+            rhyme_det = _resolve_stanza_rhyme(
+                stanza_text, full_rhyme, service,
+                rhyme_validator, rhyme_min_accuracy,
+            )
 
         if meter_det is not None:
             meter_spec = MeterSpec(name=meter_det.meter, foot_count=meter_det.foot_count)

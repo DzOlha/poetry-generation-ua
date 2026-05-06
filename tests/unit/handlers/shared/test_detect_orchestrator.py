@@ -18,10 +18,11 @@ from src.domain.models import (
     MeterResult,
     MeterSpec,
     RhymeResult,
+    RhymeScheme,
     ValidationRequest,
     ValidationResult,
 )
-from src.domain.ports.validation import IMeterValidator
+from src.domain.ports.validation import IMeterValidator, IRhymeValidator
 from src.handlers.shared.detect_orchestrator import (
     DetectionContext,
     detect_poem,
@@ -36,16 +37,24 @@ from src.services.poetry_service import PoetryService
 
 @dataclass
 class _FakeDetectionService:
-    """Returns a scripted DetectionResult per call, or raises UnsupportedConfigError."""
+    """Returns a scripted DetectionResult per call, or raises UnsupportedConfigError.
+
+    If `results_queue` is non-empty, each call pops the next result — useful
+    for tests that need different outcomes for full-poem vs per-stanza calls.
+    Otherwise falls back to the single `result`.
+    """
 
     result: DetectionResult | None = None
     raise_error: bool = False
     calls: list[str] = field(default_factory=list)
+    results_queue: list[DetectionResult] = field(default_factory=list)
 
     def detect(self, poem_text: str, *, sample_lines: int = 4) -> DetectionResult:
         self.calls.append(poem_text)
         if self.raise_error:
             raise UnsupportedConfigError("scripted failure")
+        if self.results_queue:
+            return self.results_queue.pop(0)
         assert self.result is not None, "No scripted DetectionResult"
         return self.result
 
@@ -85,6 +94,16 @@ class _FakeMeterValidator(IMeterValidator):
         return MeterResult(ok=False, accuracy=0.0)
 
 
+class _FakeRhymeValidator(IRhymeValidator):
+    """Returns a fixed accuracy for the misfit check, regardless of scheme."""
+
+    def __init__(self, accuracy: float = 1.0) -> None:
+        self._accuracy = accuracy
+
+    def validate(self, poem_text: str, scheme: RhymeScheme) -> RhymeResult:
+        return RhymeResult(ok=self._accuracy >= 0.5, accuracy=self._accuracy)
+
+
 def _valid_detection(meter: str = "ямб", feet: int = 4, scheme: str = "ABAB") -> DetectionResult:
     return DetectionResult(
         meter=MeterDetection(meter=meter, foot_count=feet, accuracy=0.95),
@@ -115,6 +134,8 @@ def _run(
     service: _FakeDetectionService | None = None,
     poetry: _FakePoetryService | None = None,
     meter_validator: IMeterValidator | None = None,
+    rhyme_validator: IRhymeValidator | None = None,
+    rhyme_min_accuracy: float = 0.5,
 ) -> DetectionContext:
     """Call detect_poem with casts — fakes duck-type the service classes."""
     return detect_poem(
@@ -124,6 +145,8 @@ def _run(
         service=cast(DetectionService, service or _FakeDetectionService()),
         poetry=cast(PoetryService, poetry or _FakePoetryService()),
         meter_validator=meter_validator or _FakeMeterValidator(),
+        rhyme_validator=rhyme_validator or _FakeRhymeValidator(),
+        rhyme_min_accuracy=rhyme_min_accuracy,
     )
 
 
@@ -288,3 +311,41 @@ class TestDetectPoemOrchestration:
         assert len(ctx.stanzas) == 2
         # Each stanza has 4 lines from our fake ValidationResult; 4 × 2 = 8.
         assert ctx.validated_lines == 8
+
+    def test_misfit_full_rhyme_falls_back_to_per_stanza_redetect(self) -> None:
+        # Poem-level detection picked ABAB, but this stanza is actually AABB.
+        # The orchestrator must spot the misfit (rhyme_validator returns 0.0)
+        # and re-detect on the stanza, replacing ABAB with AABB.
+        poem = "\n".join([f"рядок {i} довгий" for i in range(1, 5)])
+        service = _FakeDetectionService(results_queue=[
+            _valid_detection("ямб", 4, "ABAB"),  # full-poem call
+            _valid_detection("ямб", 4, "AABB"),  # per-stanza re-detect
+        ])
+        ctx = _run(
+            poem,
+            service=service,
+            poetry=_FakePoetryService(validation=_valid_validation()),
+            rhyme_validator=_FakeRhymeValidator(accuracy=0.0),
+        )
+        assert ctx.full_rhyme is not None and ctx.full_rhyme.scheme == "ABAB"
+        assert len(ctx.stanzas) == 1
+        assert ctx.stanzas[0].rhyme is not None
+        assert ctx.stanzas[0].rhyme.scheme == "AABB"
+        # Two detect() calls: one for the full poem, one for the misfit stanza.
+        assert len(service.calls) == 2
+
+    def test_fitting_full_rhyme_skips_per_stanza_redetect(self) -> None:
+        # When rhyme_validator says the inherited scheme fits, the orchestrator
+        # must NOT pay for an extra per-stanza re-detect call.
+        poem = "\n".join([f"рядок {i} довгий" for i in range(1, 5)])
+        service = _FakeDetectionService(result=_valid_detection("ямб", 4, "ABAB"))
+        ctx = _run(
+            poem,
+            service=service,
+            poetry=_FakePoetryService(validation=_valid_validation()),
+            rhyme_validator=_FakeRhymeValidator(accuracy=1.0),
+        )
+        assert ctx.stanzas[0].rhyme is not None
+        assert ctx.stanzas[0].rhyme.scheme == "ABAB"
+        # Only the full-poem call — no per-stanza re-detect.
+        assert len(service.calls) == 1

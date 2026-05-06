@@ -3,11 +3,14 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from src.domain.ports.validation import IMeterValidator
+from src.config import DetectionConfig
+from src.domain.ports.validation import IMeterValidator, IRhymeValidator
 from src.handlers.api.dependencies import (
+    get_detection_config,
     get_detection_service,
     get_meter_validator,
     get_poetry_service,
+    get_rhyme_validator,
 )
 from src.handlers.api.schemas import (
     DetectionRequestSchema,
@@ -30,6 +33,8 @@ def detect_poem_endpoint(
     service: DetectionService = Depends(get_detection_service),
     poetry: PoetryService = Depends(get_poetry_service),
     meter_validator: IMeterValidator = Depends(get_meter_validator),
+    rhyme_validator: IRhymeValidator = Depends(get_rhyme_validator),
+    detection_config: DetectionConfig = Depends(get_detection_config),
 ) -> DetectionResultSchema:
     """Auto-detect meter and rhyme scheme of a poem.
 
@@ -44,6 +49,8 @@ def detect_poem_endpoint(
         service=service,
         poetry=poetry,
         meter_validator=meter_validator,
+        rhyme_validator=rhyme_validator,
+        rhyme_min_accuracy=detection_config.rhyme_min_accuracy,
     )
 
     if ctx.error:

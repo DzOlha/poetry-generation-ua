@@ -16,7 +16,7 @@
   <a href="https://youtu.be/9-8JHxPXHLE">▶ Переглянути демо-відео</a>
 </p>
 
-[![tests](https://img.shields.io/badge/tests-1131%20passing-brightgreen)]() [![coverage](https://img.shields.io/badge/coverage-91%25-brightgreen)]() [![python](https://img.shields.io/badge/python-3.13-blue)]() [![docker](https://img.shields.io/badge/runs%20in-Docker-2496ED)]()
+[![tests](https://img.shields.io/badge/tests-1133%20passing-brightgreen)]() [![coverage](https://img.shields.io/badge/coverage-91%25-brightgreen)]() [![python](https://img.shields.io/badge/python-3.13-blue)]() [![docker](https://img.shields.io/badge/runs%20in-Docker-2496ED)]()
 
 ```text
 Тема: «тріумф»

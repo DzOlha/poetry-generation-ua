@@ -6,11 +6,14 @@ import logging
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
 
-from src.domain.ports.validation import IMeterValidator
+from src.config import DetectionConfig
+from src.domain.ports.validation import IMeterValidator, IRhymeValidator
 from src.handlers.api.dependencies import (
+    get_detection_config,
     get_detection_service,
     get_meter_validator,
     get_poetry_service,
+    get_rhyme_validator,
 )
 from src.handlers.shared.detect_orchestrator import detect_poem
 from src.handlers.web.routes._shared import templates
@@ -36,6 +39,8 @@ def detect_run(
     service: DetectionService = Depends(get_detection_service),
     poetry: PoetryService = Depends(get_poetry_service),
     meter_validator: IMeterValidator = Depends(get_meter_validator),
+    rhyme_validator: IRhymeValidator = Depends(get_rhyme_validator),
+    detection_config: DetectionConfig = Depends(get_detection_config),
 ) -> HTMLResponse:
     want_meter = detect_meter is not None
     want_rhyme = detect_rhyme is not None
@@ -47,6 +52,8 @@ def detect_run(
         service=service,
         poetry=poetry,
         meter_validator=meter_validator,
+        rhyme_validator=rhyme_validator,
+        rhyme_min_accuracy=detection_config.rhyme_min_accuracy,
     )
 
     if ctx.error:

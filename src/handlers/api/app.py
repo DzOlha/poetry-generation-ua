@@ -58,6 +58,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
         app.state.http_error_mapper = container.http_error_mapper()
         app.state.scenario_registry = container.scenario_registry()
         app.state.meter_validator = container.meter_validator()
+        app.state.rhyme_validator = container.rhyme_validator()
         app.state.ablation_configs = ABLATION_CONFIGS
         app.state.llm_info = cfg.llm_info()
         app.state.evaluation_service = build_evaluation_service(
