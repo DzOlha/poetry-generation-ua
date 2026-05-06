@@ -84,7 +84,7 @@ Now for **each** scenario we record A's result and B's result. Two exams, same s
 | C04 (hexameter) | 0.60 | 0.56 | −0.04 |
 | C06 (emoji theme) | 0.60 | 0.65 | +0.05 |
 
-Numbers are hypothetical but realistic. Δ vector: `[+0.08, +0.12, +0.10, +0.06, −0.04, +0.05]`. In a real run there are 18 such numbers, one per scenario — I picked 6 for the example so the picture stays readable.
+Numbers are hypothetical but realistic. Δ vector: `[+0.08, +0.12, +0.10, +0.06, −0.04, +0.05]`. In a real run there are 18 such numbers, one per scenario — we picked 6 for the example so the picture stays readable.
 
 **Why MUST we compare like-for-like?** Because the scenarios differ wildly in difficulty. If we naively did `mean(B) − mean(A)`:
 - Suppose A had been run mostly on N01–N05 (easy) → mean A = 0.70.
