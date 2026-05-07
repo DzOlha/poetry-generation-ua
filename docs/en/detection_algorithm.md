@@ -188,8 +188,7 @@ Incomplete trailing stanza is ignored.
 
 ### 3.2 Stress heuristic
 
-Based on default stress research in free-stress Slavic languages
-(Dolatian & Guekguezian, Cambridge Phonology 2019):
+Built on the statistical regularity in Ukrainian phonology where the word-final segment is a strong predictor of default stress placement:
 
 | Word ending | Stress position | Examples |
 |-------------|----------------|----------|
@@ -197,8 +196,6 @@ Based on default stress research in free-stress Slavic languages
 | Soft sign or "y" sound (й, ь) | Penultimate syllable | shyrokyi, zelenyi, misiats |
 | Hard consonant (r, n, t, s, ...) | Last syllable | horyth, viter |
 | Monosyllabic | Only syllable | lis, Dnipr |
-
-Accuracy on test sample: ~79%.
 
 ### 3.3 Model singleton
 

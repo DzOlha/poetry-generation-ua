@@ -1,9 +1,8 @@
 """IStressResolver implementation with a linguistic fallback heuristic.
 
 The dictionary engine answers when it can; otherwise we use a heuristic
-based on the final segment of the word — the strongest single predictor
-of default stress in free-stress Slavic languages (Dolatian & Guekguezian,
-Cambridge Phonology 2019).
+based on the final segment of the word — a strong statistical predictor
+of default stress in Ukrainian.
 
 Heuristic layers, applied in order:
   1. Suffix rules — Ukrainian suffixes with highly consistent stress
@@ -14,10 +13,9 @@ Heuristic layers, applied in order:
        * ends in a vowel / «й» / «ь» → penultimate syllable,
        * ends in a hard consonant    → last syllable.
 
-On a representative sample of Ukrainian poetry vocabulary the generic
-heuristic achieves ~79% accuracy vs ~25% for the naive "always last" rule;
-the suffix rules correct the small but systematically wrong slice where
-the generic rule picks the wrong syllable.
+The generic rule outperforms a naive "always last syllable" baseline on
+Ukrainian poetry vocabulary; the suffix rules correct the small but
+systematically wrong slice where the generic rule picks the wrong syllable.
 """
 from __future__ import annotations
 

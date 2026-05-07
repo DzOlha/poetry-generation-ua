@@ -46,7 +46,8 @@ def get_stress_index(word: str) -> int | None:
 Details:
 - The Stressifier returns the word with a **combining acute accent over the stressed vowel**. The wrapper converts this back into a 0-based vowel index.
 - What's returned is a **vowel index**, not a syllable index. For *"украї́на"* (stress on the 3rd vowel) the method returns `2`.
-- For **ambiguous** words (*зА́мок* vs *замО́к*) the wrapper defaults to `on_ambiguity="first"` — the first interpretation wins. The strategy is configurable (`first` / `last` / `random`).
+- For words with **multiple dictionary stress variants** (such as *за́мок* — fortress vs *замо́к* — lock) the library internally runs **Stanza POS analysis** (`tokenize`, `pos`, `mwt`) and filters the variants by grammatical features (`feats`, `upos`). In most cases the contextual information suffices to select the intended interpretation unambiguously.
+- If POS analysis fails to reduce the variants to a single option, the `on_ambiguity` fallback strategy applies. The library exposes three values: `"skip"` (default — returns the word with no stress mark), `"first"` (picks the first dictionary variant), and `"all"` (returns every candidate position simultaneously). The `UkrainianStressDict` implementation ([ukrainian.py:57](../../src/infrastructure/stress/ukrainian.py#L57)) sets `on_ambiguity="first"`. This is a deliberate choice in favour of a deterministic dictionary-grounded stress for genuinely unresolvable cases, rather than falling through to the generic heuristic.
 - If the `ukrainian-word-stress` library cannot be loaded the constructor logs a warning and `get_stress_index` returns `None`; the upstream `IStressResolver` then falls back to its heuristic.
 - The Stressifier instance loads on first call and is **cached in a module-level dict keyed by `on_ambiguity`** — multiple `UkrainianStressDict` instances (e.g. parallel composition containers in tests) share the same backend instead of duplicating the heavy model.
 
@@ -65,7 +66,7 @@ Algorithm of `resolve(word) -> int`:
      - Word ends in a vowel, `й`, or `ь` (**soft ending**) → stress on the **penultimate** syllable.
      - Word ends in a consonant (**hard ending**) → stress on the **last** syllable.
 
-**Why this heuristic.** Ukrainian phonology has a statistical bias: soft-ending words stress the penultimate syllable in ~79% of cases (Dolatian & Guekguezian, *Cambridge Phonology* 2019). Suffix rules capture the known exceptions. Together this gets ~85–90% accuracy on unseen words — enough for fallback mode.
+**Why this heuristic.** Ukrainian phonology has a statistical bias: soft-ending words tend to stress the penultimate syllable. Suffix rules capture the known exceptions. The combined accuracy is acceptable for the fallback role, which only handles the minority of words missing from the dictionary.
 
 ## Examples
 
@@ -119,7 +120,7 @@ Full details in [`meter_validation.md`](./meter_validation.md).
 ## Caveats and limitations
 
 - **Single-process cache:** `UkrainianStressDict` holds the Stressifier instance in a module-level variable. In multi-worker mode (uvicorn with workers > 1) the model is reloaded per process. Fine for prod (start-up cost only) but not ideal.
-- **`on_ambiguity="first"`** — loses ~2% of cases where the first interpretation is wrong. Compensated by validator tolerance.
+- **`on_ambiguity="first"`** is invoked only on words for which Stanza POS analysis fails to reduce the multiple dictionary variants to one. On that subset the first variant may not coincide with the contextually correct one. Quantitatively this is a small tail of the homograph population (the majority is resolved by POS filtering); the residual error is partly absorbed by the meter validator's tolerance (`meter_allowed_mismatches=2`).
 - **Missing dictionary entries for rare forms.** A word like "загорілся" (Russian interference, a malformed Ukrainian) yields `None` from the dictionary → the heuristic treats it as an ordinary word. The result may miss the author's intent.
 - **Case.** The dictionary handles both cases; the cache key is as-is.
 
